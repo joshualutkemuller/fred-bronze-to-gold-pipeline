@@ -39,10 +39,12 @@ class FredPipeline:
         spark: Any = None,
         warehouse: Optional[Warehouse] = None,
         persist_audit: bool = True,
+        notify_transport: Any = None,
     ):
         self.config = config
         self.persist_audit = persist_audit
         self._client = client
+        self._notify_transport = notify_transport
         # Resolve the storage backend: explicit warehouse > Spark > None (dry run).
         if warehouse is not None:
             self.warehouse: Optional[Warehouse] = warehouse
@@ -117,11 +119,26 @@ class FredPipeline:
                 log.exception("Gold refresh failed for run %s", run.run_id)
 
         self._persist_run(run)
+        self._notify(run)
         log.info(
             "Run %s finished: %s (%d ok / %d failed)",
             run.run_id, run.status.value, run.series_succeeded, run.series_failed,
         )
         return run
+
+    def _notify(self, run: EtlRun) -> None:
+        from fred_pipeline import notify
+
+        try:
+            notify.send_notification(
+                run,
+                webhook_url=self.config.alert_webhook_url,
+                notify_on=self.config.notify_on,
+                environment=self.config.environment.value,
+                transport=self._notify_transport,
+            )
+        except Exception:  # never let notification issues fail a run
+            log.exception("Notification step failed for run %s", run.run_id)
 
     # ---- per-series -----------------------------------------------------
 

@@ -53,6 +53,8 @@ _SETTING_FIELDS = (
     "rate_limit_per_minute",
     "raw_volume_path",
     "restate_last_n",
+    "alert_webhook_url",
+    "notify_on",
 )
 
 # Environment-variable name for each setting (12-factor style overrides).
@@ -66,6 +68,8 @@ _ENV_OVERRIDES = {
     "rate_limit_per_minute": "FRED_RATE_LIMIT_PER_MINUTE",
     "raw_volume_path": "FRED_RAW_VOLUME_PATH",
     "restate_last_n": "FRED_RESTATE_LAST_N",
+    "alert_webhook_url": "FRED_ALERT_WEBHOOK_URL",
+    "notify_on": "FRED_NOTIFY_ON",
 }
 
 _INT_FIELDS = {
@@ -170,6 +174,10 @@ class PipelineConfig:
     rate_limit_per_minute: int = 120
     raw_volume_path: str = ""
     restate_last_n: int = 90
+    # Notifications: POST a run summary to this webhook (Slack-compatible JSON).
+    # notify_on: "never" | "failure" (default) | "always".
+    alert_webhook_url: str = field(repr=False, default="")
+    notify_on: str = "failure"
 
     @property
     def catalog(self) -> str:

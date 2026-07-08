@@ -45,6 +45,12 @@ default:
   # --- Bronze raw-payload archive volume (blank = derived from catalog) ---
   raw_volume_path: ""
 
+  # --- Notifications (handoff "Notify" step) ---
+  # POST a run summary to a Slack-compatible webhook. Leave blank to only log.
+  # notify_on: never | failure (default) | always
+  alert_webhook_url: ""
+  notify_on: "failure"
+
 # Per-environment overrides are merged on top of `default` for the chosen --env.
 environments:
   dev: {}
