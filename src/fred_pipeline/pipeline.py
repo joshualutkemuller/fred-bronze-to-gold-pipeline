@@ -136,7 +136,8 @@ class FredPipeline:
                 spec.series_id, "series/observations", payload, run_id=run.run_id
             )
             silver_rows = build_silver_rows(
-                spec.series_id, payload, run_id=run.run_id
+                spec.series_id, payload, run_id=run.run_id,
+                track_vintage=spec.vintage_enabled,
             )
             report = run_quality_checks(
                 spec.series_id, silver_rows, profile=spec.validation_profile

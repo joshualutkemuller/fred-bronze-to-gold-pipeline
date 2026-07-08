@@ -85,8 +85,8 @@ Normalized observations. **Natural key / MERGE key:**
 |---|---|---|
 | series_id | STRING | Series |
 | observation_date | DATE | The date the value describes |
-| realtime_start | DATE | Vintage window start (when value became known) |
-| realtime_end | DATE | Vintage window end (`9999-12-31` = still current → NULL) |
+| realtime_start | DATE | Vintage window start (when value became known). **NULL/blank for `vintage_enabled: false` series** — vintage is not tracked, so the key is `(series_id, observation_date)` and re-runs update in place |
+| realtime_end | DATE | Vintage window end (`9999-12-31` = still current → NULL); also blank for non-vintage series |
 | value | DOUBLE | Parsed numeric value (NULL if missing) |
 | raw_value | STRING | Original FRED string (`.` preserved) |
 | is_missing | BOOLEAN | True when FRED returned `.` |
