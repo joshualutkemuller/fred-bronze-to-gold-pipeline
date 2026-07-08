@@ -203,12 +203,20 @@ up — including syncing its metadata into `meta.fred_series`.
   category: rates
   frequency: d
   units: Percent
-  vintage_enabled: false
+  # vintage_enabled defaults to true (point-in-time safe). Set false only for
+  # provably non-revised market/price series if you want a leaner pull.
   validation_profile: standard
   downstream_use_case: yield_curve
   priority: 1
   tags: [rates, curve, treasury]
 ```
+
+**Revision-sensitivity is on by default.** `vintage_enabled` defaults to `true`,
+so every series captures its full point-in-time (ALFRED) history unless you
+opt out. This is the leakage-safe default for backtests: you can always collapse
+vintages to "latest revised" (the `gold.v_latest_revised` view), but you cannot
+recover vintages a run never captured. For never-revised market series (yields,
+SOFR, breakevens) it's a cheap no-op — one vintage per date.
 
 ### 2. Discover series from the FRED API
 

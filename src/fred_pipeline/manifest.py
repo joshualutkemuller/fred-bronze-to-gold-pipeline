@@ -61,7 +61,12 @@ class SeriesSpec:
     active: bool = True
     load_type: LoadType = LoadType.INCREMENTAL
     expected_update_frequency: str = ""
-    vintage_enabled: bool = False
+    # Revision-sensitive by default: capture full point-in-time (ALFRED) history
+    # so backtests never suffer look-ahead bias. Collapsing to "latest revised"
+    # is always possible downstream; recovering un-captured vintages is not.
+    # For provably non-revised market/price series (yields, SOFR, breakevens)
+    # this is a cheap no-op (one vintage per date) and may be set to false.
+    vintage_enabled: bool = True
     validation_profile: ValidationProfile = ValidationProfile.STANDARD
     business_owner: str = ""
     technical_owner: str = ""

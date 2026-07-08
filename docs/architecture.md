@@ -89,6 +89,14 @@ audit.etl_run / audit.etl_series_run
 
 ## Point-in-time (vintage) handling
 
+`vintage_enabled` defaults to **true** — revision-sensitive by default. This is
+the leakage-safe choice: capturing full vintage history is a superset you can
+always collapse to "latest revised", whereas vintages a run never captured
+cannot be recovered. For never-revised market/price series (Treasury yields,
+SOFR, breakevens) it is a cheap no-op (one vintage per date), so the extra
+volume lands only on genuinely-revised series (GDP, CPI, payrolls) — exactly
+where it is wanted. Set `vintage_enabled: false` per series to opt out.
+
 For series with `vintage_enabled: true`, the pipeline requests FRED's full
 real-time window (`realtime_start=1776-07-04`, `realtime_end=9999-12-31`),
 which returns every vintage of every observation.

@@ -12,7 +12,8 @@ series:
     units: Percent
     load_type: incremental
     expected_update_frequency: business_daily
-    vintage_enabled: false
+    # vintage_enabled defaults to true (safe/PIT); market rates are effectively
+    # non-revised, so this is a cheap no-op — set false here to opt out of it.
     validation_profile: standard
     business_owner: quant-macro
     technical_owner: data-eng

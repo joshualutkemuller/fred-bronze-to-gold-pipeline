@@ -19,6 +19,8 @@ def test_series_spec_minimal_defaults():
     assert spec.load_type is LoadType.INCREMENTAL
     assert spec.validation_profile is ValidationProfile.STANDARD
     assert spec.priority == 3
+    # Revision-sensitive by default (point-in-time safe).
+    assert spec.vintage_enabled is True
 
 
 def test_series_spec_normalizes_frequency_and_enums():

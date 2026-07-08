@@ -46,6 +46,8 @@ def test_discover_specs_happy_path_returns_valid_specs():
     # they are real, validated SeriesSpec objects
     assert specs[0].frequency == "d"
     assert specs[1].frequency == "m"
+    # discovered series inherit the safe, revision-sensitive default
+    assert all(s.vintage_enabled for s in specs)
 
 
 def test_discover_specs_excludes_discontinued():
