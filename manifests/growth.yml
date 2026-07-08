@@ -1,0 +1,71 @@
+name: growth
+description: >
+  Output and activity indicators: GDP, industrial production, retail sales, and
+  housing. GDP is heavily revised across vintages, so point-in-time tracking is
+  enabled for the national-accounts series.
+version: 1
+
+series:
+  - series_id: GDP
+    title: Gross Domestic Product (Nominal, SAAR)
+    category: growth
+    frequency: q
+    units: Billions of Dollars
+    load_type: full
+    expected_update_frequency: quarterly
+    vintage_enabled: true
+    validation_profile: strict
+    business_owner: quant-macro
+    technical_owner: data-eng
+    downstream_use_case: point_in_time_features
+    priority: 1
+    tags: [growth, gdp, vintage]
+
+  - series_id: GDPC1
+    title: Real Gross Domestic Product (Chained 2017 Dollars, SAAR)
+    category: growth
+    frequency: q
+    units: Billions of Chained 2017 Dollars
+    load_type: full
+    vintage_enabled: true
+    validation_profile: strict
+    downstream_use_case: point_in_time_features
+    priority: 1
+    tags: [growth, gdp, real, vintage]
+
+  - series_id: INDPRO
+    title: Industrial Production - Total Index (SA)
+    category: growth
+    frequency: m
+    units: Index 2017=100
+    load_type: incremental
+    downstream_use_case: nowcasting
+    priority: 2
+    tags: [growth, production]
+
+  - series_id: RSAFS
+    title: Advance Retail Sales - Retail and Food Services (SA)
+    category: growth
+    frequency: m
+    units: Millions of Dollars
+    downstream_use_case: consumption_nowcast
+    priority: 2
+    tags: [growth, retail, consumption]
+
+  - series_id: HOUST
+    title: New Privately-Owned Housing Units Started - Total (SAAR)
+    category: growth
+    frequency: m
+    units: Thousands of Units
+    downstream_use_case: housing_activity
+    priority: 3
+    tags: [growth, housing]
+
+  - series_id: PERMIT
+    title: New Private Housing Units Authorized by Building Permits (SAAR)
+    category: growth
+    frequency: m
+    units: Thousands of Units
+    downstream_use_case: housing_activity
+    priority: 3
+    tags: [growth, housing, leading]

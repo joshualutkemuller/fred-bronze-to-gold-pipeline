@@ -1,0 +1,76 @@
+name: inflation
+description: >
+  Consumer/producer price indices, PCE deflators, and market-implied inflation
+  breakevens. CPI/PCE levels are revised, so vintage tracking is enabled for
+  point-in-time macro features.
+version: 1
+
+series:
+  - series_id: CPIAUCSL
+    title: Consumer Price Index for All Urban Consumers - All Items (SA)
+    category: inflation
+    frequency: m
+    units: Index 1982-1984=100
+    load_type: full
+    expected_update_frequency: monthly
+    vintage_enabled: true
+    validation_profile: strict
+    business_owner: quant-macro
+    technical_owner: data-eng
+    downstream_use_case: point_in_time_features
+    priority: 1
+    tags: [inflation, cpi, vintage]
+
+  - series_id: CPILFESL
+    title: Consumer Price Index - All Items Less Food and Energy (Core CPI, SA)
+    category: inflation
+    frequency: m
+    units: Index 1982-1984=100
+    load_type: full
+    vintage_enabled: true
+    validation_profile: strict
+    downstream_use_case: point_in_time_features
+    priority: 1
+    tags: [inflation, cpi, core, vintage]
+
+  - series_id: PCEPI
+    title: Personal Consumption Expenditures - Price Index (SA)
+    category: inflation
+    frequency: m
+    units: Index 2017=100
+    load_type: full
+    vintage_enabled: true
+    validation_profile: strict
+    downstream_use_case: point_in_time_features
+    priority: 1
+    tags: [inflation, pce, vintage]
+
+  - series_id: PCEPILFE
+    title: PCE Excluding Food and Energy (Core PCE, SA)
+    category: inflation
+    frequency: m
+    units: Index 2017=100
+    load_type: full
+    vintage_enabled: true
+    validation_profile: strict
+    downstream_use_case: point_in_time_features
+    priority: 1
+    tags: [inflation, pce, core, vintage]
+
+  - series_id: T5YIE
+    title: 5-Year Breakeven Inflation Rate
+    category: inflation
+    frequency: d
+    units: Percent
+    downstream_use_case: market_implied_inflation
+    priority: 2
+    tags: [inflation, breakeven, market]
+
+  - series_id: T10YIE
+    title: 10-Year Breakeven Inflation Rate
+    category: inflation
+    frequency: d
+    units: Percent
+    downstream_use_case: market_implied_inflation
+    priority: 2
+    tags: [inflation, breakeven, market]

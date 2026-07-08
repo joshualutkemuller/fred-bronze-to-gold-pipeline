@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/joshualutkemuller/fred-bronze-to-gold-pipeline/manifest.schema.json",
+  "title": "FRED Pipeline Manifest",
+  "description": "Schema for a FRED ingestion manifest. Mirrors fred_pipeline.manifest.",
+  "type": "object",
+  "required": ["series"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "version": { "type": "integer", "minimum": 1 },
+    "series": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/seriesSpec" }
+    }
+  },
+  "definitions": {
+    "seriesSpec": {
+      "type": "object",
+      "required": ["series_id", "title", "frequency"],
+      "additionalProperties": false,
+      "properties": {
+        "series_id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "frequency": {
+          "type": "string",
+          "enum": [
+            "d", "w", "bw", "m", "q", "sa", "a",
+            "daily", "weekly", "biweekly", "monthly",
+            "quarterly", "semiannual", "annual"
+          ]
+        },
+        "category": { "type": "string" },
+        "units": { "type": "string" },
+        "active": { "type": "boolean" },
+        "load_type": { "type": "string", "enum": ["full", "incremental"] },
+        "expected_update_frequency": { "type": "string" },
+        "vintage_enabled": { "type": "boolean" },
+        "validation_profile": {
+          "type": "string",
+          "enum": ["strict", "standard", "lenient"]
+        },
+        "business_owner": { "type": "string" },
+        "technical_owner": { "type": "string" },
+        "downstream_use_case": { "type": "string" },
+        "priority": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

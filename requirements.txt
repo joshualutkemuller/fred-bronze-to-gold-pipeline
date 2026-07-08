@@ -1,0 +1,5 @@
+# Core runtime dependencies (Spark/Delta are supplied by the Databricks runtime).
+requests>=2.28
+PyYAML>=6.0
+
+# Dev/test extras — install with: pip install -r requirements.txt -r requirements-dev.txt

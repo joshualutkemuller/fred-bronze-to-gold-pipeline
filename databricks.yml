@@ -1,0 +1,61 @@
+# Databricks Asset Bundle: deploys the FRED pipeline across dev/test/prod.
+# Usage:
+#   databricks bundle validate -t dev
+#   databricks bundle deploy   -t dev
+#   databricks bundle run fred_ingestion -t dev
+#
+# Secrets: create the scope + key once per environment, e.g.
+#   databricks secrets create-scope fred
+#   databricks secrets put-secret fred api_key
+bundle:
+  name: fred-bronze-to-gold-pipeline
+
+include:
+  - resources/*.yml
+
+# Shared variables; overridden per-target below.
+variables:
+  catalog:
+    description: Unity Catalog to target
+    default: macro_dev
+  manifests_path:
+    description: Workspace path to the manifests directory
+    default: /Workspace/${workspace.file_path}/manifests
+  workspace_host:
+    description: Databricks workspace URL (e.g. https://adb-xxxx.azuredatabricks.net)
+    default: https://your-workspace.cloud.databricks.com
+  service_principal:
+    description: Service principal application id used to run prod jobs
+    default: 00000000-0000-0000-0000-000000000000
+
+artifacts:
+  fred_pipeline_wheel:
+    type: whl
+    build: python -m build --wheel
+    path: .
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: ${var.workspace_host}
+    variables:
+      catalog: macro_dev
+
+  test:
+    mode: production
+    workspace:
+      host: ${var.workspace_host}
+    variables:
+      catalog: macro_test
+
+  prod:
+    mode: production
+    workspace:
+      host: ${var.workspace_host}
+    variables:
+      catalog: macro_prod
+    # In prod, run as a dedicated service principal (set your own id).
+    run_as:
+      service_principal_name: ${var.service_principal}

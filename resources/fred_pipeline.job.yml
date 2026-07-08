@@ -1,0 +1,57 @@
+# Databricks Job for the FRED Bronze-to-Gold pipeline.
+# Mirrors the 10-step workflow in the handoff doc, collapsed into the tasks the
+# Python package actually implements. Each task runs on a shared job cluster.
+resources:
+  jobs:
+    fred_ingestion:
+      name: "[${bundle.target}] FRED Bronze-to-Gold Ingestion"
+      tags:
+        project: fred-pipeline
+        environment: ${var.catalog}
+
+      # Daily at 12:15 UTC (after most FRED releases post in the morning ET).
+      schedule:
+        quartz_cron_expression: "0 15 12 * * ?"
+        timezone_id: "UTC"
+        pause_status: "PAUSED"
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+
+      job_clusters:
+        - job_cluster_key: fred_cluster
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: "Standard_DS3_v2"
+            num_workers: 1
+            data_security_mode: "SINGLE_USER"
+            spark_conf:
+              spark.databricks.delta.schema.autoMerge.enabled: "true"
+
+      tasks:
+        # 1. Validate manifests before touching any data.
+        - task_key: validate_manifest
+          job_cluster_key: fred_cluster
+          spark_python_task:
+            python_file: ../notebooks/run_pipeline.py
+            parameters:
+              - "--stage=validate"
+              - "--env=${bundle.target}"
+              - "--manifests=${var.manifests_path}"
+          libraries:
+            - whl: ../dist/*.whl
+
+        # 2. Ingest: Bronze -> Silver -> DQ -> Gold + audit.
+        - task_key: ingest
+          depends_on:
+            - task_key: validate_manifest
+          job_cluster_key: fred_cluster
+          spark_python_task:
+            python_file: ../notebooks/run_pipeline.py
+            parameters:
+              - "--stage=run"
+              - "--env=${bundle.target}"
+              - "--manifests=${var.manifests_path}"
+          libraries:
+            - whl: ../dist/*.whl

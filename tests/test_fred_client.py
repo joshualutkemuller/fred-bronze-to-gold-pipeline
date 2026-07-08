@@ -1,0 +1,91 @@
+import pytest
+
+from fred_pipeline.fred_client import FredAPIError, FredClient, RateLimiter
+
+
+def _make_client(session, **kw):
+    return FredClient(
+        api_key="test-key",
+        session=session,
+        sleep=lambda _s: None,  # no real sleeping in tests
+        **kw,
+    )
+
+
+def test_requires_api_key():
+    with pytest.raises(FredAPIError):
+        FredClient(api_key="", session=object())
+
+
+def test_get_observations_success(fake_session_cls, fake_response_cls, observations_payload):
+    session = fake_session_cls([fake_response_cls(observations_payload)])
+    client = _make_client(session)
+    out = client.get_observations("DGS10")
+    assert out == observations_payload
+    # api_key + file_type are injected into every request
+    params = session.calls[0]["params"]
+    assert params["api_key"] == "test-key"
+    assert params["file_type"] == "json"
+    assert params["series_id"] == "DGS10"
+
+
+def test_vintage_params_passed_through(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([fake_response_cls({"observations": []})])
+    client = _make_client(session)
+    client.get_observations(
+        "GDP", realtime_start="1776-07-04", realtime_end="9999-12-31"
+    )
+    params = session.calls[0]["params"]
+    assert params["realtime_start"] == "1776-07-04"
+    assert params["realtime_end"] == "9999-12-31"
+
+
+def test_retries_on_transient_then_succeeds(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([
+        fake_response_cls(None, status_code=503),
+        fake_response_cls(None, status_code=500),
+        fake_response_cls({"observations": []}, status_code=200),
+    ])
+    client = _make_client(session, max_retries=5)
+    out = client.get_observations("DGS10")
+    assert out == {"observations": []}
+    assert len(session.calls) == 3
+
+
+def test_non_retryable_error_raises_immediately(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([
+        fake_response_cls({"error_message": "Bad Request. Series does not exist."},
+                          status_code=400),
+    ])
+    client = _make_client(session)
+    with pytest.raises(FredAPIError) as exc:
+        client.get_observations("NOPE")
+    assert exc.value.status_code == 400
+    assert len(session.calls) == 1
+
+
+def test_exhausts_retries_and_raises(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([fake_response_cls(None, status_code=503) for _ in range(3)])
+    client = _make_client(session, max_retries=2)
+    with pytest.raises(FredAPIError):
+        client.get_observations("DGS10")
+    assert len(session.calls) == 3  # initial + 2 retries
+
+
+def test_metadata_extraction(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([
+        fake_response_cls({"seriess": [{"id": "DGS10", "title": "10Y"}]}),
+    ])
+    client = _make_client(session)
+    meta = client.get_series_metadata("DGS10")
+    assert meta["title"] == "10Y"
+
+
+def test_rate_limiter_sleeps_when_too_fast():
+    slept = []
+    now = [0.0]
+    rl = RateLimiter(per_minute=60, _sleep=slept.append, _now=lambda: now[0])
+    rl.acquire()          # first call, no sleep
+    now[0] = 0.1          # only 0.1s elapsed, need 1.0s
+    rl.acquire()
+    assert slept and slept[-1] == pytest.approx(0.9, abs=1e-6)

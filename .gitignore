@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Databricks
+.databricks/
+*.dbc
+
+# Secrets / local env — never commit
+.env
+*.key
+secrets.yml
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
