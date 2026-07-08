@@ -190,6 +190,19 @@ class LocalWarehouse:
     def write_bronze(self, rows: list[dict[str, Any]]) -> int:
         return self._insert("bronze_fred_api_response", rows)
 
+    def read_bronze(
+        self, series_ids: Optional[list[str]] = None
+    ) -> list[dict[str, Any]]:
+        sql = ("SELECT series_id, response_payload, run_id, ingested_at "
+               "FROM bronze_fred_api_response")
+        params: tuple = ()
+        if series_ids:
+            placeholders = ", ".join("?" * len(series_ids))
+            sql += f" WHERE series_id IN ({placeholders})"
+            params = tuple(series_ids)
+        sql += " ORDER BY ingested_at"
+        return self.query(sql, params)
+
     def merge_silver(self, rows: list[dict[str, Any]]) -> int:
         return self._insert(
             "silver_fred_observation",

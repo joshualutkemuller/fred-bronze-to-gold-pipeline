@@ -28,6 +28,9 @@ class Warehouse(Protocol):
     def sync_meta(self, manifests: Iterable[Manifest]) -> dict[str, int]: ...
     def restate_start(self, series_id: str, n: int) -> Optional[str]: ...
     def write_bronze(self, rows: list[dict[str, Any]]) -> int: ...
+    def read_bronze(
+        self, series_ids: Optional[list[str]] = None
+    ) -> list[dict[str, Any]]: ...
     def merge_silver(self, rows: list[dict[str, Any]]) -> int: ...
     def build_gold(self) -> dict[str, str]: ...
     def write_lifecycle(self, rows: list[dict[str, Any]]) -> int: ...
@@ -95,6 +98,20 @@ class SparkWarehouse:
         from fred_pipeline.bronze import write_bronze
 
         return write_bronze(self.config, rows, spark=self.spark)
+
+    def read_bronze(
+        self, series_ids: Optional[list[str]] = None
+    ) -> list[dict[str, Any]]:
+        table = self.config.table("bronze", "fred_api_response")
+        where = ""
+        if series_ids:
+            ids = ", ".join("'" + s.replace("'", "''") + "'" for s in series_ids)
+            where = f"WHERE series_id IN ({ids})"
+        df = self.spark.sql(
+            f"SELECT series_id, response_payload, run_id, ingested_at "
+            f"FROM {table} {where} ORDER BY ingested_at"
+        )
+        return [row.asDict() for row in df.collect()]
 
     def merge_silver(self, rows: list[dict[str, Any]]) -> int:
         from fred_pipeline.silver import merge_silver
