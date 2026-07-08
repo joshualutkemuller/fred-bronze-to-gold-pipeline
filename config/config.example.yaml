@@ -51,6 +51,13 @@ default:
   alert_webhook_url: ""
   notify_on: "failure"
 
+  # --- Vintage history ---
+  # false (default): one full-window request per vintage series; if it exceeds
+  #   FRED's 2000-vintage-date cap the client falls back to a bounded window.
+  # true: fetch COMPLETE vintage history by batching under the cap (more API
+  #   calls; use for series where full point-in-time history is required).
+  complete_vintage_history: false
+
 # Per-environment overrides are merged on top of `default` for the chosen --env.
 environments:
   dev: {}

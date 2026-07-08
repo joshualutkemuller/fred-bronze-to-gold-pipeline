@@ -55,6 +55,7 @@ _SETTING_FIELDS = (
     "restate_last_n",
     "alert_webhook_url",
     "notify_on",
+    "complete_vintage_history",
 )
 
 # Environment-variable name for each setting (12-factor style overrides).
@@ -70,6 +71,7 @@ _ENV_OVERRIDES = {
     "restate_last_n": "FRED_RESTATE_LAST_N",
     "alert_webhook_url": "FRED_ALERT_WEBHOOK_URL",
     "notify_on": "FRED_NOTIFY_ON",
+    "complete_vintage_history": "FRED_COMPLETE_VINTAGE_HISTORY",
 }
 
 _INT_FIELDS = {
@@ -78,6 +80,9 @@ _INT_FIELDS = {
     "rate_limit_per_minute",
     "restate_last_n",
 }
+
+_BOOL_FIELDS = {"complete_vintage_history"}
+_TRUE_STRINGS = {"1", "true", "yes", "on"}
 
 
 def load_config_file(
@@ -135,6 +140,12 @@ def _coerce_settings(settings: dict[str, Any]) -> dict[str, Any]:
     for name in _INT_FIELDS:
         if out.get(name) is not None:
             out[name] = int(out[name])
+    for name in _BOOL_FIELDS:
+        val = out.get(name)
+        if isinstance(val, str):
+            out[name] = val.strip().lower() in _TRUE_STRINGS
+        elif val is not None:
+            out[name] = bool(val)
     return out
 
 
@@ -178,6 +189,11 @@ class PipelineConfig:
     # notify_on: "never" | "failure" (default) | "always".
     alert_webhook_url: str = field(repr=False, default="")
     notify_on: str = "failure"
+    # When true, vintage_enabled series fetch their COMPLETE vintage history by
+    # batching under FRED's 2000-vintage-date cap (more requests, full history).
+    # When false, a single full-window request is made and, if it hits the cap,
+    # the client falls back to a bounded recent window.
+    complete_vintage_history: bool = False
 
     @property
     def catalog(self) -> str:

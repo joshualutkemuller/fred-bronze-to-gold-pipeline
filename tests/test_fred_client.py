@@ -119,6 +119,61 @@ def test_non_vintage_400_still_raises(fake_session_cls, fake_response_cls):
     assert len(session.calls) == 1  # no fallback attempts
 
 
+def test_get_vintage_dates_paginates(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([
+        fake_response_cls({"vintage_dates": ["2020-01-01", "2020-06-01"]}),
+        fake_response_cls({"vintage_dates": ["2021-01-01"]}),
+    ])
+    client = FredClient(api_key="k", session=session, sleep=lambda s: None)
+    # tiny page size forces a second page
+    dates = client.get_vintage_dates("ICSA", page_size=2)
+    assert dates == ["2020-01-01", "2020-06-01", "2021-01-01"]
+
+
+def test_all_vintages_batches_and_coalesces(fake_session_cls, fake_response_cls):
+    # 3 vintage dates, batch_size 2 -> 1 vintagedates call + 2 observation calls
+    vintage_dates = fake_response_cls({"vintage_dates": ["2020-01-01", "2020-02-01",
+                                                         "2020-03-01"]})
+    # batch 1 (windows 01-01..02-01): value 100 across both vintages (clipped)
+    batch1 = fake_response_cls({"observations": [
+        {"date": "2019-12-01", "value": "100", "realtime_start": "2020-01-01",
+         "realtime_end": "2020-02-01"},
+    ]})
+    # batch 2 (window 03-01): value revised to 105
+    batch2 = fake_response_cls({"observations": [
+        {"date": "2019-12-01", "value": "100", "realtime_start": "2020-03-01",
+         "realtime_end": "2020-03-01"},
+        {"date": "2019-12-01", "value": "105", "realtime_start": "2020-03-01",
+         "realtime_end": "9999-12-31"},
+    ]})
+    session = fake_session_cls([vintage_dates, batch1, batch2])
+    client = FredClient(api_key="k", session=session, sleep=lambda s: None)
+    out = client.get_observations_all_vintages("X", batch_size=2)
+
+    obs = out["observations"]
+    # coalescing collapses the repeated value=100 vintages into one, keeps the 105
+    values = [(o["value"], o["realtime_start"]) for o in obs]
+    assert ("100", "2020-01-01") in values
+    assert ("105", "2020-03-01") in values
+    assert sum(1 for v, _ in values if v == "100") == 1  # not fragmented
+    assert len(session.calls) == 3
+
+
+def test_coalesce_observations_merges_equal_runs():
+    from fred_pipeline.fred_client import _coalesce_observations
+
+    rows = [
+        {"date": "d", "value": "1", "realtime_start": "2020-01-01", "realtime_end": "2020-02-01"},
+        {"date": "d", "value": "1", "realtime_start": "2020-02-02", "realtime_end": "2020-03-01"},
+        {"date": "d", "value": "2", "realtime_start": "2020-03-02", "realtime_end": "9999-12-31"},
+    ]
+    out = _coalesce_observations(rows)
+    assert len(out) == 2
+    assert out[0]["value"] == "1"
+    assert out[0]["realtime_end"] == "2020-03-01"  # window extended across the run
+    assert out[1]["value"] == "2"
+
+
 def test_metadata_extraction(fake_session_cls, fake_response_cls):
     session = fake_session_cls([
         fake_response_cls({"seriess": [{"id": "DGS10", "title": "10Y"}]}),

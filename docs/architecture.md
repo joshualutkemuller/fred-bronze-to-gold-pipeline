@@ -106,9 +106,19 @@ which returns every vintage of every observation.
 is why daily market/price series (Treasury yields, SOFR, breakevens) are
 `vintage_enabled: false` — they are not revised, and a daily series has far more
 than 2000 vintages. For a genuinely-revised high-frequency series that still
-exceeds the cap (e.g. weekly `ICSA`), the client degrades gracefully: it retries
-with a progressively shorter real-time window (last 10 → 3 → 1 years), then
-latest-only, capturing recent revisions rather than failing the run.
+exceeds the cap (e.g. weekly `ICSA`), there are two modes:
+
+* **Default** — the client degrades gracefully, retrying with a progressively
+  shorter real-time window (last 10 → 3 → 1 years), then latest-only, capturing
+  recent revisions rather than failing the run.
+* **`complete_vintage_history: true`** — the client fetches the *full* history:
+  it enumerates the series' vintage dates (`series/vintagedates`) and pulls
+  observations in contiguous real-time windows of ≤2000 vintages each, then
+  **coalesces** adjacent equal-value vintages. Window batching clips each row's
+  realtime window to the batch bounds, splitting an unchanged value into rows at
+  each seam; coalescing merges those back (a real revision changes the value, a
+  clipping artifact repeats it), so the merged result equals one uncapped
+  request. The trade-off is more API calls, so it's opt-in.
 `transform.assign_revision_numbers` orders vintages by `realtime_start` to
 produce a `revision_number`, giving two lenses in Gold:
 
