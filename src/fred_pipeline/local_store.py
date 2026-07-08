@@ -70,6 +70,13 @@ CREATE TABLE IF NOT EXISTS gold_fred_point_in_time (
 CREATE TABLE IF NOT EXISTS gold_fred_macro_feature_daily (
     as_of_date TEXT, series_id TEXT, raw_value REAL, value REAL
 );
+CREATE TABLE IF NOT EXISTS gold_fred_feature_transforms (
+    series_id TEXT, observation_date TEXT, value REAL,
+    mom REAL, diff REAL, yoy REAL, zscore REAL
+);
+CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
+    spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT, value REAL
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -253,9 +260,34 @@ class LocalWarehouse:
         # daily forward-filled feature matrix
         self.conn.execute("DELETE FROM gold_fred_macro_feature_daily")
         self._insert("gold_fred_macro_feature_daily", daily_feature_matrix(latest))
+
+        # quant transforms (mom/yoy/diff/zscore) + curve spreads
+        from fred_pipeline.features import (
+            compute_curve_spreads,
+            compute_feature_transforms,
+        )
+
+        self.conn.execute("DELETE FROM gold_fred_feature_transforms")
+        self._insert("gold_fred_feature_transforms",
+                     compute_feature_transforms(latest))
+        self.conn.execute("DELETE FROM gold_fred_curve_spread")
+        self._insert("gold_fred_curve_spread", compute_curve_spreads(latest))
+
         self.conn.commit()
-        return {k: "ok" for k in
-                ("fred_point_in_time", "fred_latest_observation", "fred_macro_feature_daily")}
+        return {k: "ok" for k in (
+            "fred_point_in_time", "fred_latest_observation",
+            "fred_macro_feature_daily", "fred_feature_transforms",
+            "fred_curve_spread",
+        )}
+
+    def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
+        """Each series' value as known on ``as_of`` (leakage-free snapshot)."""
+        from fred_pipeline.features import point_in_time_snapshot
+
+        silver = self._read("silver_fred_observation")
+        for r in silver:
+            r["is_missing"] = bool(r.get("is_missing"))
+        return point_in_time_snapshot(silver, as_of)
 
     def write_lifecycle(self, rows: list[dict[str, Any]]) -> int:
         return self._insert("meta_fred_series_lifecycle", rows)

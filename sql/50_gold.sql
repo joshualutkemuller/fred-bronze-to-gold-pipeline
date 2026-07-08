@@ -76,3 +76,47 @@ joined AS (
 )
 SELECT as_of_date, series_id, value AS raw_value, value_ffill AS value
 FROM joined;
+
+-- Quant transforms: MoM / first diff / YoY / full-sample z-score per series.
+CREATE OR REPLACE TABLE gold.fred_feature_transforms AS
+WITH base AS (
+    SELECT series_id, observation_date, value
+    FROM gold.fred_latest_observation WHERE is_missing = false
+),
+w AS (
+    SELECT series_id, observation_date, value,
+        LAG(value) OVER (PARTITION BY series_id ORDER BY observation_date) AS prev_value,
+        AVG(value) OVER (PARTITION BY series_id) AS mean_v,
+        STDDEV_POP(value) OVER (PARTITION BY series_id) AS std_v
+    FROM base
+),
+ya AS (
+    SELECT a.*, b.value AS year_ago
+    FROM w a
+    LEFT JOIN base b
+      ON b.series_id = a.series_id
+     AND b.observation_date = add_months(a.observation_date, -12)
+)
+SELECT series_id, observation_date, value,
+    CASE WHEN prev_value IS NOT NULL AND prev_value <> 0
+         THEN (value - prev_value) / prev_value END AS mom,
+    CASE WHEN prev_value IS NOT NULL THEN value - prev_value END AS diff,
+    CASE WHEN year_ago IS NOT NULL AND year_ago <> 0
+         THEN (value - year_ago) / year_ago END AS yoy,
+    CASE WHEN std_v IS NOT NULL AND std_v <> 0
+         THEN (value - mean_v) / std_v END AS zscore
+FROM ya;
+
+-- Yield-curve spreads (long_leg − short_leg) over the seed universe.
+CREATE OR REPLACE TABLE gold.fred_curve_spread AS
+SELECT s.spread_name, a.observation_date, s.long_leg, s.short_leg,
+       a.value - b.value AS value
+FROM (VALUES
+        ('T10Y2Y',  'DGS10', 'DGS2'),
+        ('T10Y3M',  'DGS10', 'DGS3MO'),
+        ('T2Y3M',   'DGS2',  'DGS3MO'),
+        ('T30Y10Y', 'DGS30', 'DGS10')
+     ) AS s(spread_name, long_leg, short_leg)
+JOIN gold.fred_latest_observation a ON a.series_id = s.long_leg  AND a.is_missing = false
+JOIN gold.fred_latest_observation b ON b.series_id = s.short_leg AND b.is_missing = false
+                                   AND b.observation_date = a.observation_date;

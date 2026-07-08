@@ -138,6 +138,21 @@ Daily calendar × series grid, forward-filled from latest observations. Columns:
 `as_of_date`, `series_id`, `raw_value` (only on native release dates), `value`
 (forward-filled). Suitable for optimizer inputs and ML feature matrices.
 
+### `gold.fred_feature_transforms`
+Per-series quant transforms from latest observations: `mom` (period-over-period
+% change), `diff` (first difference), `yoy` (year-over-year % change), `zscore`
+(full-sample). Keyed `(series_id, observation_date)`.
+
+### `gold.fred_curve_spread`
+Yield-curve spreads (`long_leg − short_leg`), e.g. `T10Y2Y`, `T10Y3M`, `T2Y3M`,
+`T30Y10Y`. Columns: `spread_name`, `observation_date`, `long_leg`, `short_leg`,
+`value`.
+
+### Point-in-time feature snapshot
+`gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
+point_in_time_features(as_of)` return each series' value **as it was known** on
+`as_of` — a leakage-free feature vector for backtests.
+
 ### Views (`gold.v_*`)
 * `v_latest_revised` — latest revision per date (backs the Gold table).
 * `v_point_in_time` — every vintage row; filter by real-time window.
