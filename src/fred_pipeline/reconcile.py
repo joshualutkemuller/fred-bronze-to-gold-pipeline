@@ -170,14 +170,18 @@ def reconcile(
     *,
     today: Optional[date] = None,
     active_only: bool = False,
+    series_ids: Optional[list[str]] = None,
 ) -> ReconcileReport:
     """Fetch FRED metadata for each series and diff it against the manifests.
 
     ``client`` needs a ``get_series_metadata(series_id)`` method. Network/lookup
     failures for one series are recorded (``not_found``) without aborting the
-    run.
+    run. ``series_ids`` restricts reconciliation to a subset.
     """
     specs = all_series(list(manifests), active_only=active_only)
+    if series_ids:
+        wanted = set(series_ids)
+        specs = [s for s in specs if s.series_id in wanted]
     report = ReconcileReport(series_checked=len(specs))
     for spec in specs:
         try:

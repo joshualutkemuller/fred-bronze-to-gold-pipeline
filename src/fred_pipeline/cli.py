@@ -183,7 +183,7 @@ def _cmd_reconcile(args: argparse.Namespace) -> int:
         rate_limit_per_minute=config.rate_limit_per_minute,
     )
     manifests = load_manifests(args.manifests)
-    report = reconcile(manifests, client)
+    report = reconcile(manifests, client, series_ids=_parse_series(args.series))
 
     print("Reconciliation summary:", json.dumps(report.summary()))
     for sev in ("error", "warning", "info"):
@@ -271,6 +271,8 @@ def _cmd_run(args: argparse.Namespace) -> int:
             args.manifests,
             triggered_by="cli-local" if args.local else "cli",
             build_gold_layer=not args.dry_run,
+            series=_parse_series(args.series),
+            force_full=args.full,
         )
     finally:
         if warehouse is not None:
@@ -322,6 +324,10 @@ def build_parser() -> argparse.ArgumentParser:
         default="fred_local.db",
         help="SQLite file path for --local runs (default: fred_local.db)",
     )
+    r.add_argument("--series", default=None,
+                   help="comma-separated series ids to run (default: all active)")
+    r.add_argument("--full", action="store_true",
+                   help="force a full re-pull, ignoring the restate watermark")
     r.set_defaults(func=_cmd_run)
 
     d = sub.add_parser(
@@ -361,6 +367,8 @@ def build_parser() -> argparse.ArgumentParser:
     rc.add_argument("--manifests", default="manifests")
     rc.add_argument("--env", default="dev", choices=[e.value for e in Environment])
     rc.add_argument("--config", default=None, help="YAML config path for the API key")
+    rc.add_argument("--series", default=None,
+                    help="comma-separated series ids to reconcile (default: all)")
     rc.add_argument("--local", action="store_true",
                     help="persist lifecycle/drift to a local SQLite file")
     rc.add_argument("--db-path", default="fred_local.db")
