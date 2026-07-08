@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fred-pipeline"
+version = "0.1.0"
+description = "Manifest-driven FRED API Bronze-to-Gold ingestion pipeline for Databricks"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "joshualutkemuller" }]
+keywords = ["fred", "databricks", "delta-lake", "etl", "macro", "quant"]
+
+dependencies = [
+    "requests>=2.28",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+# PySpark/Delta are provided by the Databricks runtime; pin locally for dev.
+spark = ["pyspark>=3.5", "delta-spark>=3.1"]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "jsonschema>=4.0",
+    "responses>=0.24",
+]
+
+[project.scripts]
+fred-pipeline = "fred_pipeline.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["fred_pipeline"]
+branch = true

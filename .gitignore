@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Databricks
+.databricks/
+*.dbc
+
+# Local SQLite backend output
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets / local env — never commit
+.env
+*.key
+secrets.yml
+
+# Real config file (may contain the API key); keep only the example template
+config/config.yaml
+config/*.local.yaml
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

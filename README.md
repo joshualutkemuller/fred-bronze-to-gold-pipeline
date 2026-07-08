@@ -1,297 +1,292 @@
 # fred-bronze-to-gold-pipeline
-Full ETL Fred Pipeline
 
-# FRED ETL Pipeline --- Databricks Handoff + LLM Build Spec
+A production-grade, **manifest-driven** FRED (Federal Reserve Economic Data)
+ingestion pipeline that lands data in a **Bronze → Silver → Gold** medallion
+architecture on **Databricks + Delta Lake**. Built for quant research,
+dashboards, optimizer inputs, and **point-in-time** macro features.
 
-## Goal
+> 📄 The original product spec / engineering handoff lives in
+> [`handoff.md`](./handoff.md). This README is the practical guide to the
+> implementation. Architecture rationale is in
+> [`docs/architecture.md`](./docs/architecture.md); every table/column is in
+> [`docs/data_dictionary.md`](./docs/data_dictionary.md).
 
-Build a production-grade FRED API ingestion pipeline that will
-eventually live in **Databricks** and can be handed either to:
+## What it does
 
-1.  An engineering/database team
-2.  An LLM/code agent for implementation
-
-The system should be manifest-driven, scalable, auditable,
-metadata-rich, and suitable for quant research, dashboards, optimizer
-inputs, and point-in-time macro features.
-
-------------------------------------------------------------------------
-
-# Target Platform
-
-Use Databricks as the long-term home:
-
--   Unity Catalog for governance, access control, lineage, and discovery
--   Delta Lake (Bronze / Silver / Gold)
--   Databricks Workflows / Jobs
--   Databricks Secrets
--   Lakeflow Spark Declarative Pipelines (where appropriate)
--   Databricks Asset Bundles for CI/CD and deployment
-
-------------------------------------------------------------------------
-
-# High-Level Architecture
-
-``` text
-FRED API
-    ↓
-Python Ingestion Package
-    ↓
-Unity Catalog Volume / Raw Archive
-    ↓
-Bronze Delta Tables
-    ↓
-Silver Normalized Tables
-    ↓
-Gold Feature Store
-    ↓
-Dashboards / SQL Warehouse / Optimizers / ML
+```
+manifests/*.yml → FRED API → Bronze (raw JSON) → Silver (normalized, MERGE)
+     → Data Quality → Gold (latest / point-in-time / daily feature matrix)
+     → full audit trail (runs, series, DQ results)
 ```
 
-Recommended Unity Catalog layout:
+* **Manifest-driven** — the series universe and per-series policy (load type,
+  validation profile, vintage tracking, ownership) live in reviewable YAML.
+* **Idempotent** — Silver is a Delta `MERGE` on
+  `(series_id, observation_date, realtime_start)`; re-runs never duplicate.
+* **Point-in-time** — vintage-enabled series retain every revision, enabling
+  leak-free backtests ("what was known on date X").
+* **Auditable** — every run, series-run, and data-quality check is persisted.
+* **Testable** — the business logic is pure Python (no Spark/network), covered
+  by a fast unit-test suite; PySpark is imported lazily only for I/O.
+* **Promotable** — one codebase targets `macro_dev` / `macro_test` /
+  `macro_prod` via config + a Databricks Asset Bundle.
 
-``` text
-macro_dev
-macro_test
-macro_prod
+## Repository layout
 
-Schemas:
-- meta
-- audit
-- bronze
-- silver
-- gold
-- sandbox
+```
+fred-bronze-to-gold-pipeline/
+├── config/               # config.example.yaml template (real config.yaml git-ignored)
+├── manifests/            # YAML series universe + JSON schema
+├── src/fred_pipeline/    # the Python package (pure core + Spark I/O)
+├── sql/                  # Unity Catalog DDL (00..60, parameterized by {{catalog}})
+├── resources/            # Databricks Asset Bundle job definition
+├── databricks.yml        # Asset Bundle (dev/test/prod targets)
+├── notebooks/            # Databricks job entrypoint
+├── tests/                # pytest suite (no Spark required)
+└── docs/                 # architecture + data dictionary
 ```
 
-------------------------------------------------------------------------
+## Quickstart (local)
 
-# Repository Structure
+The pipeline has three storage backends, chosen at run time:
 
-``` text
-fred-databricks-etl/
-├── manifests/
-├── resources/
-├── sql/
-├── src/
-├── notebooks/
-├── tests/
-└── docs/
+| Mode | Flag | Writes to | Needs Spark? |
+|---|---|---|---|
+| Dry run | `--dry-run` | nothing (extract + DQ only) | no |
+| **Local** | `--local` | a **SQLite `.db` file** | **no** |
+| Databricks | *(default)* | Delta / Unity Catalog | yes |
+
+```bash
+# 1. Install dev dependencies
+pip install -r requirements-dev.txt
+
+# 2. Validate the manifests (no network, no Spark)
+PYTHONPATH=src python -m fred_pipeline validate --manifests manifests
+
+# 3. Run the fast unit-test suite
+python -m pytest
+
+# 4. Dry-run against the real FRED API (extract + DQ, no writes)
+export FRED_API_KEY=your_key_here
+PYTHONPATH=src python -m fred_pipeline run --env dev --dry-run
 ```
 
-------------------------------------------------------------------------
+Get a free FRED API key at <https://fredaccount.stlouisfed.org/apikeys>.
 
-# Core Design Principles
+### Run fully locally and save to a database file
 
--   Manifest-driven ingestion
--   Metadata-driven orchestration
--   Delta MERGE for idempotent loads
--   Raw payload retention
--   Point-in-time (vintage) support
--   Complete auditability
--   Reusable feature store
--   Infrastructure-as-code
--   Environment promotion (Dev → Test → Prod)
+No Databricks, no Spark — the whole Bronze → Silver → Gold → audit flow runs on
+your machine and persists to a single SQLite file you can open with any SQLite
+tool, `pandas.read_sql`, DBeaver, DuckDB, etc.
 
-------------------------------------------------------------------------
+```bash
+export FRED_API_KEY=your_key_here
+PYTHONPATH=src python -m fred_pipeline run --local --db-path fred_local.db
+```
 
-# Core Delta Tables
+This creates `fred_local.db` with all layers as `{schema}_{table}` tables:
 
-## Meta
+```
+meta_fred_series              gold_fred_latest_observation
+bronze_fred_api_response      gold_fred_point_in_time
+silver_fred_observation       gold_fred_macro_feature_daily
+audit_etl_run / _series_run   audit_data_quality_result
+```
 
--   meta.fred_series
--   meta.fred_manifest
--   meta.fred_series_manifest_map
+Inspect it, e.g.:
 
-## Audit
+```bash
+python - <<'PY'
+import sqlite3, pandas as pd
+con = sqlite3.connect("fred_local.db")
+print(pd.read_sql("SELECT series_id, observation_date, value "
+                  "FROM gold_fred_latest_observation "
+                  "ORDER BY observation_date DESC LIMIT 10", con))
+PY
+```
 
--   audit.etl_run
--   audit.etl_series_run
--   audit.data_quality_result
+Re-running is idempotent (Silver upserts on the same natural key the Delta MERGE
+uses), so you can run it repeatedly against the same file without duplicates.
+The same code path, pointed at a `SparkWarehouse` instead, is what runs on
+Databricks — so local results match production semantics.
 
-## Bronze
+## Deploy to Databricks
 
--   bronze.fred_api_response
+```bash
+# One-time per environment: create catalog/schemas/tables and the secret scope
+#   (run each sql/*.sql file with {{catalog}} replaced by macro_dev/test/prod)
+databricks secrets create-scope fred
+databricks secrets put-secret   fred api_key
 
-## Silver
+# Deploy + run the job via Asset Bundles
+databricks bundle validate -t dev
+databricks bundle deploy   -t dev
+databricks bundle run fred_ingestion -t dev
+```
 
--   silver.fred_observation
+The job resolves the API key from the `fred/api_key` secret scope, syncs
+manifests into the `meta` schema, ingests each series, runs data quality, and
+rebuilds the Gold layer — recording a complete audit trail.
 
-## Gold
+## Configuration
 
--   gold.fred_latest_observation
--   gold.fred_point_in_time
--   gold.fred_macro_feature_daily
+Settings can come from a **YAML config file**, environment variables, CLI
+arguments, or a Databricks secret scope. Precedence (highest wins):
 
-------------------------------------------------------------------------
+```
+explicit CLI/arg  >  environment variable  >  config file  >  built-in default
+```
 
-# Databricks Workflow
+The FRED API key additionally falls back to a Databricks secret scope when not
+set by any of the above.
 
-1.  Validate Manifest
-2.  Initialize Run
-3.  Read Manifest
-4.  Extract FRED Data
-5.  Write Bronze
-6.  Transform to Silver
-7.  Run Data Quality
-8.  Build Gold Features
-9.  Close Audit
-10. Notify
+### Config file
 
-------------------------------------------------------------------------
+Copy the template and edit it (the real file is git-ignored so your key never
+gets committed):
 
-# Manifest Requirements
+```bash
+cp config/config.example.yaml config/config.yaml
+# edit config/config.yaml — set fred_api_key and any HTTP knobs
+PYTHONPATH=src python -m fred_pipeline run --local   # auto-reads config/config.yaml
+```
 
-Each manifest should define:
+`config/config.yaml` is picked up automatically. Point elsewhere with
+`--config path/to/file.yaml` or `FRED_CONFIG_FILE=...`. It supports a flat
+mapping or a `default:` block with per-environment overrides:
 
--   series_id
--   title
--   category
--   frequency
--   units
--   active
--   load_type
--   expected_update_frequency
--   vintage_enabled
--   validation_profile
--   business_owner
--   technical_owner
--   downstream_use_case
--   priority
+```yaml
+default:
+  fred_api_key: ""            # prefer env var / secret scope for real keys
+  rate_limit_per_minute: 120
+  max_retries: 5
+  secret_scope: fred          # Databricks secret scope name
+  secret_key: api_key
+environments:
+  prod:
+    rate_limit_per_minute: 60 # merged on top of default for --env prod
+```
 
-------------------------------------------------------------------------
+### Where each setting can come from
 
-# Point-in-Time Support
+| Setting | Config key | Env var | CLI |
+|---|---|---|---|
+| FRED API key | `fred_api_key` | `FRED_API_KEY` | `--fred-api-key`* / secret scope |
+| API base URL | `fred_base_url` | `FRED_BASE_URL` | |
+| Request timeout | `request_timeout_seconds` | `FRED_REQUEST_TIMEOUT_SECONDS` | |
+| Max retries | `max_retries` | `FRED_MAX_RETRIES` | |
+| Rate limit / min | `rate_limit_per_minute` | `FRED_RATE_LIMIT_PER_MINUTE` | |
+| Secret scope / key | `secret_scope` / `secret_key` | `FRED_SECRET_SCOPE` / `FRED_SECRET_KEY` | |
+| Raw archive volume | `raw_volume_path` | `FRED_RAW_VOLUME_PATH` | |
+| Target catalog | — | — | `--env {dev,test,prod}` → `macro_{env}` |
+| Series universe | — | — | `--manifests DIR` (`manifests/*.yml`) |
+| Config file path | — | `FRED_CONFIG_FILE` | `--config FILE` |
 
-Persist:
+*The API key is passed programmatically (`PipelineConfig.resolve(fred_api_key=…)`);
+on the CLI, use the config file, `FRED_API_KEY`, or a Databricks secret scope.
 
--   observation_date
--   realtime_start
--   realtime_end
--   value
--   first_seen_at
--   latest_seen_at
--   revision_number
+## The series universe
 
-Maintain two analytical views:
+The four shipped manifests wire the **27 "Suggested Initial Series"** from the
+handoff (rates, inflation, labor, growth). This is a deliberate, reviewed seed
+set — not all of FRED (which has ~800k series). Grow it two ways:
 
--   latest_revised
--   point_in_time
+### 1. Add a series by hand
 
-------------------------------------------------------------------------
+Add an entry to the appropriate manifest under `manifests/` (fields validated
+against `manifests/manifest.schema.json`), open a PR, and the next run picks it
+up — including syncing its metadata into `meta.fred_series`.
 
-# Security
+```yaml
+- series_id: DGS10
+  title: 10-Year Treasury Constant Maturity Rate
+  category: rates
+  frequency: d
+  units: Percent
+  # vintage_enabled defaults to true (point-in-time safe). Set false only for
+  # provably non-revised market/price series if you want a leaner pull.
+  validation_profile: standard
+  downstream_use_case: yield_curve
+  priority: 1
+  tags: [rates, curve, treasury]
+```
 
--   Store API keys in Databricks Secret Scopes
--   Never hardcode credentials
--   Parameterize catalog/schema names
--   Support Dev/Test/Prod deployments
+**Revision-sensitivity is on by default.** `vintage_enabled` defaults to `true`,
+so every series captures its full point-in-time (ALFRED) history unless you
+opt out. This is the leakage-safe default for backtests: you can always collapse
+vintages to "latest revised" (the `gold.v_latest_revised` view), but you cannot
+recover vintages a run never captured. For never-revised market series (yields,
+SOFR, breakevens) it's a cheap no-op — one vintage per date.
 
-------------------------------------------------------------------------
+## Incremental loads (full-on-first-run, then restate last N)
 
-# LLM Build Specification
+Each run decides a load window per series against whatever backend it's writing
+to (Delta or local SQLite):
 
-The implementation should:
+- **Series has no data yet → full history.** The first ever load pulls the
+  complete series (and, for `vintage_enabled`, its full vintage history).
+- **Series already loaded → restate the last N observations.** Subsequent runs
+  re-pull only the most recent `N` observation dates (`observation_start` set to
+  the N-th most recent) and `MERGE` them, so **revisions to recent points are
+  restated and new points are inserted** — idempotently, no duplicates.
+- **`load_type: full`** on a series forces a full re-pull every run.
 
-1.  Read YAML manifests.
-2.  Validate manifests.
-3.  Retrieve FRED observations.
-4.  Store raw payloads in Bronze.
-5.  Transform to Silver.
-6.  Perform Delta MERGE.
-7.  Record audit metadata.
-8.  Execute validation rules.
-9.  Build Gold feature tables.
-10. Refresh analytical views.
-11. Use Databricks Secrets.
-12. Include unit tests.
-13. Include SQL DDL.
-14. Include Databricks Asset Bundle configuration.
+`N` is `restate_last_n` (default **90**, set via config/env/CLI), overridable
+per series in a manifest with `restate_records:` — tune it higher for series
+with deep benchmark revisions (GDP, payrolls) and lower for high-frequency
+series. The effective strategy per series is recorded in
+`audit.etl_series_run.load_type` (`full` or `restate_last_<n>`).
 
-------------------------------------------------------------------------
+```yaml
+# manifest entry: restate the last 24 observations for a heavily-revised series
+- series_id: GDPC1
+  title: Real Gross Domestic Product
+  category: growth
+  frequency: q
+  load_type: incremental
+  restate_records: 24        # ~6 years of quarters, to catch annual revisions
+```
 
-# Suggested Initial Series
+> Because "restate last N" only re-pulls recent observations, revisions to
+> points *older* than the window won't be re-captured until a `full` run. Size
+> `restate_records` to each series' revision behavior, or schedule a periodic
+> full refresh for the deeply-revised ones.
 
-## Rates
+### 2. Discover series from the FRED API
 
--   DGS1MO
--   DGS3MO
--   DGS6MO
--   DGS1
--   DGS2
--   DGS5
--   DGS10
--   DGS30
--   FEDFUNDS
--   SOFR
+Generate a whole manifest from a FRED **category**, **release**, or **search**
+instead of hand-listing ids. The generator maps FRED metadata → validated specs
+(popularity → priority), drops `DISCONTINUED` series, dedupes against your
+existing manifests, and writes YAML that's guaranteed to load.
 
-## Inflation
+```bash
+# Preview series in FRED category 22 (Treasury constant maturities), no write:
+PYTHONPATH=src python -m fred_pipeline discover --name rates_extra \
+    --category-id 22 --frequencies d --dry-run
 
--   CPIAUCSL
--   CPILFESL
--   PCEPI
--   PCEPILFE
--   T5YIE
--   T10YIE
+# Write a manifest from a release, keeping only popular monthly/quarterly series:
+PYTHONPATH=src python -m fred_pipeline discover --name jolts \
+    --release-id 192 --frequencies m,q --min-popularity 20 \
+    --out manifests/jolts.yml
 
-## Labor
+# Or from a search:
+PYTHONPATH=src python -m fred_pipeline discover --name inflation_breakevens \
+    --search "breakeven inflation" --max 25 --out manifests/breakevens.yml
+```
 
--   UNRATE
--   PAYEMS
--   ICSA
--   CIVPART
--   JTSJOL
+Useful flags: `--max N`, `--min-popularity 0-100`, `--frequencies d,w,m,q`,
+`--include-discontinued`, `--include-existing` (skip dedupe), `--dry-run`.
+Find category/release ids on the FRED website (the id is in the page URL) or via
+the API. Review the generated YAML, set `vintage_enabled` / `validation_profile`
+where it matters, and commit it like any other manifest.
 
-## Growth
+## Status
 
--   GDP
--   GDPC1
--   INDPRO
--   RSAFS
--   HOUST
--   PERMIT
-
-------------------------------------------------------------------------
-
-# Engineering Handoff Checklist
-
-## Quant
-
--   Define series universe
--   Approve validation rules
--   Identify vintage-sensitive series
--   Validate outputs
-
-## Engineering
-
--   Create Unity Catalog objects
--   Configure Delta tables
--   Configure workflows
--   Configure Asset Bundles
--   Configure secret scopes
-
-## Platform
-
--   Configure permissions
--   Configure monitoring
--   Configure alerts
--   Configure cost controls
-
-------------------------------------------------------------------------
-
-# First Sprint
-
-Deliver:
-
--   Databricks project
--   YAML manifests
--   Python package
--   Bronze/Silver/Gold tables
--   Audit framework
--   Data quality checks
--   Initial Databricks Workflow
--   Documentation
-
-The objective is a production-shaped MVP that can scale to hundreds of
-FRED series while remaining governed, auditable, and reusable for quant
-research and optimization workflows.
+MVP implemented and unit-tested (87 tests). Ships the four seed manifests from
+the handoff (rates, inflation, labor, growth — 27 series) plus an **API-driven
+discovery** command to generate more from FRED categories/releases/search, the
+full Bronze→Gold Python package, a pluggable storage backend (**Databricks/Delta
+or local SQLite**), layered configuration (**YAML file / env vars / args /
+secret scope**), Unity Catalog DDL, the audit + data-quality framework, and the
+Databricks Asset Bundle. Designed to scale to hundreds of series while staying
+governed, auditable, and reusable.

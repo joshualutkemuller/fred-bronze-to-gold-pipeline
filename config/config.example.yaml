@@ -1,0 +1,54 @@
+# FRED pipeline configuration template.
+#
+# Copy this file to `config/config.yaml` and fill in your values:
+#   cp config/config.example.yaml config/config.yaml
+#
+# `config/config.yaml` is git-ignored so your API key is never committed.
+# The file is entirely OPTIONAL — every value here has a built-in default, and
+# any setting can also be provided via environment variable or CLI argument.
+#
+# Precedence (highest wins):
+#   explicit CLI/arg  >  environment variable  >  this file  >  built-in default
+# The API key additionally falls back to a Databricks secret scope on Databricks.
+#
+# Two layouts are supported. Simple flat layout:
+#
+#   fred_api_key: "your-32-char-key"
+#   rate_limit_per_minute: 120
+#
+# ...or a `default:` block with per-environment overrides (shown below).
+
+default:
+  # --- Secret ---
+  # Prefer leaving this blank and setting FRED_API_KEY (env) or a Databricks
+  # secret scope. Only put a literal key here for quick local use.
+  fred_api_key: ""
+
+  # --- FRED API client ---
+  fred_base_url: "https://api.stlouisfed.org/fred"
+  request_timeout_seconds: 30
+  max_retries: 5
+  rate_limit_per_minute: 120
+
+  # --- Incremental load ---
+  # A series with no data yet is always loaded in full. On later runs, only the
+  # most recent N observations are re-pulled ("restated") so revisions are
+  # captured. Override per series in a manifest with `restate_records:` (tune
+  # higher for deeply-revised series like GDP/payrolls). Force a full re-pull
+  # for a series with `load_type: full`.
+  restate_last_n: 90
+
+  # --- Databricks secret scope (used when fred_api_key is empty on Databricks) ---
+  secret_scope: "fred"
+  secret_key: "api_key"
+
+  # --- Bronze raw-payload archive volume (blank = derived from catalog) ---
+  raw_volume_path: ""
+
+# Per-environment overrides are merged on top of `default` for the chosen --env.
+environments:
+  dev: {}
+  test: {}
+  prod:
+    # e.g. be gentler on the API in prod batch windows:
+    rate_limit_per_minute: 120

@@ -1,0 +1,61 @@
+name: labor
+description: >
+  Labor-market indicators: unemployment, payrolls, participation, claims, and
+  job openings. Payrolls are revised, so vintage tracking is enabled.
+version: 1
+
+series:
+  - series_id: UNRATE
+    title: Unemployment Rate (SA)
+    category: labor
+    frequency: m
+    units: Percent
+    load_type: incremental
+    expected_update_frequency: monthly
+    validation_profile: standard
+    business_owner: quant-macro
+    technical_owner: data-eng
+    downstream_use_case: macro_dashboard
+    priority: 1
+    tags: [labor, unemployment]
+
+  - series_id: PAYEMS
+    title: All Employees, Total Nonfarm Payrolls (SA)
+    category: labor
+    frequency: m
+    units: Thousands of Persons
+    load_type: incremental
+    vintage_enabled: true
+    validation_profile: strict
+    downstream_use_case: point_in_time_features
+    priority: 1
+    restate_records: 36   # payrolls get annual benchmark revisions
+    tags: [labor, payrolls, vintage]
+
+  - series_id: ICSA
+    title: Initial Claims (SA)
+    category: labor
+    frequency: w
+    units: Number
+    expected_update_frequency: weekly
+    downstream_use_case: nowcasting
+    priority: 2
+    tags: [labor, claims, high_frequency]
+
+  - series_id: CIVPART
+    title: Labor Force Participation Rate (SA)
+    category: labor
+    frequency: m
+    units: Percent
+    downstream_use_case: macro_dashboard
+    priority: 3
+    tags: [labor, participation]
+
+  - series_id: JTSJOL
+    title: Job Openings, Total Nonfarm (JOLTS, SA)
+    category: labor
+    frequency: m
+    units: Thousands
+    downstream_use_case: labor_demand
+    priority: 2
+    tags: [labor, jolts, openings]
