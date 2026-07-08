@@ -33,6 +33,35 @@ Registry of manifest files loaded (name, version, source_path, series_count).
 ### `meta.fred_series_manifest_map`
 Membership of `series_id` → `manifest_name`.
 
+### `meta.fred_series_lifecycle`
+Append-only snapshots of FRED-reported series health (written by `reconcile`),
+so a series' trajectory can be tracked over time.
+
+| Column | Type | Notes |
+|---|---|---|
+| series_id | STRING | Series |
+| fred_title / fred_frequency / fred_units | STRING | As currently reported by FRED |
+| seasonal_adjustment | STRING | e.g. SA / NSA |
+| observation_start / observation_end | STRING | FRED coverage range |
+| last_updated | STRING | FRED last-updated timestamp |
+| popularity | INT | FRED popularity (0–100) |
+| discontinued | BOOLEAN | Title marked DISCONTINUED |
+| days_since_last_observation | INT | today − observation_end |
+| is_stale | BOOLEAN | Past the expected update window for its frequency |
+| checked_at | STRING | When this snapshot was taken |
+
+### `meta.fred_series_drift`
+Drift between manifest intent and live FRED metadata (written by `reconcile`).
+
+| Column | Type | Notes |
+|---|---|---|
+| series_id | STRING | Series |
+| field | STRING | Field that drifted (frequency/title/units/series_id) |
+| manifest_value / fred_value | STRING | Declared vs actual |
+| kind | STRING | frequency_mismatch \| discontinued \| units_changed \| not_found |
+| severity | STRING | info \| warning \| error |
+| detected_at | STRING | When detected |
+
 ## audit
 
 ### `audit.etl_run`
@@ -85,8 +114,8 @@ Normalized observations. **Natural key / MERGE key:**
 |---|---|---|
 | series_id | STRING | Series |
 | observation_date | DATE | The date the value describes |
-| realtime_start | DATE | Vintage window start (when value became known) |
-| realtime_end | DATE | Vintage window end (`9999-12-31` = still current → NULL) |
+| realtime_start | DATE | Vintage window start (when value became known). **NULL/blank for `vintage_enabled: false` series** — vintage is not tracked, so the key is `(series_id, observation_date)` and re-runs update in place |
+| realtime_end | DATE | Vintage window end (`9999-12-31` = still current → NULL); also blank for non-vintage series |
 | value | DOUBLE | Parsed numeric value (NULL if missing) |
 | raw_value | STRING | Original FRED string (`.` preserved) |
 | is_missing | BOOLEAN | True when FRED returned `.` |

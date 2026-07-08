@@ -27,10 +27,12 @@ def build_silver_rows(
     *,
     run_id: str,
     ingested_at: str | None = None,
+    track_vintage: bool = True,
 ) -> list[dict[str, Any]]:
     """Normalize a raw payload into silver rows with revision numbers."""
     rows = normalize_observations(
-        series_id, payload, run_id=run_id, ingested_at=ingested_at
+        series_id, payload, run_id=run_id, ingested_at=ingested_at,
+        track_vintage=track_vintage,
     )
     return assign_revision_numbers(rows)
 

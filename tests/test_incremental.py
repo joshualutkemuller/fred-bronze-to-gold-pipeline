@@ -101,6 +101,41 @@ def test_per_series_restate_override(tmp_path):
     wh.close()
 
 
+def test_non_vintage_series_no_duplicate_accumulation(tmp_path):
+    """Regression: vintage-off series must not grow one row/observation per run."""
+    cfg = _config(restate_last_n=90)
+
+    class DailyStampClient:
+        """Mimics FRED stamping realtime_start=request date each run."""
+
+        def __init__(self):
+            self.day = 8
+
+        def get_observations(self, series_id, **kwargs):
+            rt = f"2026-07-{self.day:02d}"
+            self.day += 1
+            return {"observations": [
+                {"date": d, "value": "1.0", "realtime_start": rt, "realtime_end": rt}
+                for d in DATES
+            ]}
+
+    wh = LocalWarehouse(cfg, db_path=str(tmp_path / "f.db"))
+    pipe = FredPipeline(cfg, client=DailyStampClient(),
+                        warehouse=wh)
+    spec = _spec("DGS10", vintage_enabled=False, load_type="full")
+
+    pipe.run([spec])
+    pipe.run([spec])
+    pipe.run([spec])
+    # 5 observation dates, stable key across 3 runs -> still exactly 5 rows
+    n = wh.query("SELECT count(*) c FROM silver_fred_observation")[0]["c"]
+    assert n == len(DATES)
+    # realtime blanked, single revision per date
+    assert wh.query("SELECT DISTINCT realtime_start r FROM silver_fred_observation") \
+        == [{"r": ""}]
+    wh.close()
+
+
 def test_dry_run_without_backend_is_full():
     client = RecordingClient(_payload(DATES))
     pipe = FredPipeline(_config(), client=client, warehouse=None, spark=None)

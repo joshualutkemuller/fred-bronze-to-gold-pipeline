@@ -59,6 +59,7 @@ def normalize_observations(
     *,
     ingested_at: Optional[str] = None,
     run_id: Optional[str] = None,
+    track_vintage: bool = True,
 ) -> list[dict[str, Any]]:
     """Convert a raw FRED observations payload into normalized silver rows.
 
@@ -70,6 +71,13 @@ def normalize_observations(
         The exact JSON dict returned by ``series/observations``.
     ingested_at / run_id:
         Audit stamps threaded through from the pipeline run.
+    track_vintage:
+        When ``False`` (a non-vintage series), ``realtime_start`` / ``realtime_end``
+        are blanked. Without realtime params FRED stamps every row with
+        ``realtime_start = today``; keeping that in the MERGE key would insert a
+        fresh row on every run. Blanking it collapses the key to
+        ``(series_id, observation_date)`` so re-runs update in place. ``row_hash``
+        still reflects the value, so genuine changes are detected.
 
     Returns
     -------
@@ -88,8 +96,15 @@ def normalize_observations(
         obs_date = obs.get("date")
         if not obs_date:
             continue  # skip structurally broken rows
-        rt_start = obs.get("realtime_start", "")
-        rt_end = obs.get("realtime_end", "")
+        if track_vintage:
+            rt_start = obs.get("realtime_start", "")
+            rt_end = obs.get("realtime_end", "")
+        else:
+            # Non-vintage: don't let FRED's per-request realtime dates create
+            # duplicate rows across runs. Vintage history is intentionally
+            # not tracked for this series.
+            rt_start = ""
+            rt_end = ""
         raw_value = obs.get("value")
         value = parse_value(raw_value)
 

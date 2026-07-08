@@ -40,6 +40,26 @@ def test_normalize_observations_schema_and_missing(observations_payload):
     assert missing[0]["raw_value"] == "."
 
 
+def test_non_vintage_blanks_realtime_for_stable_key():
+    # FRED stamps realtime_start=today when no realtime params are sent.
+    day1 = {"observations": [
+        {"date": "2024-01-01", "value": "4.25",
+         "realtime_start": "2026-07-08", "realtime_end": "2026-07-08"},
+    ]}
+    day2 = {"observations": [
+        {"date": "2024-01-01", "value": "4.25",
+         "realtime_start": "2026-07-09", "realtime_end": "2026-07-09"},
+    ]}
+    r1 = normalize_observations("DGS10", day1, run_id="r1", track_vintage=False)
+    r2 = normalize_observations("DGS10", day2, run_id="r2", track_vintage=False)
+    # realtime is blanked, so the natural key is identical across runs
+    assert r1[0]["realtime_start"] == "" and r1[0]["realtime_end"] == ""
+    key = ("series_id", "observation_date", "realtime_start")
+    assert tuple(r1[0][k] for k in key) == tuple(r2[0][k] for k in key)
+    # unchanged value -> identical row_hash (no spurious "revision")
+    assert r1[0]["row_hash"] == r2[0]["row_hash"]
+
+
 def test_normalize_missing_observations_key_raises():
     with pytest.raises(ValueError):
         normalize_observations("X", {"count": 0})
