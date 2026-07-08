@@ -66,6 +66,7 @@ series:
     category: inflation
     frequency: d
     units: Percent
+    vintage_enabled: false   # daily market-implied series, not revised
     downstream_use_case: market_implied_inflation
     priority: 2
     tags: [inflation, breakeven, market]
@@ -75,6 +76,7 @@ series:
     category: inflation
     frequency: d
     units: Percent
+    vintage_enabled: false   # daily market-implied series, not revised
     downstream_use_case: market_implied_inflation
     priority: 2
     tags: [inflation, breakeven, market]

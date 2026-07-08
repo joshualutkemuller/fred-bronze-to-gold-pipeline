@@ -229,6 +229,11 @@ class FredPipeline:
     def _extract(
         self, spec: SeriesSpec, *, observation_start: Optional[str] = None
     ) -> dict[str, Any]:
+        # Complete-history mode: batch all vintages under FRED's cap.
+        if spec.vintage_enabled and self.config.complete_vintage_history:
+            return self.client.get_observations_all_vintages(
+                spec.series_id, observation_start=observation_start
+            )
         kwargs: dict[str, Any] = {}
         if spec.vintage_enabled:
             kwargs["realtime_start"] = FULL_VINTAGE_START

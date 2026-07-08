@@ -2,6 +2,9 @@ name: rates
 description: >
   US Treasury constant-maturity yields and key policy/overnight rates. These
   drive yield-curve construction, discounting, and optimizer inputs.
+  NOTE: these are observed market prices/rates that FRED does not revise, so
+  vintage_enabled is false. (Requesting full ALFRED vintage history for daily
+  series also exceeds FRED's 2000-vintage-dates-per-request cap.)
 version: 1
 
 series:
@@ -12,8 +15,7 @@ series:
     units: Percent
     load_type: incremental
     expected_update_frequency: business_daily
-    # vintage_enabled defaults to true (safe/PIT); market rates are effectively
-    # non-revised, so this is a cheap no-op — set false here to opt out of it.
+    vintage_enabled: false   # market rate, not revised
     validation_profile: standard
     business_owner: quant-macro
     technical_owner: data-eng
@@ -28,6 +30,7 @@ series:
     category: rates
     frequency: d
     units: Percent
+    vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 1
     tags: [rates, curve, treasury]
@@ -37,6 +40,7 @@ series:
     category: rates
     frequency: d
     units: Percent
+    vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 2
     tags: [rates, curve, treasury]
@@ -46,6 +50,7 @@ series:
     category: rates
     frequency: d
     units: Percent
+    vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 1
     tags: [rates, curve, treasury]
@@ -55,6 +60,7 @@ series:
     category: rates
     frequency: d
     units: Percent
+    vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 1
     tags: [rates, curve, treasury]
@@ -64,6 +70,7 @@ series:
     category: rates
     frequency: d
     units: Percent
+    vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 1
     tags: [rates, curve, treasury]
@@ -73,6 +80,7 @@ series:
     category: rates
     frequency: d
     units: Percent
+    vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 1
     tags: [rates, curve, treasury, benchmark]
@@ -82,6 +90,7 @@ series:
     category: rates
     frequency: d
     units: Percent
+    vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 2
     tags: [rates, curve, treasury]
@@ -93,6 +102,7 @@ series:
     units: Percent
     load_type: incremental
     expected_update_frequency: monthly
+    vintage_enabled: false   # effective rate, not revised
     downstream_use_case: policy_rate
     priority: 1
     tags: [rates, policy]
@@ -102,6 +112,7 @@ series:
     category: rates
     frequency: d
     units: Percent
+    vintage_enabled: false
     expected_update_frequency: business_daily
     downstream_use_case: discounting
     priority: 1

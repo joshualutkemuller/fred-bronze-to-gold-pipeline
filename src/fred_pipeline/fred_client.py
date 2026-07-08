@@ -13,8 +13,10 @@ globals.
 
 from __future__ import annotations
 
+import logging
 import random
 import time
+from datetime import date, timedelta
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
@@ -22,6 +24,12 @@ try:  # requests is a light, ubiquitous dependency; import guarded for clarity.
     import requests
 except ImportError:  # pragma: no cover
     requests = None  # type: ignore
+
+log = logging.getLogger("fred_pipeline.fred_client")
+
+# Progressive real-time lookbacks (years) tried when a full-vintage request
+# exceeds FRED's cap of 2000 vintage dates per request.
+VINTAGE_FALLBACK_YEARS = (10, 3, 1)
 
 
 class FredAPIError(RuntimeError):
@@ -34,6 +42,41 @@ class FredAPIError(RuntimeError):
 
 # HTTP statuses worth retrying (transient/server-side/throttling).
 RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
+
+
+def _is_vintage_cap_error(exc: "FredAPIError") -> bool:
+    """True for FRED's 400 'exceeded maximum number of vintage dates' error."""
+    return exc.status_code == 400 and "vintage date" in str(exc).lower()
+
+
+def _coalesce_observations(observations: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Collapse consecutive equal-value vintages per observation date.
+
+    Batched real-time windows clip each row's realtime window to the batch
+    bounds, splitting an unchanged value into multiple rows at batch seams. A
+    genuine revision changes the value; a clipping artifact repeats it — so
+    merging adjacent equal-value rows (extending realtime_end) reconstructs the
+    true revision history. Rows are keyed/ordered by (date, realtime_start).
+    """
+    by_date: dict[str, list[dict[str, Any]]] = {}
+    for obs in observations:
+        by_date.setdefault(obs.get("date"), []).append(obs)
+
+    out: list[dict[str, Any]] = []
+    for _date, rows in by_date.items():
+        rows.sort(key=lambda o: o.get("realtime_start", ""))
+        run: Optional[dict[str, Any]] = None
+        for obs in rows:
+            if run is not None and obs.get("value") == run.get("value"):
+                # same value continuing -> extend the vintage window
+                run["realtime_end"] = obs.get("realtime_end", run.get("realtime_end"))
+            else:
+                if run is not None:
+                    out.append(run)
+                run = dict(obs)
+        if run is not None:
+            out.append(run)
+    return sorted(out, key=lambda o: (o.get("date", ""), o.get("realtime_start", "")))
 
 
 @dataclass
@@ -121,7 +164,117 @@ class FredClient:
             params["realtime_end"] = realtime_end
         if units:
             params["units"] = units
-        return self._request("series/observations", params)
+        try:
+            return self._request("series/observations", params)
+        except FredAPIError as exc:
+            if realtime_start and _is_vintage_cap_error(exc):
+                return self._observations_bounded_vintage(series_id, params)
+            raise
+
+    def _observations_bounded_vintage(
+        self, series_id: str, params: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Recover from the 'maximum vintage dates' cap by narrowing the window.
+
+        FRED caps a real-time window at 2000 vintage dates. For a series with
+        more revisions than that, progressively shorten ``realtime_start`` to
+        recent years (capturing recent revisions), and finally fall back to the
+        latest-only view. Full history for such series would require per-vintage
+        batching; recent vintages are what feature pipelines actually use.
+        """
+        for years in VINTAGE_FALLBACK_YEARS:
+            start = (date.today() - timedelta(days=365 * years)).isoformat()
+            attempt = {**params, "realtime_start": start}
+            log.warning(
+                "Series %s exceeded FRED vintage-date cap; retrying with "
+                "realtime_start=%s (last %d years of vintages)",
+                series_id, start, years,
+            )
+            try:
+                return self._request("series/observations", attempt)
+            except FredAPIError as exc:
+                if _is_vintage_cap_error(exc):
+                    continue
+                raise
+        # Last resort: latest revision only (no vintage history).
+        latest = {k: v for k, v in params.items()
+                  if k not in ("realtime_start", "realtime_end")}
+        log.warning(
+            "Series %s still over the cap; falling back to latest-only "
+            "(no vintage history for this run)", series_id,
+        )
+        return self._request("series/observations", latest)
+
+    # ---- complete vintage history (batched) -----------------------------
+
+    def get_vintage_dates(self, series_id: str, *, page_size: int = 10000) -> list[str]:
+        """Return every vintage (release) date for a series, ascending."""
+        out: list[str] = []
+        offset = 0
+        limit = min(page_size, 10000)
+        while True:
+            payload = self._request(
+                "series/vintagedates",
+                {"series_id": series_id, "limit": limit, "offset": offset},
+            )
+            batch = payload.get("vintage_dates") or []
+            out.extend(batch)
+            offset += len(batch)
+            if not batch or len(batch) < limit:
+                break
+        return out
+
+    def get_observations_all_vintages(
+        self,
+        series_id: str,
+        *,
+        batch_size: int = 2000,
+        observation_start: Optional[str] = None,
+        observation_end: Optional[str] = None,
+        units: Optional[str] = None,
+    ) -> dict[str, Any]:
+        """Fetch the *complete* vintage history, batched under FRED's cap.
+
+        FRED allows at most 2000 vintage dates per observations request. This
+        enumerates the series' vintage dates and pulls observations in
+        contiguous real-time windows of ``batch_size`` vintages each, then
+        coalesces adjacent equal-value vintages — which removes the artificial
+        "revisions" that window-clipping introduces at batch seams — so the
+        merged result is equivalent to one uncapped request.
+        """
+        base: dict[str, Any] = {"series_id": series_id}
+        if observation_start:
+            base["observation_start"] = observation_start
+        if observation_end:
+            base["observation_end"] = observation_end
+        if units:
+            base["units"] = units
+
+        vintages = self.get_vintage_dates(series_id)
+        if not vintages:  # brand-new series with no releases yet
+            return self._request(
+                "series/observations",
+                {**base, "realtime_start": "1776-07-04", "realtime_end": "9999-12-31"},
+            )
+        if len(vintages) <= batch_size:
+            return self._request(
+                "series/observations",
+                {**base, "realtime_start": vintages[0], "realtime_end": vintages[-1]},
+            )
+
+        merged: list[dict[str, Any]] = []
+        for i in range(0, len(vintages), batch_size):
+            chunk = vintages[i:i + batch_size]
+            payload = self._request(
+                "series/observations",
+                {**base, "realtime_start": chunk[0], "realtime_end": chunk[-1]},
+            )
+            merged.extend(payload.get("observations") or [])
+        log.info(
+            "Series %s: assembled %d vintages in %d batch(es)",
+            series_id, len(vintages), (len(vintages) + batch_size - 1) // batch_size,
+        )
+        return {"observations": _coalesce_observations(merged)}
 
     # ---- discovery (for generating manifests) ---------------------------
 
