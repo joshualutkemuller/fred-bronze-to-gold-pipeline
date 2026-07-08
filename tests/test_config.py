@@ -121,7 +121,14 @@ def test_defaults_when_no_file_no_env():
     cfg = PipelineConfig.resolve(environment="prod", config_file="does-not-exist.yaml")
     assert cfg.fred_api_key == ""
     assert cfg.rate_limit_per_minute == 120
+    assert cfg.restate_last_n == 90
     assert cfg.catalog == "macro_prod"
+
+
+def test_restate_last_n_from_env(monkeypatch):
+    monkeypatch.setenv("FRED_RESTATE_LAST_N", "15")
+    cfg = PipelineConfig.resolve(environment="dev", config_file="nope.yaml")
+    assert cfg.restate_last_n == 15  # coerced to int
 
 
 def test_shipped_example_config_is_valid():

@@ -30,6 +30,14 @@ default:
   max_retries: 5
   rate_limit_per_minute: 120
 
+  # --- Incremental load ---
+  # A series with no data yet is always loaded in full. On later runs, only the
+  # most recent N observations are re-pulled ("restated") so revisions are
+  # captured. Override per series in a manifest with `restate_records:` (tune
+  # higher for deeply-revised series like GDP/payrolls). Force a full re-pull
+  # for a series with `load_type: full`.
+  restate_last_n: 90
+
   # --- Databricks secret scope (used when fred_api_key is empty on Databricks) ---
   secret_scope: "fred"
   secret_key: "api_key"

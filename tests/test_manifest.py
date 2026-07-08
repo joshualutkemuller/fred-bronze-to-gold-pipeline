@@ -40,6 +40,8 @@ def test_series_spec_normalizes_frequency_and_enums():
         ({"series_id": "X", "title": "", "frequency": "d"}, "title"),
         ({"series_id": "X", "title": "x", "frequency": "zzz"}, "frequency"),
         ({"series_id": "X", "title": "x", "frequency": "d", "priority": 9}, "priority"),
+        ({"series_id": "X", "title": "x", "frequency": "d", "restate_records": 0},
+         "restate_records"),
     ],
 )
 def test_series_spec_invalid(kwargs, message):

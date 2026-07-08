@@ -13,7 +13,7 @@ Each backend implements the same small surface used by the pipeline.
 
 from __future__ import annotations
 
-from typing import Any, Iterable, Protocol, runtime_checkable
+from typing import Any, Iterable, Optional, Protocol, runtime_checkable
 
 from fred_pipeline.audit import EtlRun
 from fred_pipeline.config import PipelineConfig
@@ -26,6 +26,7 @@ class Warehouse(Protocol):
     """Persistence surface required by the pipeline."""
 
     def sync_meta(self, manifests: Iterable[Manifest]) -> dict[str, int]: ...
+    def restate_start(self, series_id: str, n: int) -> Optional[str]: ...
     def write_bronze(self, rows: list[dict[str, Any]]) -> int: ...
     def merge_silver(self, rows: list[dict[str, Any]]) -> int: ...
     def build_gold(self) -> dict[str, str]: ...
@@ -61,6 +62,32 @@ class SparkWarehouse:
         from fred_pipeline.meta import sync_meta
 
         return sync_meta(self.config, list(manifests), spark=self.spark)
+
+    def restate_start(self, series_id: str, n: int) -> Optional[str]:
+        """Earliest observation_date among the N most recent for this series.
+
+        Returns ``None`` when the series has no data yet (→ full load). Used to
+        set ``observation_start`` for incremental "restate last N" pulls.
+        """
+        from fred_pipeline.spark_io import table_exists
+
+        table = self.config.table("silver", "fred_observation")
+        if not table_exists(self.spark, table):
+            return None
+        safe_id = series_id.replace("'", "''")
+        df = self.spark.sql(
+            f"""
+            SELECT MIN(observation_date) AS start FROM (
+                SELECT DISTINCT observation_date FROM {table}
+                WHERE series_id = '{safe_id}'
+                ORDER BY observation_date DESC
+                LIMIT {int(n)}
+            )
+            """
+        )
+        rows = df.collect()
+        val = rows[0]["start"] if rows else None
+        return None if val is None else str(val)
 
     def write_bronze(self, rows: list[dict[str, Any]]) -> int:
         from fred_pipeline.bronze import write_bronze

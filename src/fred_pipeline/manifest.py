@@ -72,6 +72,10 @@ class SeriesSpec:
     technical_owner: str = ""
     downstream_use_case: str = ""
     priority: int = 3  # 1 (highest) .. 5 (lowest)
+    # Per-series override for the incremental "restate last N observations"
+    # window. None -> use the pipeline-level PipelineConfig.restate_last_n.
+    # Tune higher for series with deep benchmark revisions (e.g. GDP, payrolls).
+    restate_records: Optional[int] = None
     # Free-form tags for grouping in the feature store (e.g. ["rates", "curve"]).
     tags: list[str] = field(default_factory=list)
 
@@ -103,6 +107,14 @@ class SeriesSpec:
                 f"got {self.priority}"
             )
         self.priority = int(self.priority)
+
+        if self.restate_records is not None:
+            if int(self.restate_records) < 1:
+                raise ManifestError(
+                    f"{self.series_id}: restate_records must be >= 1, "
+                    f"got {self.restate_records}"
+                )
+            self.restate_records = int(self.restate_records)
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

@@ -52,6 +52,7 @@ _SETTING_FIELDS = (
     "max_retries",
     "rate_limit_per_minute",
     "raw_volume_path",
+    "restate_last_n",
 )
 
 # Environment-variable name for each setting (12-factor style overrides).
@@ -64,9 +65,15 @@ _ENV_OVERRIDES = {
     "max_retries": "FRED_MAX_RETRIES",
     "rate_limit_per_minute": "FRED_RATE_LIMIT_PER_MINUTE",
     "raw_volume_path": "FRED_RAW_VOLUME_PATH",
+    "restate_last_n": "FRED_RESTATE_LAST_N",
 }
 
-_INT_FIELDS = {"request_timeout_seconds", "max_retries", "rate_limit_per_minute"}
+_INT_FIELDS = {
+    "request_timeout_seconds",
+    "max_retries",
+    "rate_limit_per_minute",
+    "restate_last_n",
+}
 
 
 def load_config_file(
@@ -146,6 +153,11 @@ class PipelineConfig:
         HTTP client tuning knobs.
     raw_volume_path:
         Unity Catalog volume path where raw JSON payloads are archived.
+    restate_last_n:
+        Default number of most-recent observations to re-pull ("restate") on an
+        incremental load, so recent revisions are captured. A series with no data
+        yet is always loaded in full. Overridable per series via the manifest's
+        ``restate_records``.
     """
 
     environment: Environment = Environment.DEV
@@ -157,6 +169,7 @@ class PipelineConfig:
     max_retries: int = 5
     rate_limit_per_minute: int = 120
     raw_volume_path: str = ""
+    restate_last_n: int = 90
 
     @property
     def catalog(self) -> str:

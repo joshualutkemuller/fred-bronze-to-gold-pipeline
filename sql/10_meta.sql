@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS meta.fred_series (
     technical_owner           STRING,
     downstream_use_case       STRING,
     priority                  INT,
+    restate_records           INT,
     tags                      ARRAY<STRING>,
     updated_at                TIMESTAMP
 )

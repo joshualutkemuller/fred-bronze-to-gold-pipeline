@@ -218,6 +218,40 @@ vintages to "latest revised" (the `gold.v_latest_revised` view), but you cannot
 recover vintages a run never captured. For never-revised market series (yields,
 SOFR, breakevens) it's a cheap no-op — one vintage per date.
 
+## Incremental loads (full-on-first-run, then restate last N)
+
+Each run decides a load window per series against whatever backend it's writing
+to (Delta or local SQLite):
+
+- **Series has no data yet → full history.** The first ever load pulls the
+  complete series (and, for `vintage_enabled`, its full vintage history).
+- **Series already loaded → restate the last N observations.** Subsequent runs
+  re-pull only the most recent `N` observation dates (`observation_start` set to
+  the N-th most recent) and `MERGE` them, so **revisions to recent points are
+  restated and new points are inserted** — idempotently, no duplicates.
+- **`load_type: full`** on a series forces a full re-pull every run.
+
+`N` is `restate_last_n` (default **90**, set via config/env/CLI), overridable
+per series in a manifest with `restate_records:` — tune it higher for series
+with deep benchmark revisions (GDP, payrolls) and lower for high-frequency
+series. The effective strategy per series is recorded in
+`audit.etl_series_run.load_type` (`full` or `restate_last_<n>`).
+
+```yaml
+# manifest entry: restate the last 24 observations for a heavily-revised series
+- series_id: GDPC1
+  title: Real Gross Domestic Product
+  category: growth
+  frequency: q
+  load_type: incremental
+  restate_records: 24        # ~6 years of quarters, to catch annual revisions
+```
+
+> Because "restate last N" only re-pulls recent observations, revisions to
+> points *older* than the window won't be re-captured until a `full` run. Size
+> `restate_records` to each series' revision behavior, or schedule a periodic
+> full refresh for the deeply-revised ones.
+
 ### 2. Discover series from the FRED API
 
 Generate a whole manifest from a FRED **category**, **release**, or **search**
@@ -248,7 +282,7 @@ where it matters, and commit it like any other manifest.
 
 ## Status
 
-MVP implemented and unit-tested (80 tests). Ships the four seed manifests from
+MVP implemented and unit-tested (87 tests). Ships the four seed manifests from
 the handoff (rates, inflation, labor, growth — 27 series) plus an **API-driven
 discovery** command to generate more from FRED categories/releases/search, the
 full Bronze→Gold Python package, a pluggable storage backend (**Databricks/Delta

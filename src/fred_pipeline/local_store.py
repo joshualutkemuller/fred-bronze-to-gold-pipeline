@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS meta_fred_series (
     units TEXT, active INTEGER, load_type TEXT, expected_update_frequency TEXT,
     vintage_enabled INTEGER, validation_profile TEXT, business_owner TEXT,
     technical_owner TEXT, downstream_use_case TEXT, priority INTEGER,
-    tags TEXT, updated_at TEXT
+    restate_records INTEGER, tags TEXT, updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS meta_fred_manifest (
     manifest_name TEXT PRIMARY KEY, description TEXT, version INTEGER,
@@ -156,6 +156,25 @@ class LocalWarehouse:
             upsert_keys=["series_id", "manifest_name"],
         )
         return counts
+
+    def restate_start(self, series_id: str, n: int) -> Optional[str]:
+        """Earliest observation_date among the N most recent for this series.
+
+        Returns ``None`` when the series has no rows yet (→ full load).
+        """
+        cur = self.conn.execute(
+            """
+            SELECT MIN(observation_date) FROM (
+                SELECT DISTINCT observation_date FROM silver_fred_observation
+                WHERE series_id = ?
+                ORDER BY observation_date DESC
+                LIMIT ?
+            )
+            """,
+            (series_id, int(n)),
+        )
+        row = cur.fetchone()
+        return row[0] if row else None
 
     def write_bronze(self, rows: list[dict[str, Any]]) -> int:
         return self._insert("bronze_fred_api_response", rows)

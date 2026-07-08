@@ -18,7 +18,7 @@ from fred_pipeline.audit import EtlRun, RunStatus
 from fred_pipeline.bronze import build_bronze_row
 from fred_pipeline.config import Environment, PipelineConfig
 from fred_pipeline.fred_client import FredClient
-from fred_pipeline.manifest import SeriesSpec, all_series, load_manifests
+from fred_pipeline.manifest import LoadType, SeriesSpec, all_series, load_manifests
 from fred_pipeline.quality import run_quality_checks
 from fred_pipeline.silver import build_silver_rows
 from fred_pipeline.warehouse import SparkWarehouse, Warehouse
@@ -128,7 +128,8 @@ class FredPipeline:
     def _process_series(self, run: EtlRun, spec: SeriesSpec) -> None:
         sr = run.start_series(spec.series_id, load_type=spec.load_type.value)
         try:
-            payload = self._extract(spec)
+            observation_start, sr.load_type = self._plan_extract(spec)
+            payload = self._extract(spec, observation_start=observation_start)
             observations = payload.get("observations") or []
 
             bronze_row = build_bronze_row(
@@ -172,11 +173,31 @@ class FredPipeline:
             sr.complete(RunStatus.FAILED, error_message=str(exc))
             log.exception("Series %s failed", spec.series_id)
 
-    def _extract(self, spec: SeriesSpec) -> dict[str, Any]:
+    def _plan_extract(self, spec: SeriesSpec) -> tuple[Optional[str], str]:
+        """Decide the load window for a series.
+
+        Returns ``(observation_start, effective_load_type)``. A series with no
+        data yet (or ``load_type: full``, or a dry run with no backend) is loaded
+        in full (``observation_start=None``). Otherwise only the last N
+        observations are re-pulled and MERGEd, restating recent revisions.
+        """
+        if spec.load_type == LoadType.FULL or self.warehouse is None:
+            return None, "full"
+        n = spec.restate_records or self.config.restate_last_n
+        start = self.warehouse.restate_start(spec.series_id, n)
+        if start is None:
+            return None, "full"  # first load: series not in the warehouse yet
+        return start, f"restate_last_{n}"
+
+    def _extract(
+        self, spec: SeriesSpec, *, observation_start: Optional[str] = None
+    ) -> dict[str, Any]:
         kwargs: dict[str, Any] = {}
         if spec.vintage_enabled:
             kwargs["realtime_start"] = FULL_VINTAGE_START
             kwargs["realtime_end"] = FULL_VINTAGE_END
+        if observation_start:
+            kwargs["observation_start"] = observation_start
         return self.client.get_observations(spec.series_id, **kwargs)
 
     # ---- audit persistence ----------------------------------------------

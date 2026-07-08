@@ -23,6 +23,7 @@ One row per series in the universe, synced from manifests.
 | business_owner / technical_owner | STRING | Ownership |
 | downstream_use_case | STRING | Primary consumer |
 | priority | INT | 1 (highest) … 5 |
+| restate_records | INT | Per-series override of `restate_last_n` (NULL = use config default) |
 | tags | ARRAY<STRING> | Grouping tags |
 | updated_at | TIMESTAMP | Last sync time |
 
@@ -51,7 +52,8 @@ One row per pipeline invocation.
 
 ### `audit.etl_series_run`
 One row per `(run_id, series_id)` with extraction/write counts, `dq_passed`,
-timing, and per-series error.
+timing, and per-series error. `load_type` records the *effective* strategy used
+for that run: `full` (first load or `load_type: full`) or `restate_last_<n>`.
 
 ### `audit.data_quality_result`
 One row per `(run_id, series_id, check_name)` with `passed`, `severity`
