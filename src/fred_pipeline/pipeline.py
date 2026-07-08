@@ -157,7 +157,9 @@ class FredPipeline:
                 track_vintage=spec.vintage_enabled,
             )
             report = run_quality_checks(
-                spec.series_id, silver_rows, profile=spec.validation_profile
+                spec.series_id, silver_rows, profile=spec.validation_profile,
+                frequency=spec.frequency,
+                min_value=spec.min_value, max_value=spec.max_value,
             )
 
             bronze_written = 0

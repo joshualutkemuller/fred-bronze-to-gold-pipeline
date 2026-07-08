@@ -47,6 +47,8 @@
         "downstream_use_case": { "type": "string" },
         "priority": { "type": "integer", "minimum": 1, "maximum": 5 },
         "restate_records": { "type": ["integer", "null"], "minimum": 1 },
+        "min_value": { "type": ["number", "null"] },
+        "max_value": { "type": ["number", "null"] },
         "tags": { "type": "array", "items": { "type": "string" } }
       }
     }

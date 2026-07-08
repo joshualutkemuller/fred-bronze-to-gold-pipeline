@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS meta_fred_series (
     units TEXT, active INTEGER, load_type TEXT, expected_update_frequency TEXT,
     vintage_enabled INTEGER, validation_profile TEXT, business_owner TEXT,
     technical_owner TEXT, downstream_use_case TEXT, priority INTEGER,
-    restate_records INTEGER, tags TEXT, updated_at TEXT
+    restate_records INTEGER, min_value REAL, max_value REAL,
+    tags TEXT, updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS meta_fred_manifest (
     manifest_name TEXT PRIMARY KEY, description TEXT, version INTEGER,

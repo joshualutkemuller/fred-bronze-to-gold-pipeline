@@ -17,6 +17,8 @@ series:
     technical_owner: data-eng
     downstream_use_case: macro_dashboard
     priority: 1
+    min_value: 0       # a rate in percent
+    max_value: 100
     tags: [labor, unemployment]
 
   - series_id: PAYEMS

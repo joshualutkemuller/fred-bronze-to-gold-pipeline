@@ -16,6 +16,17 @@ from fred_pipeline.manifest import Manifest
 from fred_pipeline.spark_io import get_spark, merge_delta
 
 
+# Columns persisted to meta.fred_series. Projecting to a fixed set keeps the
+# meta table stable as SeriesSpec grows new (non-governance) fields.
+META_SERIES_COLUMNS = (
+    "series_id", "title", "category", "frequency", "units", "active",
+    "load_type", "expected_update_frequency", "vintage_enabled",
+    "validation_profile", "business_owner", "technical_owner",
+    "downstream_use_case", "priority", "restate_records",
+    "min_value", "max_value", "tags",
+)
+
+
 def build_meta_rows(manifests: Iterable[Manifest]) -> dict[str, list[dict[str, Any]]]:
     """Produce the three meta table row-sets from parsed manifests (pure)."""
     now = datetime.now(timezone.utc)
@@ -35,7 +46,8 @@ def build_meta_rows(manifests: Iterable[Manifest]) -> dict[str, list[dict[str, A
             }
         )
         for spec in man.series:
-            row = spec.to_dict()
+            d = spec.to_dict()
+            row = {c: d.get(c) for c in META_SERIES_COLUMNS}
             row["updated_at"] = now
             series_rows.append(row)
             map_rows.append(

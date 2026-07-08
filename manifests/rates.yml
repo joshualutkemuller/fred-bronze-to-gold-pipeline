@@ -19,6 +19,8 @@ series:
     technical_owner: data-eng
     downstream_use_case: yield_curve
     priority: 1
+    min_value: -5      # sanity bounds: nominal yields shouldn't leave this range
+    max_value: 25
     tags: [rates, curve, treasury]
 
   - series_id: DGS3MO

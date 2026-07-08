@@ -22,22 +22,12 @@ from typing import Any, Iterable, Optional
 
 from fred_pipeline.config import PipelineConfig
 from fred_pipeline.fred_client import FredAPIError
-from fred_pipeline.manifest import SeriesSpec, all_series
+from fred_pipeline.manifest import FREQUENCY_MAX_AGE_DAYS, SeriesSpec, all_series
 
 DISCONTINUED_MARKER = "DISCONTINUED"
 
-# Max age (days since last observation) before a series is considered stale,
-# keyed by the manifest frequency code. Beyond this, the expected release
-# almost certainly hasn't landed.
-STALE_MAX_AGE_DAYS = {
-    "d": 10, "daily": 10,
-    "w": 21, "weekly": 21,
-    "bw": 30, "biweekly": 30,
-    "m": 75, "monthly": 75,
-    "q": 200, "quarterly": 200,
-    "sa": 380, "semiannual": 380,
-    "a": 550, "annual": 550,
-}
+# Alias kept for readability at call sites.
+STALE_MAX_AGE_DAYS = FREQUENCY_MAX_AGE_DAYS
 
 
 def _utc_now_iso() -> str:

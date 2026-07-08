@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS meta.fred_series (
     downstream_use_case       STRING,
     priority                  INT,
     restate_records           INT,
+    min_value                 DOUBLE,
+    max_value                 DOUBLE,
     tags                      ARRAY<STRING>,
     updated_at                TIMESTAMP
 )
