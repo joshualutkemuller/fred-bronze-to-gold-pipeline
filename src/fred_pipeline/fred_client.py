@@ -123,6 +123,58 @@ class FredClient:
             params["units"] = units
         return self._request("series/observations", params)
 
+    # ---- discovery (for generating manifests) ---------------------------
+
+    def list_series(
+        self,
+        endpoint: str,
+        params: dict[str, Any],
+        *,
+        max_results: Optional[int] = 1000,
+        order_by: str = "popularity",
+        sort_order: str = "desc",
+        page_size: int = 1000,
+    ) -> list[dict[str, Any]]:
+        """Page through an endpoint that returns a ``seriess`` list.
+
+        Used by category / release / search discovery below. FRED caps each page
+        at 1000 rows; this transparently follows ``offset`` until exhausted or
+        ``max_results`` is reached.
+        """
+        collected: list[dict[str, Any]] = []
+        offset = 0
+        while True:
+            page = dict(params)
+            page.update(
+                {
+                    "limit": min(page_size, 1000),
+                    "offset": offset,
+                    "order_by": order_by,
+                    "sort_order": sort_order,
+                }
+            )
+            payload = self._request(endpoint, page)
+            batch = payload.get("seriess") or []
+            collected.extend(batch)
+            offset += len(batch)
+            if not batch or len(batch) < page["limit"]:
+                break
+            if max_results and len(collected) >= max_results:
+                break
+        return collected[:max_results] if max_results else collected
+
+    def get_category_series(self, category_id: int, **kwargs: Any) -> list[dict[str, Any]]:
+        """All series belonging to a FRED category id."""
+        return self.list_series("category/series", {"category_id": category_id}, **kwargs)
+
+    def get_release_series(self, release_id: int, **kwargs: Any) -> list[dict[str, Any]]:
+        """All series belonging to a FRED release id."""
+        return self.list_series("release/series", {"release_id": release_id}, **kwargs)
+
+    def search_series(self, search_text: str, **kwargs: Any) -> list[dict[str, Any]]:
+        """Full-text search over the FRED catalog."""
+        return self.list_series("series/search", {"search_text": search_text}, **kwargs)
+
     # ---- internals ------------------------------------------------------
 
     def _request(self, endpoint: str, params: dict[str, Any]) -> dict[str, Any]:

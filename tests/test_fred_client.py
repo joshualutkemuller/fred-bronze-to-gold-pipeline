@@ -81,6 +81,30 @@ def test_metadata_extraction(fake_session_cls, fake_response_cls):
     assert meta["title"] == "10Y"
 
 
+def test_list_series_paginates(fake_session_cls, fake_response_cls):
+    # page 1 fills the page (limit=2) -> keep going; page 2 short -> stop
+    session = fake_session_cls([
+        fake_response_cls({"seriess": [{"id": "A"}, {"id": "B"}]}),
+        fake_response_cls({"seriess": [{"id": "C"}]}),
+    ])
+    client = _make_client(session)
+    out = client.list_series("category/series", {"category_id": 1},
+                             max_results=None, page_size=2)
+    assert [s["id"] for s in out] == ["A", "B", "C"]
+    assert len(session.calls) == 2
+    # offset advanced on the second call
+    assert session.calls[1]["params"]["offset"] == 2
+
+
+def test_list_series_respects_max_results(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([
+        fake_response_cls({"seriess": [{"id": "A"}, {"id": "B"}]}),
+    ])
+    client = _make_client(session)
+    out = client.search_series("treasury", max_results=1, page_size=2)
+    assert [s["id"] for s in out] == ["A"]
+
+
 def test_rate_limiter_sleeps_when_too_fast():
     slept = []
     now = [0.0]

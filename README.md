@@ -185,7 +185,13 @@ environments:
 *The API key is passed programmatically (`PipelineConfig.resolve(fred_api_key=…)`);
 on the CLI, use the config file, `FRED_API_KEY`, or a Databricks secret scope.
 
-## Adding a series
+## The series universe
+
+The four shipped manifests wire the **27 "Suggested Initial Series"** from the
+handoff (rates, inflation, labor, growth). This is a deliberate, reviewed seed
+set — not all of FRED (which has ~800k series). Grow it two ways:
+
+### 1. Add a series by hand
 
 Add an entry to the appropriate manifest under `manifests/` (fields validated
 against `manifests/manifest.schema.json`), open a PR, and the next run picks it
@@ -204,12 +210,41 @@ up — including syncing its metadata into `meta.fred_series`.
   tags: [rates, curve, treasury]
 ```
 
+### 2. Discover series from the FRED API
+
+Generate a whole manifest from a FRED **category**, **release**, or **search**
+instead of hand-listing ids. The generator maps FRED metadata → validated specs
+(popularity → priority), drops `DISCONTINUED` series, dedupes against your
+existing manifests, and writes YAML that's guaranteed to load.
+
+```bash
+# Preview series in FRED category 22 (Treasury constant maturities), no write:
+PYTHONPATH=src python -m fred_pipeline discover --name rates_extra \
+    --category-id 22 --frequencies d --dry-run
+
+# Write a manifest from a release, keeping only popular monthly/quarterly series:
+PYTHONPATH=src python -m fred_pipeline discover --name jolts \
+    --release-id 192 --frequencies m,q --min-popularity 20 \
+    --out manifests/jolts.yml
+
+# Or from a search:
+PYTHONPATH=src python -m fred_pipeline discover --name inflation_breakevens \
+    --search "breakeven inflation" --max 25 --out manifests/breakevens.yml
+```
+
+Useful flags: `--max N`, `--min-popularity 0-100`, `--frequencies d,w,m,q`,
+`--include-discontinued`, `--include-existing` (skip dedupe), `--dry-run`.
+Find category/release ids on the FRED website (the id is in the page URL) or via
+the API. Review the generated YAML, set `vintage_enabled` / `validation_profile`
+where it matters, and commit it like any other manifest.
+
 ## Status
 
-MVP implemented and unit-tested (64 tests). Ships the four seed manifests from
-the handoff (rates, inflation, labor, growth — 27 series), the full Bronze→Gold
-Python package, a pluggable storage backend (**Databricks/Delta or local
-SQLite**), layered configuration (**YAML file / env vars / args / secret
-scope**), Unity Catalog DDL, the audit + data-quality framework, and the
+MVP implemented and unit-tested (80 tests). Ships the four seed manifests from
+the handoff (rates, inflation, labor, growth — 27 series) plus an **API-driven
+discovery** command to generate more from FRED categories/releases/search, the
+full Bronze→Gold Python package, a pluggable storage backend (**Databricks/Delta
+or local SQLite**), layered configuration (**YAML file / env vars / args /
+secret scope**), Unity Catalog DDL, the audit + data-quality framework, and the
 Databricks Asset Bundle. Designed to scale to hundreds of series while staying
 governed, auditable, and reusable.
