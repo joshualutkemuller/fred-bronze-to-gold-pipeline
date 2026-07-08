@@ -78,6 +78,39 @@ def test_vintage_series_requests_full_realtime_window(observations_payload):
     assert captured.get("realtime_end") == "9999-12-31"
 
 
+def test_run_from_manifest_series_filter(observations_payload, fake_client_cls):
+    client = fake_client_cls({sid: observations_payload for sid in
+                              ("DGS10", "UNRATE", "GDP")})
+    pipe = FredPipeline(_config(), client=client, spark=None, persist_audit=False)
+    run = pipe.run_from_manifest(
+        "manifests", series=["DGS10", "GDP"], build_gold_layer=False,
+    )
+    assert {s.series_id for s in run.series_runs} == {"DGS10", "GDP"}
+    assert set(client.requested) == {"DGS10", "GDP"}
+
+
+def test_force_full_ignores_watermark(observations_payload):
+    from fred_pipeline.local_store import LocalWarehouse
+    import tempfile, os
+
+    captured = []
+
+    class RecordingClient:
+        def get_observations(self, series_id, **kwargs):
+            captured.append(kwargs)
+            return observations_payload
+
+    with tempfile.TemporaryDirectory() as d:
+        cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k",
+                             restate_last_n=2)
+        wh = LocalWarehouse(cfg, db_path=os.path.join(d, "f.db"))
+        pipe = FredPipeline(cfg, client=RecordingClient(), warehouse=wh)
+        pipe.run([_spec("DGS10")])              # first load (full)
+        pipe.run([_spec("DGS10")], force_full=True)  # force full despite data
+        assert all("observation_start" not in c for c in captured)
+        wh.close()
+
+
 def test_config_table_naming():
     cfg = PipelineConfig(environment=Environment.PROD, fred_api_key="k")
     assert cfg.catalog == "macro_prod"

@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS meta_fred_series (
     units TEXT, active INTEGER, load_type TEXT, expected_update_frequency TEXT,
     vintage_enabled INTEGER, validation_profile TEXT, business_owner TEXT,
     technical_owner TEXT, downstream_use_case TEXT, priority INTEGER,
-    restate_records INTEGER, tags TEXT, updated_at TEXT
+    restate_records INTEGER, min_value REAL, max_value REAL,
+    tags TEXT, updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS meta_fred_manifest (
     manifest_name TEXT PRIMARY KEY, description TEXT, version INTEGER,
@@ -68,6 +69,13 @@ CREATE TABLE IF NOT EXISTS gold_fred_point_in_time (
 );
 CREATE TABLE IF NOT EXISTS gold_fred_macro_feature_daily (
     as_of_date TEXT, series_id TEXT, raw_value REAL, value REAL
+);
+CREATE TABLE IF NOT EXISTS gold_fred_feature_transforms (
+    series_id TEXT, observation_date TEXT, value REAL,
+    mom REAL, diff REAL, yoy REAL, zscore REAL
+);
+CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
+    spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT, value REAL
 );
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
@@ -189,6 +197,19 @@ class LocalWarehouse:
     def write_bronze(self, rows: list[dict[str, Any]]) -> int:
         return self._insert("bronze_fred_api_response", rows)
 
+    def read_bronze(
+        self, series_ids: Optional[list[str]] = None
+    ) -> list[dict[str, Any]]:
+        sql = ("SELECT series_id, response_payload, run_id, ingested_at "
+               "FROM bronze_fred_api_response")
+        params: tuple = ()
+        if series_ids:
+            placeholders = ", ".join("?" * len(series_ids))
+            sql += f" WHERE series_id IN ({placeholders})"
+            params = tuple(series_ids)
+        sql += " ORDER BY ingested_at"
+        return self.query(sql, params)
+
     def merge_silver(self, rows: list[dict[str, Any]]) -> int:
         return self._insert(
             "silver_fred_observation",
@@ -239,9 +260,34 @@ class LocalWarehouse:
         # daily forward-filled feature matrix
         self.conn.execute("DELETE FROM gold_fred_macro_feature_daily")
         self._insert("gold_fred_macro_feature_daily", daily_feature_matrix(latest))
+
+        # quant transforms (mom/yoy/diff/zscore) + curve spreads
+        from fred_pipeline.features import (
+            compute_curve_spreads,
+            compute_feature_transforms,
+        )
+
+        self.conn.execute("DELETE FROM gold_fred_feature_transforms")
+        self._insert("gold_fred_feature_transforms",
+                     compute_feature_transforms(latest))
+        self.conn.execute("DELETE FROM gold_fred_curve_spread")
+        self._insert("gold_fred_curve_spread", compute_curve_spreads(latest))
+
         self.conn.commit()
-        return {k: "ok" for k in
-                ("fred_point_in_time", "fred_latest_observation", "fred_macro_feature_daily")}
+        return {k: "ok" for k in (
+            "fred_point_in_time", "fred_latest_observation",
+            "fred_macro_feature_daily", "fred_feature_transforms",
+            "fred_curve_spread",
+        )}
+
+    def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
+        """Each series' value as known on ``as_of`` (leakage-free snapshot)."""
+        from fred_pipeline.features import point_in_time_snapshot
+
+        silver = self._read("silver_fred_observation")
+        for r in silver:
+            r["is_missing"] = bool(r.get("is_missing"))
+        return point_in_time_snapshot(silver, as_of)
 
     def write_lifecycle(self, rows: list[dict[str, Any]]) -> int:
         return self._insert("meta_fred_series_lifecycle", rows)

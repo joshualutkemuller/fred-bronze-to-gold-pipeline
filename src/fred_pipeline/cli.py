@@ -123,6 +123,46 @@ def _cmd_discover(args: argparse.Namespace) -> int:
     return 0
 
 
+def _parse_series(value):
+    """Parse a --series comma list into a list of ids, or None for 'all'."""
+    if not value:
+        return None
+    ids = [s.strip() for s in value.split(",") if s.strip()]
+    return ids or None
+
+
+def _open_warehouse(config, args):
+    """Resolve a warehouse for governance/replay commands (local or Spark)."""
+    if getattr(args, "local", False):
+        from fred_pipeline.local_store import LocalWarehouse
+
+        return LocalWarehouse(config, db_path=args.db_path)
+    from fred_pipeline.spark_io import get_spark
+    from fred_pipeline.warehouse import SparkWarehouse
+
+    return SparkWarehouse(config, get_spark())
+
+
+def _cmd_replay(args: argparse.Namespace) -> int:
+    from fred_pipeline.replay import replay_from_bronze
+
+    config = PipelineConfig.resolve(
+        environment=Environment(args.env), config_file=args.config
+    )
+    manifests = load_manifests(args.manifests)
+    series = _parse_series(args.series)
+    warehouse = _open_warehouse(config, args)
+    try:
+        result = replay_from_bronze(
+            config, manifests, warehouse,
+            series_ids=series, rebuild_gold=not args.no_gold,
+        )
+    finally:
+        warehouse.close()
+    print(json.dumps(result, indent=2))
+    return 0
+
+
 def _cmd_reconcile(args: argparse.Namespace) -> int:
     from fred_pipeline.fred_client import FredClient
     from fred_pipeline.reconcile import persist_report, reconcile
@@ -143,7 +183,7 @@ def _cmd_reconcile(args: argparse.Namespace) -> int:
         rate_limit_per_minute=config.rate_limit_per_minute,
     )
     manifests = load_manifests(args.manifests)
-    report = reconcile(manifests, client)
+    report = reconcile(manifests, client, series_ids=_parse_series(args.series))
 
     print("Reconciliation summary:", json.dumps(report.summary()))
     for sev in ("error", "warning", "info"):
@@ -231,6 +271,8 @@ def _cmd_run(args: argparse.Namespace) -> int:
             args.manifests,
             triggered_by="cli-local" if args.local else "cli",
             build_gold_layer=not args.dry_run,
+            series=_parse_series(args.series),
+            force_full=args.full,
         )
     finally:
         if warehouse is not None:
@@ -282,6 +324,10 @@ def build_parser() -> argparse.ArgumentParser:
         default="fred_local.db",
         help="SQLite file path for --local runs (default: fred_local.db)",
     )
+    r.add_argument("--series", default=None,
+                   help="comma-separated series ids to run (default: all active)")
+    r.add_argument("--full", action="store_true",
+                   help="force a full re-pull, ignoring the restate watermark")
     r.set_defaults(func=_cmd_run)
 
     d = sub.add_parser(
@@ -321,6 +367,8 @@ def build_parser() -> argparse.ArgumentParser:
     rc.add_argument("--manifests", default="manifests")
     rc.add_argument("--env", default="dev", choices=[e.value for e in Environment])
     rc.add_argument("--config", default=None, help="YAML config path for the API key")
+    rc.add_argument("--series", default=None,
+                    help="comma-separated series ids to reconcile (default: all)")
     rc.add_argument("--local", action="store_true",
                     help="persist lifecycle/drift to a local SQLite file")
     rc.add_argument("--db-path", default="fred_local.db")
@@ -329,6 +377,22 @@ def build_parser() -> argparse.ArgumentParser:
     rc.add_argument("--fail-on-drift", action="store_true",
                     help="exit non-zero if any error-level drift is found (for CI)")
     rc.set_defaults(func=_cmd_reconcile)
+
+    rp = sub.add_parser(
+        "replay",
+        help="rebuild Silver/Gold from archived Bronze payloads (no FRED calls)",
+    )
+    rp.add_argument("--manifests", default="manifests")
+    rp.add_argument("--env", default="dev", choices=[e.value for e in Environment])
+    rp.add_argument("--config", default=None)
+    rp.add_argument("--series", default=None,
+                    help="comma-separated series ids to replay (default: all)")
+    rp.add_argument("--local", action="store_true",
+                    help="use a local SQLite backend")
+    rp.add_argument("--db-path", default="fred_local.db")
+    rp.add_argument("--no-gold", action="store_true",
+                    help="rebuild Silver only, skip the Gold refresh")
+    rp.set_defaults(func=_cmd_replay)
     return parser
 
 

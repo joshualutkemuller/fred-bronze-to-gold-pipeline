@@ -37,6 +37,19 @@ VALID_FREQUENCIES = {
     "daily", "weekly", "biweekly", "monthly", "quarterly", "semiannual", "annual",
 }
 
+# Max age (days since the latest observation) before a series is "stale" — the
+# expected release almost certainly hasn't landed. Shared by data-quality
+# freshness checks and metadata reconciliation. Keyed by frequency code.
+FREQUENCY_MAX_AGE_DAYS = {
+    "d": 10, "daily": 10,
+    "w": 21, "weekly": 21,
+    "bw": 30, "biweekly": 30,
+    "m": 75, "monthly": 75,
+    "q": 200, "quarterly": 200,
+    "sa": 380, "semiannual": 380,
+    "a": 550, "annual": 550,
+}
+
 REQUIRED_FIELDS = ("series_id", "title", "frequency")
 
 
@@ -76,6 +89,10 @@ class SeriesSpec:
     # window. None -> use the pipeline-level PipelineConfig.restate_last_n.
     # Tune higher for series with deep benchmark revisions (e.g. GDP, payrolls).
     restate_records: Optional[int] = None
+    # Optional data-quality value bounds (inclusive). When set, non-missing
+    # observations outside [min_value, max_value] fail the value_bounds check.
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
     # Free-form tags for grouping in the feature store (e.g. ["rates", "curve"]).
     tags: list[str] = field(default_factory=list)
 
@@ -115,6 +132,20 @@ class SeriesSpec:
                     f"got {self.restate_records}"
                 )
             self.restate_records = int(self.restate_records)
+
+        if self.min_value is not None:
+            self.min_value = float(self.min_value)
+        if self.max_value is not None:
+            self.max_value = float(self.max_value)
+        if (
+            self.min_value is not None
+            and self.max_value is not None
+            and self.min_value > self.max_value
+        ):
+            raise ManifestError(
+                f"{self.series_id}: min_value ({self.min_value}) must be "
+                f"<= max_value ({self.max_value})"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)

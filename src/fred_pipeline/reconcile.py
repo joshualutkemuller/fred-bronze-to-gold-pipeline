@@ -22,22 +22,12 @@ from typing import Any, Iterable, Optional
 
 from fred_pipeline.config import PipelineConfig
 from fred_pipeline.fred_client import FredAPIError
-from fred_pipeline.manifest import SeriesSpec, all_series
+from fred_pipeline.manifest import FREQUENCY_MAX_AGE_DAYS, SeriesSpec, all_series
 
 DISCONTINUED_MARKER = "DISCONTINUED"
 
-# Max age (days since last observation) before a series is considered stale,
-# keyed by the manifest frequency code. Beyond this, the expected release
-# almost certainly hasn't landed.
-STALE_MAX_AGE_DAYS = {
-    "d": 10, "daily": 10,
-    "w": 21, "weekly": 21,
-    "bw": 30, "biweekly": 30,
-    "m": 75, "monthly": 75,
-    "q": 200, "quarterly": 200,
-    "sa": 380, "semiannual": 380,
-    "a": 550, "annual": 550,
-}
+# Alias kept for readability at call sites.
+STALE_MAX_AGE_DAYS = FREQUENCY_MAX_AGE_DAYS
 
 
 def _utc_now_iso() -> str:
@@ -180,14 +170,18 @@ def reconcile(
     *,
     today: Optional[date] = None,
     active_only: bool = False,
+    series_ids: Optional[list[str]] = None,
 ) -> ReconcileReport:
     """Fetch FRED metadata for each series and diff it against the manifests.
 
     ``client`` needs a ``get_series_metadata(series_id)`` method. Network/lookup
     failures for one series are recorded (``not_found``) without aborting the
-    run.
+    run. ``series_ids`` restricts reconciliation to a subset.
     """
     specs = all_series(list(manifests), active_only=active_only)
+    if series_ids:
+        wanted = set(series_ids)
+        specs = [s for s in specs if s.series_id in wanted]
     report = ReconcileReport(series_checked=len(specs))
     for spec in specs:
         try:

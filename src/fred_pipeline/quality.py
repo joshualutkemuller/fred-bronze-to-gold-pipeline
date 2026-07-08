@@ -14,7 +14,7 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Any, Callable, Optional
 
-from fred_pipeline.manifest import ValidationProfile
+from fred_pipeline.manifest import FREQUENCY_MAX_AGE_DAYS, ValidationProfile
 
 
 class Severity(str, Enum):
@@ -139,6 +139,69 @@ def check_no_future_dates(series_id: str, rows: Rows, today: Optional[date] = No
     )
 
 
+def check_value_bounds(
+    series_id: str,
+    rows: Rows,
+    min_value: Optional[float] = None,
+    max_value: Optional[float] = None,
+) -> DQResult:
+    """Non-missing values must fall within the (inclusive) manifest bounds."""
+    out = 0
+    for r in rows:
+        if r.get("is_missing"):
+            continue
+        v = r.get("value")
+        if not isinstance(v, (int, float)):
+            continue
+        if (min_value is not None and v < min_value) or (
+            max_value is not None and v > max_value
+        ):
+            out += 1
+    return DQResult(
+        check="value_bounds",
+        passed=out == 0,
+        severity=Severity.ERROR,
+        series_id=series_id,
+        message=f"{out} value(s) outside [{min_value}, {max_value}]",
+        metric_value=float(out),
+        details={"min_value": min_value, "max_value": max_value},
+    )
+
+
+def check_freshness(
+    series_id: str,
+    rows: Rows,
+    frequency: str,
+    today: Optional[date] = None,
+) -> DQResult:
+    """Warn when the latest observation is older than the frequency allows."""
+    today = today or date.today()
+    threshold = FREQUENCY_MAX_AGE_DAYS.get((frequency or "").lower())
+    latest: Optional[date] = None
+    for r in rows:
+        try:
+            d = datetime.strptime(r["observation_date"], "%Y-%m-%d").date()
+        except (ValueError, TypeError, KeyError):
+            continue
+        if latest is None or d > latest:
+            latest = d
+    if latest is None or threshold is None:
+        return DQResult(
+            check="freshness", passed=True, severity=Severity.WARNING,
+            series_id=series_id, message="freshness not evaluated",
+        )
+    age = (today - latest).days
+    return DQResult(
+        check="freshness",
+        passed=age <= threshold,
+        severity=Severity.WARNING,
+        series_id=series_id,
+        message=f"latest observation is {age}d old (max {threshold}d for {frequency})",
+        metric_value=float(age),
+        details={"threshold_days": threshold, "latest": latest.isoformat()},
+    )
+
+
 # Default rule set. (series_id, rows) -> DQResult
 DEFAULT_CHECKS: tuple[Callable[[str, Rows], DQResult], ...] = (
     check_non_empty,
@@ -183,7 +246,21 @@ def run_quality_checks(
     series_id: str,
     rows: Rows,
     profile: ValidationProfile = ValidationProfile.STANDARD,
+    *,
+    frequency: Optional[str] = None,
+    min_value: Optional[float] = None,
+    max_value: Optional[float] = None,
+    today: Optional[date] = None,
 ) -> QualityReport:
-    checks = LENIENT_CHECKS if profile == ValidationProfile.LENIENT else DEFAULT_CHECKS
+    lenient = profile == ValidationProfile.LENIENT
+    checks = LENIENT_CHECKS if lenient else DEFAULT_CHECKS
     results = [check(series_id, rows) for check in checks]
+
+    # Parametrized checks run only when the relevant metadata is available.
+    if not lenient:
+        if min_value is not None or max_value is not None:
+            results.append(check_value_bounds(series_id, rows, min_value, max_value))
+        if frequency:
+            results.append(check_freshness(series_id, rows, frequency, today))
+
     return QualityReport(series_id=series_id, profile=profile, results=results)

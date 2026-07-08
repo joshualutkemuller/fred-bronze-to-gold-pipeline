@@ -39,10 +39,12 @@ class FredPipeline:
         spark: Any = None,
         warehouse: Optional[Warehouse] = None,
         persist_audit: bool = True,
+        notify_transport: Any = None,
     ):
         self.config = config
         self.persist_audit = persist_audit
         self._client = client
+        self._notify_transport = notify_transport
         # Resolve the storage backend: explicit warehouse > Spark > None (dry run).
         if warehouse is not None:
             self.warehouse: Optional[Warehouse] = warehouse
@@ -71,9 +73,17 @@ class FredPipeline:
         *,
         triggered_by: str = "",
         build_gold_layer: bool = True,
+        series: Optional[list[str]] = None,
+        force_full: bool = False,
     ) -> EtlRun:
         manifests = load_manifests(manifest_path)
         specs = all_series(manifests, active_only=True)
+        if series:
+            wanted = set(series)
+            specs = [s for s in specs if s.series_id in wanted]
+            missing = wanted - {s.series_id for s in specs}
+            if missing:
+                log.warning("Requested series not found/active: %s", sorted(missing))
         log.info("Loaded %d active series from %s", len(specs), manifest_path)
         if self.warehouse is not None:
             try:
@@ -86,6 +96,7 @@ class FredPipeline:
             manifest_path=manifest_path,
             triggered_by=triggered_by,
             build_gold_layer=build_gold_layer,
+            force_full=force_full,
         )
 
     def run(
@@ -95,6 +106,7 @@ class FredPipeline:
         manifest_path: str = "",
         triggered_by: str = "",
         build_gold_layer: bool = True,
+        force_full: bool = False,
     ) -> EtlRun:
         specs = list(specs)
         run = EtlRun(
@@ -105,7 +117,7 @@ class FredPipeline:
         log.info("Starting run %s (%d series)", run.run_id, len(specs))
 
         for spec in specs:
-            self._process_series(run, spec)
+            self._process_series(run, spec, force_full=force_full)
 
         run.finalize()
 
@@ -117,18 +129,37 @@ class FredPipeline:
                 log.exception("Gold refresh failed for run %s", run.run_id)
 
         self._persist_run(run)
+        self._notify(run)
         log.info(
             "Run %s finished: %s (%d ok / %d failed)",
             run.run_id, run.status.value, run.series_succeeded, run.series_failed,
         )
         return run
 
+    def _notify(self, run: EtlRun) -> None:
+        from fred_pipeline import notify
+
+        try:
+            notify.send_notification(
+                run,
+                webhook_url=self.config.alert_webhook_url,
+                notify_on=self.config.notify_on,
+                environment=self.config.environment.value,
+                transport=self._notify_transport,
+            )
+        except Exception:  # never let notification issues fail a run
+            log.exception("Notification step failed for run %s", run.run_id)
+
     # ---- per-series -----------------------------------------------------
 
-    def _process_series(self, run: EtlRun, spec: SeriesSpec) -> None:
+    def _process_series(
+        self, run: EtlRun, spec: SeriesSpec, *, force_full: bool = False
+    ) -> None:
         sr = run.start_series(spec.series_id, load_type=spec.load_type.value)
         try:
-            observation_start, sr.load_type = self._plan_extract(spec)
+            observation_start, sr.load_type = self._plan_extract(
+                spec, force_full=force_full
+            )
             payload = self._extract(spec, observation_start=observation_start)
             observations = payload.get("observations") or []
 
@@ -140,7 +171,9 @@ class FredPipeline:
                 track_vintage=spec.vintage_enabled,
             )
             report = run_quality_checks(
-                spec.series_id, silver_rows, profile=spec.validation_profile
+                spec.series_id, silver_rows, profile=spec.validation_profile,
+                frequency=spec.frequency,
+                min_value=spec.min_value, max_value=spec.max_value,
             )
 
             bronze_written = 0
@@ -174,15 +207,18 @@ class FredPipeline:
             sr.complete(RunStatus.FAILED, error_message=str(exc))
             log.exception("Series %s failed", spec.series_id)
 
-    def _plan_extract(self, spec: SeriesSpec) -> tuple[Optional[str], str]:
+    def _plan_extract(
+        self, spec: SeriesSpec, *, force_full: bool = False
+    ) -> tuple[Optional[str], str]:
         """Decide the load window for a series.
 
         Returns ``(observation_start, effective_load_type)``. A series with no
-        data yet (or ``load_type: full``, or a dry run with no backend) is loaded
-        in full (``observation_start=None``). Otherwise only the last N
-        observations are re-pulled and MERGEd, restating recent revisions.
+        data yet (or ``load_type: full``, ``force_full``, or a dry run with no
+        backend) is loaded in full (``observation_start=None``). Otherwise only
+        the last N observations are re-pulled and MERGEd, restating recent
+        revisions.
         """
-        if spec.load_type == LoadType.FULL or self.warehouse is None:
+        if force_full or spec.load_type == LoadType.FULL or self.warehouse is None:
             return None, "full"
         n = spec.restate_records or self.config.restate_last_n
         start = self.warehouse.restate_start(spec.series_id, n)

@@ -42,7 +42,8 @@ fred-bronze-to-gold-pipeline/
 ├── resources/            # Databricks Asset Bundle job definition
 ├── databricks.yml        # Asset Bundle (dev/test/prod targets)
 ├── notebooks/            # Databricks job entrypoint
-├── tests/                # pytest suite (no Spark required)
+├── .github/workflows/    # CI: unit matrix + Spark/Delta integration job
+├── tests/                # pytest suite (Spark tests auto-skip if PySpark absent)
 └── docs/                 # architecture + data dictionary
 ```
 
@@ -63,7 +64,7 @@ pip install -r requirements-dev.txt
 # 2. Validate the manifests (no network, no Spark)
 PYTHONPATH=src python -m fred_pipeline validate --manifests manifests
 
-# 3. Run the fast unit-test suite
+# 3. Run the fast unit-test suite (no Spark needed; Spark tests auto-skip)
 python -m pytest
 
 # 4. Dry-run against the real FRED API (extract + DQ, no writes)
@@ -308,12 +309,15 @@ where it matters, and commit it like any other manifest.
 
 ## Status
 
-MVP implemented and unit-tested (98 tests). Ships the four seed manifests from
-the handoff (rates, inflation, labor, growth — 27 series) plus an **API-driven
-discovery** command to generate more from FRED categories/releases/search, a
-**metadata-governance** command (drift + lifecycle reconciliation vs. live FRED),
-the full Bronze→Gold Python package, a pluggable storage backend
-(**Databricks/Delta or local SQLite**), layered configuration (**YAML file / env
-vars / args / secret scope**), Unity Catalog DDL, the audit + data-quality
-framework, and the Databricks Asset Bundle. Designed to scale to hundreds of
-series while staying governed, auditable, and reusable.
+Implemented and tested (117 unit tests + a Spark/Delta integration suite in CI).
+Ships the four seed manifests from the handoff (rates, inflation, labor, growth
+— 27 series); **API-driven discovery** to generate more from FRED
+categories/releases/search; **metadata governance** (drift + lifecycle
+reconciliation vs. live FRED); **incremental loads** (full-on-first-run, then
+restate last N); **replay-from-Bronze** rebuild; **run notifications**; richer
+**data quality** (freshness + value bounds); **quant Gold features** (MoM/YoY/
+diff/z-score, curve spreads, as-of-date point-in-time snapshots); a pluggable
+storage backend (**Databricks/Delta or local SQLite**); layered configuration
+(**YAML file / env vars / args / secret scope**); Unity Catalog DDL; the audit
+framework; a **GitHub Actions CI**; and the Databricks Asset Bundle. Designed to
+scale to hundreds of series while staying governed, auditable, and reusable.
