@@ -100,6 +100,15 @@ where it is wanted. Set `vintage_enabled: false` per series to opt out.
 For series with `vintage_enabled: true`, the pipeline requests FRED's full
 real-time window (`realtime_start=1776-07-04`, `realtime_end=9999-12-31`),
 which returns every vintage of every observation.
+
+**FRED vintage-date cap.** FRED rejects a real-time window spanning more than
+2000 vintage dates ("Exceeded maximum number of vintage dates allowed"). This
+is why daily market/price series (Treasury yields, SOFR, breakevens) are
+`vintage_enabled: false` — they are not revised, and a daily series has far more
+than 2000 vintages. For a genuinely-revised high-frequency series that still
+exceeds the cap (e.g. weekly `ICSA`), the client degrades gracefully: it retries
+with a progressively shorter real-time window (last 10 → 3 → 1 years), then
+latest-only, capturing recent revisions rather than failing the run.
 `transform.assign_revision_numbers` orders vintages by `realtime_start` to
 produce a `revision_number`, giving two lenses in Gold:
 

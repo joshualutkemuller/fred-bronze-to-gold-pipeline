@@ -72,6 +72,53 @@ def test_exhausts_retries_and_raises(fake_session_cls, fake_response_cls):
     assert len(session.calls) == 3  # initial + 2 retries
 
 
+_VINTAGE_CAP_BODY = {
+    "error_message": "Bad Request. Exceeded maximum number of vintage dates "
+                     "allowed. The maximum is 2000."
+}
+
+
+def test_vintage_cap_falls_back_to_bounded_window(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([
+        fake_response_cls(_VINTAGE_CAP_BODY, status_code=400),   # full window caps
+        fake_response_cls({"observations": [{"date": "2024-01-01", "value": "1",
+                           "realtime_start": "2020-01-01",
+                           "realtime_end": "9999-12-31"}]}),       # bounded succeeds
+    ])
+    client = _make_client(session)
+    out = client.get_observations(
+        "ICSA", realtime_start="1776-07-04", realtime_end="9999-12-31"
+    )
+    assert out["observations"]
+    # the retry narrowed realtime_start away from the full-history sentinel
+    assert session.calls[1]["params"]["realtime_start"] != "1776-07-04"
+
+
+def test_vintage_cap_final_fallback_to_latest_only(fake_session_cls, fake_response_cls):
+    caps = [fake_response_cls(_VINTAGE_CAP_BODY, status_code=400) for _ in range(4)]
+    session = fake_session_cls(caps + [fake_response_cls({"observations": []})])
+    client = _make_client(session)
+    out = client.get_observations(
+        "ICSA", realtime_start="1776-07-04", realtime_end="9999-12-31"
+    )
+    assert out == {"observations": []}
+    # last resort drops the realtime window entirely (latest revision only)
+    assert "realtime_start" not in session.calls[-1]["params"]
+
+
+def test_non_vintage_400_still_raises(fake_session_cls, fake_response_cls):
+    # a 400 that is NOT the vintage cap must not trigger the fallback
+    session = fake_session_cls([
+        fake_response_cls({"error_message": "Bad Request. Series does not exist."},
+                          status_code=400),
+    ])
+    client = _make_client(session)
+    with pytest.raises(FredAPIError):
+        client.get_observations("NOPE", realtime_start="1776-07-04",
+                                realtime_end="9999-12-31")
+    assert len(session.calls) == 1  # no fallback attempts
+
+
 def test_metadata_extraction(fake_session_cls, fake_response_cls):
     session = fake_session_cls([
         fake_response_cls({"seriess": [{"id": "DGS10", "title": "10Y"}]}),
