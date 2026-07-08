@@ -30,6 +30,8 @@ class Warehouse(Protocol):
     def write_bronze(self, rows: list[dict[str, Any]]) -> int: ...
     def merge_silver(self, rows: list[dict[str, Any]]) -> int: ...
     def build_gold(self) -> dict[str, str]: ...
+    def write_lifecycle(self, rows: list[dict[str, Any]]) -> int: ...
+    def write_drift(self, rows: list[dict[str, Any]]) -> int: ...
     def persist_run(self, run: EtlRun) -> None: ...
     def persist_dq(self, run_id: str, report: QualityReport) -> None: ...
     def close(self) -> None: ...
@@ -103,6 +105,20 @@ class SparkWarehouse:
         from fred_pipeline.gold import build_gold
 
         return build_gold(self.config, spark=self.spark)
+
+    def write_lifecycle(self, rows: list[dict[str, Any]]) -> int:
+        from fred_pipeline.spark_io import append_rows
+
+        return append_rows(
+            self.spark, rows, self.config.table("meta", "fred_series_lifecycle")
+        )
+
+    def write_drift(self, rows: list[dict[str, Any]]) -> int:
+        from fred_pipeline.spark_io import append_rows
+
+        return append_rows(
+            self.spark, rows, self.config.table("meta", "fred_series_drift")
+        )
 
     def persist_run(self, run: EtlRun) -> None:
         from fred_pipeline.spark_io import append_rows

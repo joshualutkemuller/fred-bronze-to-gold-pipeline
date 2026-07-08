@@ -47,3 +47,35 @@ CREATE TABLE IF NOT EXISTS meta.fred_series_manifest_map (
 )
 USING DELTA
 COMMENT 'Series-to-manifest membership';
+
+-- Governance: FRED-reported lifecycle snapshots (append-only, tracked over time).
+CREATE TABLE IF NOT EXISTS meta.fred_series_lifecycle (
+    series_id                   STRING NOT NULL,
+    fred_title                  STRING,
+    fred_frequency              STRING,
+    fred_units                  STRING,
+    seasonal_adjustment         STRING,
+    observation_start           STRING,
+    observation_end             STRING,
+    last_updated                STRING,
+    popularity                  INT,
+    discontinued                BOOLEAN,
+    days_since_last_observation INT,
+    is_stale                    BOOLEAN,
+    checked_at                  STRING
+)
+USING DELTA
+COMMENT 'Point-in-time snapshots of FRED-reported series health';
+
+-- Governance: drift between manifest intent and live FRED metadata.
+CREATE TABLE IF NOT EXISTS meta.fred_series_drift (
+    series_id      STRING NOT NULL,
+    field          STRING,
+    manifest_value STRING,
+    fred_value     STRING,
+    kind           STRING,   -- frequency_mismatch | discontinued | units_changed | not_found
+    severity       STRING,   -- info | warning | error
+    detected_at    STRING
+)
+USING DELTA
+COMMENT 'Manifest-vs-FRED metadata drift findings';

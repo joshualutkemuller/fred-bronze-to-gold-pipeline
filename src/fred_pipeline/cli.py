@@ -19,6 +19,10 @@ Generate a new manifest from a FRED category / release / search::
 
     FRED_API_KEY=... python -m fred_pipeline discover --name rates_extra \\
         --category-id 22 --frequencies d --out manifests/rates_extra.yml
+
+Reconcile manifests against live FRED metadata (drift + lifecycle)::
+
+    FRED_API_KEY=... python -m fred_pipeline reconcile --local --fail-on-drift
 """
 
 from __future__ import annotations
@@ -116,6 +120,65 @@ def _cmd_discover(args: argparse.Namespace) -> int:
         # Prove the written file loads cleanly alongside the rest.
         load_manifests(args.out)
         print("Validated: generated manifest loads successfully.")
+    return 0
+
+
+def _cmd_reconcile(args: argparse.Namespace) -> int:
+    from fred_pipeline.fred_client import FredClient
+    from fred_pipeline.reconcile import persist_report, reconcile
+
+    config = PipelineConfig.resolve(
+        environment=Environment(args.env), config_file=args.config
+    )
+    if not config.fred_api_key:
+        print("ERROR: no FRED API key found (config file / FRED_API_KEY / secret).",
+              file=sys.stderr)
+        return 2
+
+    client = FredClient(
+        api_key=config.fred_api_key,
+        base_url=config.fred_base_url,
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+        rate_limit_per_minute=config.rate_limit_per_minute,
+    )
+    manifests = load_manifests(args.manifests)
+    report = reconcile(manifests, client)
+
+    print("Reconciliation summary:", json.dumps(report.summary()))
+    for sev in ("error", "warning", "info"):
+        for d in report.by_severity(sev):
+            print(f"  [{sev:7s}] {d.series_id:12s} {d.kind}: "
+                  f"{d.manifest_value!r} (manifest) vs {d.fred_value!r} (FRED)")
+    if report.stale:
+        print(f"  [stale] {len(report.stale)} series past expected update: "
+              f"{', '.join(report.stale)}")
+
+    warehouse = None
+    if args.local:
+        from fred_pipeline.local_store import LocalWarehouse
+
+        warehouse = LocalWarehouse(config, db_path=args.db_path)
+    elif not args.no_persist:
+        from fred_pipeline.spark_io import get_spark
+        from fred_pipeline.warehouse import SparkWarehouse
+
+        try:
+            warehouse = SparkWarehouse(config, get_spark())
+        except Exception:
+            print("(no Spark available; skipping persistence)", file=sys.stderr)
+
+    if warehouse is not None:
+        try:
+            counts = persist_report(config, report, warehouse)
+            print(f"Persisted {counts['lifecycle_rows']} lifecycle + "
+                  f"{counts['drift_rows']} drift rows.")
+        finally:
+            warehouse.close()
+
+    if args.fail_on_drift and report.has_errors:
+        print("FAIL: error-level drift detected.", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -250,6 +313,22 @@ def build_parser() -> argparse.ArgumentParser:
     d.add_argument("--description", default=None, help="manifest description")
     d.add_argument("--dry-run", action="store_true", help="print instead of writing")
     d.set_defaults(func=_cmd_discover)
+
+    rc = sub.add_parser(
+        "reconcile",
+        help="diff manifests against live FRED metadata (drift + lifecycle)",
+    )
+    rc.add_argument("--manifests", default="manifests")
+    rc.add_argument("--env", default="dev", choices=[e.value for e in Environment])
+    rc.add_argument("--config", default=None, help="YAML config path for the API key")
+    rc.add_argument("--local", action="store_true",
+                    help="persist lifecycle/drift to a local SQLite file")
+    rc.add_argument("--db-path", default="fred_local.db")
+    rc.add_argument("--no-persist", action="store_true",
+                    help="report only; do not write to any backend")
+    rc.add_argument("--fail-on-drift", action="store_true",
+                    help="exit non-zero if any error-level drift is found (for CI)")
+    rc.set_defaults(func=_cmd_reconcile)
     return parser
 
 

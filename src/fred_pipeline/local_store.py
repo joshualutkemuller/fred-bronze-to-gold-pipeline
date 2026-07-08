@@ -85,6 +85,16 @@ CREATE TABLE IF NOT EXISTS audit_data_quality_result (
     run_id TEXT, series_id TEXT, check_name TEXT, passed INTEGER,
     severity TEXT, message TEXT, metric_value REAL
 );
+CREATE TABLE IF NOT EXISTS meta_fred_series_lifecycle (
+    series_id TEXT, fred_title TEXT, fred_frequency TEXT, fred_units TEXT,
+    seasonal_adjustment TEXT, observation_start TEXT, observation_end TEXT,
+    last_updated TEXT, popularity INTEGER, discontinued INTEGER,
+    days_since_last_observation INTEGER, is_stale INTEGER, checked_at TEXT
+);
+CREATE TABLE IF NOT EXISTS meta_fred_series_drift (
+    series_id TEXT, field TEXT, manifest_value TEXT, fred_value TEXT,
+    kind TEXT, severity TEXT, detected_at TEXT
+);
 """
 
 
@@ -232,6 +242,12 @@ class LocalWarehouse:
         self.conn.commit()
         return {k: "ok" for k in
                 ("fred_point_in_time", "fred_latest_observation", "fred_macro_feature_daily")}
+
+    def write_lifecycle(self, rows: list[dict[str, Any]]) -> int:
+        return self._insert("meta_fred_series_lifecycle", rows)
+
+    def write_drift(self, rows: list[dict[str, Any]]) -> int:
+        return self._insert("meta_fred_series_drift", rows)
 
     def persist_run(self, run: EtlRun) -> None:
         self._insert("audit_etl_run", [run.to_row()], upsert_keys=["run_id"])

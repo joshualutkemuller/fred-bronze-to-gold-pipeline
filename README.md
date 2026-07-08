@@ -218,6 +218,32 @@ vintages to "latest revised" (the `gold.v_latest_revised` view), but you cannot
 recover vintages a run never captured. For never-revised market series (yields,
 SOFR, breakevens) it's a cheap no-op — one vintage per date.
 
+## Metadata governance (drift + lifecycle)
+
+Manifests declare *intent*; FRED is the source of *truth*, and they drift over
+time. `reconcile` fetches FRED's `/series` metadata for each series and reports:
+
+- **drift** — `frequency_mismatch` (error), `discontinued` (warning),
+  `units_changed` (info), `not_found` (error);
+- **lifecycle snapshots** — observation range, `last_updated`, popularity, and a
+  **staleness** verdict (did the expected release actually land?), appended to
+  `meta.fred_series_lifecycle` so each series' health is tracked over time.
+
+```bash
+# report only
+PYTHONPATH=src python -m fred_pipeline reconcile --no-persist
+
+# persist lifecycle + drift to a local SQLite file
+PYTHONPATH=src python -m fred_pipeline reconcile --local --db-path fred_local.db
+
+# gate CI: exit non-zero on any error-level drift
+PYTHONPATH=src python -m fred_pipeline reconcile --fail-on-drift
+```
+
+Findings land in `meta.fred_series_drift` and `meta.fred_series_lifecycle`
+(Delta or SQLite). Use `--fail-on-drift` in CI to catch a series changing
+frequency or being discontinued before it silently corrupts downstream features.
+
 ## Incremental loads (full-on-first-run, then restate last N)
 
 Each run decides a load window per series against whatever backend it's writing
@@ -282,11 +308,12 @@ where it matters, and commit it like any other manifest.
 
 ## Status
 
-MVP implemented and unit-tested (87 tests). Ships the four seed manifests from
+MVP implemented and unit-tested (98 tests). Ships the four seed manifests from
 the handoff (rates, inflation, labor, growth — 27 series) plus an **API-driven
-discovery** command to generate more from FRED categories/releases/search, the
-full Bronze→Gold Python package, a pluggable storage backend (**Databricks/Delta
-or local SQLite**), layered configuration (**YAML file / env vars / args /
-secret scope**), Unity Catalog DDL, the audit + data-quality framework, and the
-Databricks Asset Bundle. Designed to scale to hundreds of series while staying
-governed, auditable, and reusable.
+discovery** command to generate more from FRED categories/releases/search, a
+**metadata-governance** command (drift + lifecycle reconciliation vs. live FRED),
+the full Bronze→Gold Python package, a pluggable storage backend
+(**Databricks/Delta or local SQLite**), layered configuration (**YAML file / env
+vars / args / secret scope**), Unity Catalog DDL, the audit + data-quality
+framework, and the Databricks Asset Bundle. Designed to scale to hundreds of
+series while staying governed, auditable, and reusable.
