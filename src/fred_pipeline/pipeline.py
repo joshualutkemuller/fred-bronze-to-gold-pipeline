@@ -15,14 +15,13 @@ import logging
 from typing import Any, Iterable, Optional
 
 from fred_pipeline.audit import EtlRun, RunStatus
-from fred_pipeline.bronze import build_bronze_row, write_bronze
+from fred_pipeline.bronze import build_bronze_row
 from fred_pipeline.config import Environment, PipelineConfig
 from fred_pipeline.fred_client import FredClient
-from fred_pipeline.gold import build_gold
 from fred_pipeline.manifest import SeriesSpec, all_series, load_manifests
 from fred_pipeline.quality import run_quality_checks
-from fred_pipeline.silver import build_silver_rows, merge_silver
-from fred_pipeline.spark_io import append_rows, get_spark
+from fred_pipeline.silver import build_silver_rows
+from fred_pipeline.warehouse import SparkWarehouse, Warehouse
 
 log = logging.getLogger("fred_pipeline")
 
@@ -38,12 +37,19 @@ class FredPipeline:
         *,
         client: Optional[FredClient] = None,
         spark: Any = None,
+        warehouse: Optional[Warehouse] = None,
         persist_audit: bool = True,
     ):
         self.config = config
-        self.spark = spark
         self.persist_audit = persist_audit
         self._client = client
+        # Resolve the storage backend: explicit warehouse > Spark > None (dry run).
+        if warehouse is not None:
+            self.warehouse: Optional[Warehouse] = warehouse
+        elif spark is not None:
+            self.warehouse = SparkWarehouse(config, spark)
+        else:
+            self.warehouse = None
 
     @property
     def client(self) -> FredClient:
@@ -69,13 +75,11 @@ class FredPipeline:
         manifests = load_manifests(manifest_path)
         specs = all_series(manifests, active_only=True)
         log.info("Loaded %d active series from %s", len(specs), manifest_path)
-        if self.spark is not None:
+        if self.warehouse is not None:
             try:
-                from fred_pipeline.meta import sync_meta
-
-                sync_meta(self.config, manifests, spark=self.spark)
+                self.warehouse.sync_meta(manifests)
                 log.info("Synced %d series to meta layer", len(specs))
-            except Exception:  # pragma: no cover - Spark-only path
+            except Exception:
                 log.exception("Meta sync failed (continuing)")
         return self.run(
             specs,
@@ -105,11 +109,11 @@ class FredPipeline:
 
         run.finalize()
 
-        if build_gold_layer and run.series_succeeded > 0 and self.spark is not None:
+        if build_gold_layer and run.series_succeeded > 0 and self.warehouse is not None:
             try:
-                build_gold(self.config, spark=self.spark)
+                self.warehouse.build_gold()
                 log.info("Gold layer refreshed for run %s", run.run_id)
-            except Exception:  # pragma: no cover - Spark-only path
+            except Exception:
                 log.exception("Gold refresh failed for run %s", run.run_id)
 
         self._persist_run(run)
@@ -139,16 +143,12 @@ class FredPipeline:
 
             bronze_written = 0
             silver_merged = 0
-            if self.spark is not None:
-                bronze_written = write_bronze(
-                    self.config, [bronze_row], spark=self.spark
-                )
+            if self.warehouse is not None:
+                bronze_written = self.warehouse.write_bronze([bronze_row])
                 if report.passed:
-                    result = merge_silver(
-                        self.config, silver_rows, spark=self.spark
-                    )
-                    silver_merged = result.get("source_rows", 0)
-                self._persist_dq(run.run_id, report)
+                    silver_merged = self.warehouse.merge_silver(silver_rows)
+                if self.persist_audit:
+                    self.warehouse.persist_dq(run.run_id, report)
 
             if report.passed:
                 sr.complete(
@@ -182,42 +182,12 @@ class FredPipeline:
     # ---- audit persistence ----------------------------------------------
 
     def _persist_run(self, run: EtlRun) -> None:
-        if not (self.persist_audit and self.spark is not None):
+        if not (self.persist_audit and self.warehouse is not None):
             return
         try:
-            append_rows(
-                self.spark, [run.to_row()], self.config.table("audit", "etl_run")
-            )
-            series_rows = [s.to_row() for s in run.series_runs]
-            append_rows(
-                self.spark, series_rows,
-                self.config.table("audit", "etl_series_run"),
-            )
-        except Exception:  # pragma: no cover - Spark-only path
+            self.warehouse.persist_run(run)
+        except Exception:
             log.exception("Failed to persist audit records for run %s", run.run_id)
-
-    def _persist_dq(self, run_id: str, report) -> None:
-        if not (self.persist_audit and self.spark is not None):
-            return
-        rows = [
-            {
-                "run_id": run_id,
-                "series_id": r.series_id,
-                "check_name": r.check,
-                "passed": r.passed,
-                "severity": r.severity.value,
-                "message": r.message,
-                "metric_value": r.metric_value,
-            }
-            for r in report.results
-        ]
-        try:
-            append_rows(
-                self.spark, rows,
-                self.config.table("audit", "data_quality_result"),
-            )
-        except Exception:  # pragma: no cover
-            log.exception("Failed to persist DQ results for run %s", run_id)
 
 
 def run_pipeline(
@@ -227,6 +197,7 @@ def run_pipeline(
     fred_api_key: Optional[str] = None,
     dbutils: Any = None,
     spark: Any = None,
+    warehouse: Optional[Warehouse] = None,
     triggered_by: str = "cli",
 ) -> EtlRun:
     """Convenience entrypoint used by the Databricks job and the CLI."""
@@ -235,10 +206,12 @@ def run_pipeline(
         fred_api_key=fred_api_key,
         dbutils=dbutils,
     )
-    if spark is None:
+    if warehouse is None and spark is None:
+        from fred_pipeline.spark_io import get_spark
+
         try:
             spark = get_spark()
         except Exception:  # pragma: no cover - allow no-Spark dry runs
             spark = None
-    pipeline = FredPipeline(config, spark=spark)
+    pipeline = FredPipeline(config, spark=spark, warehouse=warehouse)
     return pipeline.run_from_manifest(manifest_path, triggered_by=triggered_by)

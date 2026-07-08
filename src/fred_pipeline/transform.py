@@ -161,6 +161,55 @@ def latest_by_observation(rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]
     return sorted(latest.values(), key=lambda r: (r["series_id"], r["observation_date"]))
 
 
+def daily_feature_matrix(latest_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Build a daily, forward-filled feature matrix (pure-Python parity of Gold).
+
+    Given *latest-revision* rows (one per series/observation_date), produce one
+    row per (calendar_day, series) between the global min and max observation
+    date, forward-filling each series' most recent value. This mirrors
+    ``gold.fred_macro_feature_daily`` for the local/SQLite backend where Spark's
+    ``sequence``/``last_value(...) ignore nulls`` are unavailable.
+    """
+    from datetime import timedelta
+
+    rows = [r for r in latest_rows if not r.get("is_missing", False)]
+    parsed: list[tuple[str, date, Optional[float]]] = []
+    for r in rows:
+        try:
+            d = datetime.strptime(str(r["observation_date"])[:10], "%Y-%m-%d").date()
+        except (ValueError, TypeError, KeyError):
+            continue
+        parsed.append((r["series_id"], d, r.get("value")))
+    if not parsed:
+        return []
+
+    min_d = min(p[1] for p in parsed)
+    max_d = max(p[1] for p in parsed)
+    series_ids = sorted({p[0] for p in parsed})
+
+    # native[(series, date)] = value on that series' actual release date
+    native: dict[tuple[str, date], Optional[float]] = {(s, d): v for s, d, v in parsed}
+
+    out: list[dict[str, Any]] = []
+    for sid in series_ids:
+        last_val: Optional[float] = None
+        cur = min_d
+        while cur <= max_d:
+            raw = native.get((sid, cur), None)
+            if (sid, cur) in native:
+                last_val = raw
+            out.append(
+                {
+                    "as_of_date": cur.isoformat(),
+                    "series_id": sid,
+                    "raw_value": raw,
+                    "value": last_val,
+                }
+            )
+            cur += timedelta(days=1)
+    return out
+
+
 def payload_summary(payload: dict[str, Any]) -> dict[str, Any]:
     """Extract lightweight metadata about a payload for Bronze/audit rows."""
     obs = payload.get("observations") or []

@@ -36,11 +36,29 @@ this file explains the implementation that realizes it.
 | Payload → normalized rows, revisions, PIT | `transform.py` | no |
 | Data-quality rules + profiles | `quality.py` | no |
 | Run / series / DQ audit records | `audit.py` | no |
+| Storage backend abstraction + Spark adapter | `warehouse.py` | no (adapter is lazy) |
+| Local SQLite backend | `local_store.py` | no |
 | Spark session + Delta MERGE/append helpers | `spark_io.py` | yes (lazy) |
 | Bronze / Silver / Gold writers | `bronze.py` / `silver.py` / `gold.py` | yes (lazy) |
 | Meta-layer sync | `meta.py` | yes (lazy) |
 | Orchestration | `pipeline.py` | optional |
 | CLI + Databricks entrypoint | `cli.py`, `notebooks/run_pipeline.py` | optional |
+
+## Storage backends
+
+The orchestrator writes through a `Warehouse` interface (`warehouse.py`), not to
+Spark directly, so the same run logic targets three backends:
+
+* **`SparkWarehouse`** — Databricks / Delta Lake (production).
+* **`LocalWarehouse`** — a single local SQLite file (`local_store.py`); no Spark
+  or Databricks required. Silver upserts on the same natural key, and Gold is
+  rebuilt in pure Python via the same tested `transform` functions, so local
+  output matches production semantics.
+* **`None`** — a pure in-memory dry run (extract + DQ, no writes).
+
+`FredPipeline` resolves the backend from its constructor: an explicit
+`warehouse=`, else a `spark=` session (wrapped in `SparkWarehouse`), else
+`None`.
 
 ## Data flow
 

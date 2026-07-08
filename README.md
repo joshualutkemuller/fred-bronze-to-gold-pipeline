@@ -47,6 +47,14 @@ fred-bronze-to-gold-pipeline/
 
 ## Quickstart (local)
 
+The pipeline has three storage backends, chosen at run time:
+
+| Mode | Flag | Writes to | Needs Spark? |
+|---|---|---|---|
+| Dry run | `--dry-run` | nothing (extract + DQ only) | no |
+| **Local** | `--local` | a **SQLite `.db` file** | **no** |
+| Databricks | *(default)* | Delta / Unity Catalog | yes |
+
 ```bash
 # 1. Install dev dependencies
 pip install -r requirements-dev.txt
@@ -57,12 +65,49 @@ PYTHONPATH=src python -m fred_pipeline validate --manifests manifests
 # 3. Run the fast unit-test suite
 python -m pytest
 
-# 4. Dry-run against the real FRED API (extract + DQ, no Spark writes)
+# 4. Dry-run against the real FRED API (extract + DQ, no writes)
 export FRED_API_KEY=your_key_here
 PYTHONPATH=src python -m fred_pipeline run --env dev --dry-run
 ```
 
 Get a free FRED API key at <https://fredaccount.stlouisfed.org/apikeys>.
+
+### Run fully locally and save to a database file
+
+No Databricks, no Spark — the whole Bronze → Silver → Gold → audit flow runs on
+your machine and persists to a single SQLite file you can open with any SQLite
+tool, `pandas.read_sql`, DBeaver, DuckDB, etc.
+
+```bash
+export FRED_API_KEY=your_key_here
+PYTHONPATH=src python -m fred_pipeline run --local --db-path fred_local.db
+```
+
+This creates `fred_local.db` with all layers as `{schema}_{table}` tables:
+
+```
+meta_fred_series              gold_fred_latest_observation
+bronze_fred_api_response      gold_fred_point_in_time
+silver_fred_observation       gold_fred_macro_feature_daily
+audit_etl_run / _series_run   audit_data_quality_result
+```
+
+Inspect it, e.g.:
+
+```bash
+python - <<'PY'
+import sqlite3, pandas as pd
+con = sqlite3.connect("fred_local.db")
+print(pd.read_sql("SELECT series_id, observation_date, value "
+                  "FROM gold_fred_latest_observation "
+                  "ORDER BY observation_date DESC LIMIT 10", con))
+PY
+```
+
+Re-running is idempotent (Silver upserts on the same natural key the Delta MERGE
+uses), so you can run it repeatedly against the same file without duplicates.
+The same code path, pointed at a `SparkWarehouse` instead, is what runs on
+Databricks — so local results match production semantics.
 
 ## Deploy to Databricks
 
@@ -112,8 +157,9 @@ up — including syncing its metadata into `meta.fred_series`.
 
 ## Status
 
-MVP implemented and unit-tested (49 tests). Ships the four seed manifests from
+MVP implemented and unit-tested (53 tests). Ships the four seed manifests from
 the handoff (rates, inflation, labor, growth — 27 series), the full Bronze→Gold
-Python package, Unity Catalog DDL, the audit + data-quality framework, and the
+Python package, a pluggable storage backend (**Databricks/Delta or local
+SQLite**), Unity Catalog DDL, the audit + data-quality framework, and the
 Databricks Asset Bundle. Designed to scale to hundreds of series while staying
 governed, auditable, and reusable.

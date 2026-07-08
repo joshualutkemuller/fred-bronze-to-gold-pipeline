@@ -41,7 +41,7 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 
 def _cmd_run(args: argparse.Namespace) -> int:
     config = PipelineConfig.resolve(environment=Environment(args.env))
-    if not config.fred_api_key and not args.validate_only:
+    if not config.fred_api_key:
         print(
             "ERROR: no FRED API key found. Set FRED_API_KEY or configure a "
             "Databricks secret scope.",
@@ -50,18 +50,42 @@ def _cmd_run(args: argparse.Namespace) -> int:
         return 2
 
     spark = None
-    if not args.dry_run:
+    warehouse = None
+    persist = not args.dry_run
+
+    if args.dry_run:
+        pass  # in-memory only: extract + DQ, no writes
+    elif args.local:
+        from fred_pipeline.local_store import LocalWarehouse
+
+        warehouse = LocalWarehouse(config, db_path=args.db_path)
+        print(f"Using local SQLite backend: {args.db_path}")
+    else:
         from fred_pipeline.spark_io import get_spark
 
         spark = get_spark()
 
-    pipeline = FredPipeline(config, spark=spark, persist_audit=not args.dry_run)
-    run = pipeline.run_from_manifest(
-        args.manifests,
-        triggered_by="cli",
-        build_gold_layer=not args.dry_run,
+    pipeline = FredPipeline(
+        config, spark=spark, warehouse=warehouse, persist_audit=persist
     )
+    try:
+        run = pipeline.run_from_manifest(
+            args.manifests,
+            triggered_by="cli-local" if args.local else "cli",
+            build_gold_layer=not args.dry_run,
+        )
+    finally:
+        if warehouse is not None:
+            warehouse.close()
+
     print(json.dumps(run.to_row(), default=str, indent=2))
+    if args.local and not args.dry_run:
+        print(
+            f"\nSaved to {args.db_path}. Inspect with e.g.:\n"
+            f"  sqlite3 {args.db_path} "
+            f"'SELECT series_id, observation_date, value "
+            f"FROM gold_fred_latest_observation LIMIT 10;'"
+        )
     return 0 if run.status.value in ("succeeded", "partial") else 1
 
 
@@ -82,9 +106,18 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument(
         "--dry-run",
         action="store_true",
-        help="extract + validate without Spark writes",
+        help="extract + validate in memory, no writes (no Spark, no local db)",
     )
-    r.add_argument("--validate-only", action="store_true", help=argparse.SUPPRESS)
+    r.add_argument(
+        "--local",
+        action="store_true",
+        help="persist to a local SQLite file instead of Databricks/Delta",
+    )
+    r.add_argument(
+        "--db-path",
+        default="fred_local.db",
+        help="SQLite file path for --local runs (default: fred_local.db)",
+    )
     r.set_defaults(func=_cmd_run)
     return parser
 

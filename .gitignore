@@ -19,6 +19,11 @@ coverage.xml
 .databricks/
 *.dbc
 
+# Local SQLite backend output
+*.db
+*.sqlite
+*.sqlite3
+
 # Secrets / local env — never commit
 .env
 *.key
