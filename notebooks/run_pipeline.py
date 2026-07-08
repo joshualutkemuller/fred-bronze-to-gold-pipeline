@@ -43,6 +43,8 @@ def main(argv=None) -> int:
     parser.add_argument("--stage", default="run", choices=["validate", "run"])
     parser.add_argument("--env", default="dev", choices=[e.value for e in Environment])
     parser.add_argument("--manifests", default="manifests")
+    parser.add_argument("--config", default=None,
+                        help="YAML config path ($FRED_CONFIG_FILE or config/config.yaml)")
     parser.add_argument("--dry-run", action="store_true")
     args, _unknown = parser.parse_known_args(argv)
 
@@ -54,7 +56,9 @@ def main(argv=None) -> int:
         return 0
 
     dbutils = _get_dbutils()
-    config = PipelineConfig.resolve(environment=Environment(args.env), dbutils=dbutils)
+    config = PipelineConfig.resolve(
+        environment=Environment(args.env), dbutils=dbutils, config_file=args.config
+    )
     if not config.fred_api_key:
         print("ERROR: FRED API key not resolved from secret scope or env.",
               file=sys.stderr)

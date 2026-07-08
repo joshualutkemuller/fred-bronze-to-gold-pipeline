@@ -35,6 +35,7 @@ manifests/*.yml → FRED API → Bronze (raw JSON) → Silver (normalized, MERGE
 
 ```
 fred-bronze-to-gold-pipeline/
+├── config/               # config.example.yaml template (real config.yaml git-ignored)
 ├── manifests/            # YAML series universe + JSON schema
 ├── src/fred_pipeline/    # the Python package (pure core + Spark I/O)
 ├── sql/                  # Unity Catalog DDL (00..60, parameterized by {{catalog}})
@@ -129,12 +130,60 @@ rebuilds the Gold layer — recording a complete audit trail.
 
 ## Configuration
 
-| Setting | Source |
-|---|---|
-| FRED API key | `FRED_API_KEY` env var **or** Databricks secret scope `fred/api_key` |
-| Target catalog | `--env {dev,test,prod}` → `macro_{env}` |
-| Series universe | `manifests/*.yml` |
-| HTTP tuning (retries, rate limit, timeout) | `PipelineConfig` |
+Settings can come from a **YAML config file**, environment variables, CLI
+arguments, or a Databricks secret scope. Precedence (highest wins):
+
+```
+explicit CLI/arg  >  environment variable  >  config file  >  built-in default
+```
+
+The FRED API key additionally falls back to a Databricks secret scope when not
+set by any of the above.
+
+### Config file
+
+Copy the template and edit it (the real file is git-ignored so your key never
+gets committed):
+
+```bash
+cp config/config.example.yaml config/config.yaml
+# edit config/config.yaml — set fred_api_key and any HTTP knobs
+PYTHONPATH=src python -m fred_pipeline run --local   # auto-reads config/config.yaml
+```
+
+`config/config.yaml` is picked up automatically. Point elsewhere with
+`--config path/to/file.yaml` or `FRED_CONFIG_FILE=...`. It supports a flat
+mapping or a `default:` block with per-environment overrides:
+
+```yaml
+default:
+  fred_api_key: ""            # prefer env var / secret scope for real keys
+  rate_limit_per_minute: 120
+  max_retries: 5
+  secret_scope: fred          # Databricks secret scope name
+  secret_key: api_key
+environments:
+  prod:
+    rate_limit_per_minute: 60 # merged on top of default for --env prod
+```
+
+### Where each setting can come from
+
+| Setting | Config key | Env var | CLI |
+|---|---|---|---|
+| FRED API key | `fred_api_key` | `FRED_API_KEY` | `--fred-api-key`* / secret scope |
+| API base URL | `fred_base_url` | `FRED_BASE_URL` | |
+| Request timeout | `request_timeout_seconds` | `FRED_REQUEST_TIMEOUT_SECONDS` | |
+| Max retries | `max_retries` | `FRED_MAX_RETRIES` | |
+| Rate limit / min | `rate_limit_per_minute` | `FRED_RATE_LIMIT_PER_MINUTE` | |
+| Secret scope / key | `secret_scope` / `secret_key` | `FRED_SECRET_SCOPE` / `FRED_SECRET_KEY` | |
+| Raw archive volume | `raw_volume_path` | `FRED_RAW_VOLUME_PATH` | |
+| Target catalog | — | — | `--env {dev,test,prod}` → `macro_{env}` |
+| Series universe | — | — | `--manifests DIR` (`manifests/*.yml`) |
+| Config file path | — | `FRED_CONFIG_FILE` | `--config FILE` |
+
+*The API key is passed programmatically (`PipelineConfig.resolve(fred_api_key=…)`);
+on the CLI, use the config file, `FRED_API_KEY`, or a Databricks secret scope.
 
 ## Adding a series
 
@@ -157,9 +206,10 @@ up — including syncing its metadata into `meta.fred_series`.
 
 ## Status
 
-MVP implemented and unit-tested (53 tests). Ships the four seed manifests from
+MVP implemented and unit-tested (64 tests). Ships the four seed manifests from
 the handoff (rates, inflation, labor, growth — 27 series), the full Bronze→Gold
 Python package, a pluggable storage backend (**Databricks/Delta or local
-SQLite**), Unity Catalog DDL, the audit + data-quality framework, and the
+SQLite**), layered configuration (**YAML file / env vars / args / secret
+scope**), Unity Catalog DDL, the audit + data-quality framework, and the
 Databricks Asset Bundle. Designed to scale to hundreds of series while staying
 governed, auditable, and reusable.

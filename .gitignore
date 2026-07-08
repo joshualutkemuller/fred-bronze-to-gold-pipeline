@@ -29,6 +29,10 @@ coverage.xml
 *.key
 secrets.yml
 
+# Real config file (may contain the API key); keep only the example template
+config/config.yaml
+config/*.local.yaml
+
 # IDE / OS
 .idea/
 .vscode/

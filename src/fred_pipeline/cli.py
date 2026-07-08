@@ -40,7 +40,9 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
-    config = PipelineConfig.resolve(environment=Environment(args.env))
+    config = PipelineConfig.resolve(
+        environment=Environment(args.env), config_file=args.config
+    )
     if not config.fred_api_key:
         print(
             "ERROR: no FRED API key found. Set FRED_API_KEY or configure a "
@@ -103,6 +105,12 @@ def build_parser() -> argparse.ArgumentParser:
     r = sub.add_parser("run", help="run the pipeline")
     r.add_argument("--env", default="dev", choices=[e.value for e in Environment])
     r.add_argument("--manifests", default="manifests")
+    r.add_argument(
+        "--config",
+        default=None,
+        help="path to a YAML config file "
+        "(default: $FRED_CONFIG_FILE or config/config.yaml)",
+    )
     r.add_argument(
         "--dry-run",
         action="store_true",
