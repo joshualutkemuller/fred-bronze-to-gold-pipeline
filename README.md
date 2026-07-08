@@ -42,7 +42,8 @@ fred-bronze-to-gold-pipeline/
 ├── resources/            # Databricks Asset Bundle job definition
 ├── databricks.yml        # Asset Bundle (dev/test/prod targets)
 ├── notebooks/            # Databricks job entrypoint
-├── tests/                # pytest suite (no Spark required)
+├── .github/workflows/    # CI: unit matrix + Spark/Delta integration job
+├── tests/                # pytest suite (Spark tests auto-skip if PySpark absent)
 └── docs/                 # architecture + data dictionary
 ```
 
@@ -63,7 +64,7 @@ pip install -r requirements-dev.txt
 # 2. Validate the manifests (no network, no Spark)
 PYTHONPATH=src python -m fred_pipeline validate --manifests manifests
 
-# 3. Run the fast unit-test suite
+# 3. Run the fast unit-test suite (no Spark needed; Spark tests auto-skip)
 python -m pytest
 
 # 4. Dry-run against the real FRED API (extract + DQ, no writes)
