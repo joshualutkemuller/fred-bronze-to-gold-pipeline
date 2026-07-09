@@ -128,7 +128,14 @@ replay (`replay.py`) re-derives each payload with the right normalizer —
 dispatched by `silver._normalize_for_source`, which is module-level so replay
 never has to construct a client (EIA needs a key just to instantiate).
 
-### Still optional
+### Deploy
 
-* **Deploy.** Add one Databricks job per source (or per manifest group) in
-  `databricks.yml`, each on its own schedule, all sharing the same wheel.
+The default `fred_ingestion` job (`resources/fred_pipeline.job.yml`) runs the
+whole `manifests/` directory. For the one-job-per-source pattern — each source
+on its own schedule, failing/alerting independently — see
+`resources/source_jobs.yml`, which defines paused `bls_ingestion` /
+`eia_ingestion` jobs scoped to their manifest files, with the API key wired from
+a Databricks secret via `spark_env_vars`. The entrypoints
+(`cli.py` / `notebooks/run_pipeline.py`) only require the keys the *active*
+sources in the given manifest set actually need (`pipeline.missing_source_keys`),
+so a BLS/EIA-only job doesn't demand a FRED key.

@@ -70,6 +70,29 @@ SOURCE_FACTORIES = {
     "eia": _make_eia,
 }
 
+# Sources that require an API key to call, mapped to the PipelineConfig
+# attribute holding it. Sources not listed can run keyless (e.g. BLS).
+SOURCE_KEY_REQUIREMENTS = {
+    "fred": "fred_api_key",
+    "eia": "eia_api_key",
+}
+
+
+def missing_source_keys(
+    config: PipelineConfig, sources: Iterable[str]
+) -> dict[str, str]:
+    """Return ``{source: config_attr}`` for sources whose required key is unset.
+
+    Lets a caller validate that a run has the keys the *active* sources need,
+    instead of demanding a FRED key unconditionally.
+    """
+    missing: dict[str, str] = {}
+    for source in sources:
+        attr = SOURCE_KEY_REQUIREMENTS.get(source)
+        if attr and not getattr(config, attr, ""):
+            missing[source] = attr
+    return missing
+
 
 class FredPipeline:
     def __init__(

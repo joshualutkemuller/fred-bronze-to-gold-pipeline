@@ -59,9 +59,20 @@ def main(argv=None) -> int:
     config = PipelineConfig.resolve(
         environment=Environment(args.env), dbutils=dbutils, config_file=args.config
     )
-    if not config.fred_api_key:
-        print("ERROR: FRED API key not resolved from secret scope or env.",
-              file=sys.stderr)
+
+    # Require only the API keys the active sources in this manifest set need, so
+    # a per-source job (e.g. an EIA-only manifest) doesn't demand a FRED key.
+    from fred_pipeline.pipeline import missing_source_keys
+
+    sources = sorted({s.source for s in all_series(
+        load_manifests(args.manifests), active_only=True)})
+    missing = missing_source_keys(config, sources)
+    if missing:
+        print(
+            "ERROR: missing API key(s) for active source(s): "
+            + ", ".join(f"{s} ({attr})" for s, attr in sorted(missing.items())),
+            file=sys.stderr,
+        )
         return 2
 
     spark = _get_spark(args.dry_run)

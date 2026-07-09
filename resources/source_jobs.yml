@@ -1,0 +1,94 @@
+# Per-source ingestion jobs (BLS, EIA).
+#
+# The main `fred_ingestion` job (resources/fred_pipeline.job.yml) runs the whole
+# `manifests/` directory in one job. This file shows the *alternative* pattern:
+# one job per source, each scoped to that source's manifest file and on its own
+# schedule. Use it when sources release on different cadences or you want them to
+# fail/alert independently.
+#
+# These are shipped PAUSED and point at the inactive demo manifests
+# (bls_labor.yml / eia_energy.yml). To adopt the per-source pattern:
+#   1. set `active: true` on the series in those manifests,
+#   2. supply the source's API key (see spark_env_vars below),
+#   3. unpause the schedule here,
+#   4. and scope `fred_ingestion` to FRED-only manifests so a series isn't
+#      ingested by two jobs (harmless — Silver MERGE is idempotent — but wasteful).
+#
+# The source client reads its key from an env var (BLS_API_KEY / EIA_API_KEY);
+# below they're wired from a Databricks secret. BLS also runs keyless.
+resources:
+  jobs:
+    bls_ingestion:
+      name: "[${bundle.target}] BLS Ingestion"
+      tags:
+        project: fred-pipeline
+        environment: ${var.catalog}
+        source: bls
+      schedule:
+        # BLS CPI/employment post mid-morning ET; run after.
+        quartz_cron_expression: "0 30 13 * * ?"
+        timezone_id: "UTC"
+        pause_status: "PAUSED"
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+      job_clusters:
+        - job_cluster_key: bls_cluster
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: "Standard_DS3_v2"
+            num_workers: 1
+            data_security_mode: "SINGLE_USER"
+            spark_conf:
+              spark.databricks.delta.schema.autoMerge.enabled: "true"
+            spark_env_vars:
+              # Optional for BLS (keyless works at a lower quota).
+              BLS_API_KEY: "{{secrets/fred/bls_api_key}}"
+      tasks:
+        - task_key: ingest_bls
+          job_cluster_key: bls_cluster
+          spark_python_task:
+            python_file: ../notebooks/run_pipeline.py
+            parameters:
+              - "--stage=run"
+              - "--env=${bundle.target}"
+              - "--manifests=${var.manifests_path}/bls_labor.yml"
+          libraries:
+            - whl: ../dist/*.whl
+
+    eia_ingestion:
+      name: "[${bundle.target}] EIA Ingestion"
+      tags:
+        project: fred-pipeline
+        environment: ${var.catalog}
+        source: eia
+      schedule:
+        quartz_cron_expression: "0 45 12 * * ?"
+        timezone_id: "UTC"
+        pause_status: "PAUSED"
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
+      job_clusters:
+        - job_cluster_key: eia_cluster
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+            node_type_id: "Standard_DS3_v2"
+            num_workers: 1
+            data_security_mode: "SINGLE_USER"
+            spark_conf:
+              spark.databricks.delta.schema.autoMerge.enabled: "true"
+            spark_env_vars:
+              # Required for EIA.
+              EIA_API_KEY: "{{secrets/fred/eia_api_key}}"
+      tasks:
+        - task_key: ingest_eia
+          job_cluster_key: eia_cluster
+          spark_python_task:
+            python_file: ../notebooks/run_pipeline.py
+            parameters:
+              - "--stage=run"
+              - "--env=${bundle.target}"
+              - "--manifests=${var.manifests_path}/eia_energy.yml"
+          libraries:
+            - whl: ../dist/*.whl

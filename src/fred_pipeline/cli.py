@@ -236,15 +236,29 @@ def _cmd_validate(args: argparse.Namespace) -> int:
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
+    from fred_pipeline.config import _ENV_OVERRIDES
+    from fred_pipeline.pipeline import missing_source_keys
+
     config = PipelineConfig.resolve(
         environment=Environment(args.env), config_file=args.config
     )
-    if not config.fred_api_key:
-        print(
-            "ERROR: no FRED API key found. Set FRED_API_KEY or configure a "
-            "Databricks secret scope.",
-            file=sys.stderr,
-        )
+
+    # Require only the API keys the *active* sources actually need — a
+    # BLS/EIA-only run shouldn't demand a FRED key (and BLS runs keyless).
+    wanted = set(_parse_series(args.series) or [])
+    active = all_series(load_manifests(args.manifests), active_only=True)
+    if wanted:
+        active = [s for s in active if s.series_id in wanted]
+    sources = sorted({s.source for s in active})
+    missing = missing_source_keys(config, sources)
+    if missing:
+        for src, attr in sorted(missing.items()):
+            env = _ENV_OVERRIDES.get(attr, attr.upper())
+            print(
+                f"ERROR: source '{src}' requires an API key. Set {env}, put "
+                f"{attr} in the config file, or configure a secret scope.",
+                file=sys.stderr,
+            )
         return 2
 
     spark = None
