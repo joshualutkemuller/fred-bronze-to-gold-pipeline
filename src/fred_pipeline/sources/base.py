@@ -89,6 +89,7 @@ class SourceClient(Protocol):
         *,
         run_id: Optional[str] = None,
         track_vintage: bool = True,
+        source: str = "fred",
     ) -> list[dict[str, Any]]: ...
 
 

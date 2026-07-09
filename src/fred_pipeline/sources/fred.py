@@ -105,12 +105,14 @@ class FredClient(HTTPSource):
         *,
         run_id: Optional[str] = None,
         track_vintage: bool = True,
+        source: str = "fred",
     ) -> list[dict[str, Any]]:
         """Map a raw FRED observations payload into canonical silver rows."""
         from fred_pipeline.transform import normalize_observations
 
         return normalize_observations(
-            series_id, payload, run_id=run_id, track_vintage=track_vintage
+            series_id, payload, run_id=run_id, track_vintage=track_vintage,
+            source=source,
         )
 
     # ---- public API -----------------------------------------------------

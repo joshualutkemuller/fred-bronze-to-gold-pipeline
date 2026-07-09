@@ -71,6 +71,7 @@ def normalize_bls_observations(
     *,
     run_id: Optional[str] = None,
     ingested_at: Optional[str] = None,
+    source: str = "bls",
 ) -> list[dict[str, Any]]:
     """Convert a raw BLS timeseries payload into canonical silver rows.
 
@@ -92,6 +93,7 @@ def normalize_bls_observations(
             value = parse_value(raw_value)
             rows.append(
                 {
+                    "source": source,
                     "series_id": series_id,
                     "observation_date": obs_date,
                     "realtime_start": "",
@@ -196,5 +198,7 @@ class BLSClient(HTTPSource):
         *,
         run_id: Optional[str] = None,
         track_vintage: bool = False,  # BLS single-fetch carries no vintages
+        source: str = "bls",
     ) -> list[dict[str, Any]]:
-        return normalize_bls_observations(series_id, payload, run_id=run_id)
+        return normalize_bls_observations(series_id, payload, run_id=run_id,
+                                          source=source)

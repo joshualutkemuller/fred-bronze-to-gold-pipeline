@@ -98,12 +98,18 @@ The following are implemented — a series declaring `source: bls` flows through
 
 That's the whole change — nothing in Bronze/Silver/Gold moves.
 
-### Still optional (not needed for correctness)
+### Per-source lineage in the natural key
 
-* **Per-source lineage column.** To physically tag rows by origin, add a
-  `source` column to Bronze/Silver and include it in the natural key
-  (`(source, series_id, observation_date, realtime_start)`). Today sources share
-  the observation tables, keyed by `series_id`; distinct series IDs across
-  sources keep rows unambiguous.
+Silver rows carry a `source` column, and it is the leading component of the
+natural / MERGE key: `(source, series_id, observation_date, realtime_start)`
+(`transform.SILVER_COLUMNS`, `silver.SILVER_MERGE_KEYS`, `sql/40_silver.sql`,
+and the SQLite mirror in `local_store.py`). The pipeline stamps it from
+`spec.source` in `_normalize`, so every row is tagged with its origin and two
+sources can never collide even if they shared a `series_id` (manifests still
+enforce globally-unique IDs today). Gold aggregations remain keyed on
+`series_id`, which stays unambiguous under that guarantee.
+
+### Still optional
+
 * **Deploy.** Add one Databricks job per source (or per manifest group) in
   `databricks.yml`, each on its own schedule, all sharing the same wheel.

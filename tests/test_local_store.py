@@ -129,6 +129,29 @@ def test_meta_sync_registers_full_universe(tmp_path):
     wh.close()
 
 
+def test_source_is_part_of_natural_key(tmp_path):
+    """Two rows identical except for ``source`` must coexist; re-merging one
+    source updates in place rather than duplicating."""
+    wh = LocalWarehouse(_config(), db_path=str(tmp_path / "f.db"))
+    base = {
+        "series_id": "X", "observation_date": "2024-01-01",
+        "realtime_start": "", "realtime_end": "", "value": 1.0,
+        "raw_value": "1.0", "is_missing": False, "row_hash": "h",
+        "revision_number": 1, "ingested_at": "t", "run_id": "r",
+    }
+    wh.merge_silver([{**base, "source": "fred"}])
+    wh.merge_silver([{**base, "source": "bls"}])
+    # same (series_id, date, realtime) but different source -> two distinct rows
+    assert wh.query("SELECT count(*) c FROM silver_fred_observation")[0]["c"] == 2
+
+    # re-merging the fred row updates in place (idempotent per source)
+    wh.merge_silver([{**base, "source": "fred", "value": 2.0}])
+    assert wh.query("SELECT count(*) c FROM silver_fred_observation")[0]["c"] == 2
+    got = wh.query("SELECT value FROM silver_fred_observation WHERE source='fred'")
+    assert got[0]["value"] == 2.0
+    wh.close()
+
+
 def test_daily_feature_matrix_forward_fills():
     latest = [
         {"series_id": "X", "observation_date": "2024-01-01", "value": 1.0, "is_missing": False},

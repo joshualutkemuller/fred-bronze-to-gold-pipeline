@@ -333,16 +333,17 @@ class FredPipeline:
         normalizer.
         """
         client = self._client_for(spec)
+        source = getattr(spec, "source", "fred") or "fred"
         normalize = getattr(client, "normalize", None)
         if normalize is not None:
             rows = normalize(
                 spec.series_id, payload, run_id=run_id,
-                track_vintage=spec.vintage_enabled,
+                track_vintage=spec.vintage_enabled, source=source,
             )
         else:
             rows = normalize_observations(
                 spec.series_id, payload, run_id=run_id,
-                track_vintage=spec.vintage_enabled,
+                track_vintage=spec.vintage_enabled, source=source,
             )
         return assign_revision_numbers(rows)
 

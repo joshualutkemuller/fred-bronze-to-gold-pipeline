@@ -141,9 +141,11 @@ def test_pipeline_routes_bls_series_end_to_end(tmp_path, fake_session_cls,
     assert run.status == RunStatus.SUCCEEDED
     # the series was fetched from the BLS endpoint, not FRED
     assert session.calls[0]["url"].endswith("/timeseries/data/CUUR0000SA0")
-    # and BLS-normalized rows landed in the warehouse (M13 annual avg dropped)
-    n = wh.query("SELECT count(*) c FROM silver_fred_observation")[0]["c"]
-    assert n == 2
+    # and BLS-normalized rows landed in the warehouse (M13 annual avg dropped),
+    # tagged with their source in the natural key
+    rows = wh.query("SELECT source, count(*) c FROM silver_fred_observation "
+                    "GROUP BY source")
+    assert rows == [{"source": "bls", "c": 2}]
     wh.close()
 
 

@@ -99,10 +99,11 @@ CREATE TABLE IF NOT EXISTS bronze_fred_api_response (
     ingested_at TEXT
 );
 CREATE TABLE IF NOT EXISTS silver_fred_observation (
+    source TEXT NOT NULL DEFAULT 'fred',
     series_id TEXT, observation_date TEXT, realtime_start TEXT,
     realtime_end TEXT, value REAL, raw_value TEXT, is_missing INTEGER,
     row_hash TEXT, revision_number INTEGER, ingested_at TEXT, run_id TEXT,
-    PRIMARY KEY (series_id, observation_date, realtime_start)
+    PRIMARY KEY (source, series_id, observation_date, realtime_start)
 );
 CREATE TABLE IF NOT EXISTS gold_fred_latest_observation (
     series_id TEXT, observation_date TEXT, value REAL, realtime_start TEXT,
@@ -341,7 +342,7 @@ class LocalWarehouse:
         return self._insert(
             "silver_fred_observation",
             rows,
-            upsert_keys=["series_id", "observation_date", "realtime_start"],
+            upsert_keys=["source", "series_id", "observation_date", "realtime_start"],
         )
 
     def build_gold(self) -> dict[str, str]:

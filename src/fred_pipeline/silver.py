@@ -17,8 +17,10 @@ from fred_pipeline.transform import (
     normalize_observations,
 )
 
-# Natural key that makes a silver row unique.
-SILVER_MERGE_KEYS = ("series_id", "observation_date", "realtime_start")
+# Natural key that makes a silver row unique. ``source`` is the leading key so
+# the same series_id could, in principle, be sourced from more than one upstream
+# API without colliding (manifests still enforce globally-unique series_ids).
+SILVER_MERGE_KEYS = ("source", "series_id", "observation_date", "realtime_start")
 
 
 def build_silver_rows(
@@ -28,11 +30,12 @@ def build_silver_rows(
     run_id: str,
     ingested_at: str | None = None,
     track_vintage: bool = True,
+    source: str = "fred",
 ) -> list[dict[str, Any]]:
     """Normalize a raw payload into silver rows with revision numbers."""
     rows = normalize_observations(
         series_id, payload, run_id=run_id, ingested_at=ingested_at,
-        track_vintage=track_vintage,
+        track_vintage=track_vintage, source=source,
     )
     return assign_revision_numbers(rows)
 

@@ -60,6 +60,7 @@ def normalize_observations(
     ingested_at: Optional[str] = None,
     run_id: Optional[str] = None,
     track_vintage: bool = True,
+    source: str = "fred",
 ) -> list[dict[str, Any]]:
     """Convert a raw FRED observations payload into normalized silver rows.
 
@@ -110,6 +111,7 @@ def normalize_observations(
 
         rows.append(
             {
+                "source": source,
                 "series_id": series_id,
                 "observation_date": obs_date,
                 "realtime_start": rt_start,
@@ -127,6 +129,7 @@ def normalize_observations(
 
 # Canonical silver column order (also documented in docs/data_dictionary.md).
 SILVER_COLUMNS = (
+    "source",
     "series_id",
     "observation_date",
     "realtime_start",

@@ -107,18 +107,19 @@ Verbatim FRED payloads (system of record), partitioned by `series_id`.
 ## silver
 
 ### `silver.fred_observation`
-Normalized observations. **Natural key / MERGE key:**
-`(series_id, observation_date, realtime_start)`.
+Normalized observations (multi-source). **Natural key / MERGE key:**
+`(source, series_id, observation_date, realtime_start)`.
 
 | Column | Type | Notes |
 |---|---|---|
+| source | STRING | Upstream API the row came from (`fred`, `bls`, …). Leading key component so the same `series_id` could be sourced from more than one API without colliding |
 | series_id | STRING | Series |
 | observation_date | DATE | The date the value describes |
 | realtime_start | DATE | Vintage window start (when value became known). **NULL/blank for `vintage_enabled: false` series** — vintage is not tracked, so the key is `(series_id, observation_date)` and re-runs update in place |
 | realtime_end | DATE | Vintage window end (`9999-12-31` = still current → NULL); also blank for non-vintage series |
 | value | DOUBLE | Parsed numeric value (NULL if missing) |
-| raw_value | STRING | Original FRED string (`.` preserved) |
-| is_missing | BOOLEAN | True when FRED returned `.` |
+| raw_value | STRING | Original upstream string (FRED `.` preserved as-is) |
+| is_missing | BOOLEAN | True when the value could not be parsed (e.g. FRED `.`) |
 | row_hash | STRING | sha256 change-detection hash |
 | revision_number | INT | 1…N per (series_id, observation_date) |
 | ingested_at | TIMESTAMP | Ingestion time |
