@@ -30,6 +30,36 @@ def test_run_without_spark_records_audit(observations_payload, fake_client_cls):
     assert sr.duration_seconds is not None
 
 
+def test_concurrent_extraction_preserves_order_and_isolation(
+    observations_payload, fake_client_cls
+):
+    """Threaded extraction (phase 2) must still yield deterministic,
+    per-series-isolated results in original spec order once phase 3 replays
+    them sequentially — regardless of worker count or completion order."""
+    client = fake_client_cls(
+        {sid: observations_payload for sid in ("A", "B", "C", "D", "BAD_E", "F")},
+        errors={"BAD_E": FredAPIError("boom", 400)},
+    )
+    config = PipelineConfig(
+        environment=Environment.DEV, fred_api_key="k", extract_workers=4
+    )
+    pipe = FredPipeline(config, client=client, spark=None, persist_audit=False)
+    specs = [_spec(sid) for sid in ("A", "B", "C", "D", "BAD_E", "F")]
+    run = pipe.run(specs)
+
+    assert run.status == RunStatus.PARTIAL
+    assert run.series_succeeded == 5
+    assert run.series_failed == 1
+    # audit rows preserve the original spec order regardless of thread timing
+    assert [sr.series_id for sr in run.series_runs] == ["A", "B", "C", "D", "BAD_E", "F"]
+    bad = run.series_runs[4]
+    assert bad.status == RunStatus.FAILED
+    assert "boom" in bad.error_message
+    for sid in ("A", "B", "C", "D", "F"):
+        sr = [s for s in run.series_runs if s.series_id == sid][0]
+        assert sr.status == RunStatus.SUCCEEDED
+
+
 def test_series_failure_is_isolated(observations_payload, fake_client_cls):
     client = fake_client_cls(
         {"GOOD": observations_payload},

@@ -141,12 +141,26 @@ Daily calendar × series grid, forward-filled from latest observations. Columns:
 ### `gold.fred_feature_transforms`
 Per-series quant transforms from latest observations: `mom` (period-over-period
 % change), `diff` (first difference), `yoy` (year-over-year % change), `zscore`
-(full-sample). Keyed `(series_id, observation_date)`.
+(expanding, point-in-time safe — mean/std computed only from observations
+at-or-before each row's date, never later ones). Keyed `(series_id,
+observation_date)`.
 
 ### `gold.fred_curve_spread`
 Yield-curve spreads (`long_leg − short_leg`), e.g. `T10Y2Y`, `T10Y3M`, `T2Y3M`,
 `T30Y10Y`. Columns: `spread_name`, `observation_date`, `long_leg`, `short_leg`,
 `value`.
+
+### `gold.fred_revision_stats`
+How much each observation moved between its first print and today. Reads raw
+Silver (every vintage), not latest-revision rows — it exists to measure
+revision behavior itself. Columns: `series_id`, `observation_date`,
+`revision_count`, `first_value`, `first_realtime_start`, `latest_value`,
+`latest_realtime_start`, `revision_delta` (latest − first), `revision_pct`.
+Non-vintage series (`vintage_enabled: false`) always have `revision_count = 1`
+— no vintage history is tracked for them, so there's nothing to compare; that's
+a legitimate "not revised" signal, not a data gap. Useful for judging how much
+to trust a series' initial print (e.g. GDP/payrolls are heavily revised;
+market/price series usually are not).
 
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
@@ -157,3 +171,5 @@ point_in_time_features(as_of)` return each series' value **as it was known** on
 * `v_latest_revised` — latest revision per date (backs the Gold table).
 * `v_point_in_time` — every vintage row; filter by real-time window.
 * `v_series_latest_value` — most recent non-missing value per series.
+* `v_series_revision_summary` — per-series rollup of `fred_revision_stats`
+  (avg/max revision count, avg/max absolute revision %).

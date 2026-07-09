@@ -118,3 +118,112 @@ def test_gold_latest_revision_sql(spark):
     ).collect()
     assert len(latest) == 1
     assert latest[0][0] == 101.5
+
+
+def test_feature_transforms_zscore_is_expanding_not_full_sample(spark):
+    """gold.fred_feature_transforms.zscore must be point-in-time safe: each
+    row's mean/std may only reflect observations at-or-before its own date.
+    A whole-partition STDDEV_POP (no ORDER BY / frame) would leak the later
+    outlier's magnitude into the z-score of every earlier row — this asserts
+    the earliest rows see zero variance (only one/two identical points known
+    so far) rather than a value shaped by data from the future."""
+    rows = [
+        {"series_id": "X", "observation_date": "2024-01-01", "value": 100.0},
+        {"series_id": "X", "observation_date": "2024-02-01", "value": 100.0},
+        {"series_id": "X", "observation_date": "2024-03-01", "value": 1000.0},  # outlier
+    ]
+    _silver_df(spark, rows).write.format("delta").mode("overwrite").saveAsTable(
+        "latest_zscore_it"
+    )
+    out = spark.sql(
+        """
+        WITH base AS (
+            SELECT series_id, observation_date, value FROM latest_zscore_it
+        ),
+        w AS (
+            SELECT series_id, observation_date, value,
+                AVG(value) OVER (
+                    PARTITION BY series_id ORDER BY observation_date
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                ) AS mean_v,
+                STDDEV_POP(value) OVER (
+                    PARTITION BY series_id ORDER BY observation_date
+                    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+                ) AS std_v
+            FROM base
+        )
+        SELECT observation_date,
+            CASE WHEN std_v IS NOT NULL AND std_v <> 0
+                 THEN (value - mean_v) / std_v END AS zscore
+        FROM w ORDER BY observation_date
+        """
+    ).collect()
+
+    by_date = {r["observation_date"]: r["zscore"] for r in out}
+    # Only one/two identical values known so far -> zero variance -> null,
+    # regardless of the huge outlier that arrives later.
+    assert by_date["2024-01-01"] is None
+    assert by_date["2024-02-01"] is None
+    # By the third (outlier) row, variance is nonzero and a real zscore exists.
+    assert by_date["2024-03-01"] is not None
+
+
+def test_revision_stats_sql(spark):
+    """gold.fred_revision_stats: first-release vs. latest-revised value,
+    revision count, and magnitude — computed from raw Silver (every vintage),
+    not latest-revision rows."""
+    rows = [
+        # revised twice: 100.0 (first print) -> 101.5 -> 99.0 (latest)
+        {"series_id": "G", "observation_date": "2024-01-01",
+         "realtime_start": "2024-02-01", "value": 100.0, "revision_number": 1,
+         "is_missing": False},
+        {"series_id": "G", "observation_date": "2024-01-01",
+         "realtime_start": "2024-03-01", "value": 101.5, "revision_number": 2,
+         "is_missing": False},
+        {"series_id": "G", "observation_date": "2024-01-01",
+         "realtime_start": "2024-04-01", "value": 99.0, "revision_number": 3,
+         "is_missing": False},
+        # never revised
+        {"series_id": "G", "observation_date": "2024-02-01",
+         "realtime_start": "2024-03-15", "value": 102.0, "revision_number": 1,
+         "is_missing": False},
+    ]
+    _silver_df(spark, rows).write.format("delta").mode("overwrite").saveAsTable(
+        "silver_revision_it"
+    )
+    out = spark.sql(
+        """
+        WITH base AS (
+            SELECT series_id, observation_date, realtime_start, value, revision_number
+            FROM silver_revision_it
+            WHERE is_missing = false AND value IS NOT NULL
+        ),
+        bounds AS (
+            SELECT series_id, observation_date,
+                MIN(revision_number) AS min_rev, MAX(revision_number) AS max_rev,
+                COUNT(*) AS revision_count
+            FROM base
+            GROUP BY series_id, observation_date
+        )
+        SELECT b.series_id, b.observation_date, b.revision_count,
+            f.value AS first_value, l.value AS latest_value,
+            l.value - f.value AS revision_delta,
+            CASE WHEN f.value <> 0 THEN (l.value - f.value) / f.value END AS revision_pct
+        FROM bounds b
+        JOIN base f ON f.series_id = b.series_id AND f.observation_date = b.observation_date
+                  AND f.revision_number = b.min_rev
+        JOIN base l ON l.series_id = b.series_id AND l.observation_date = b.observation_date
+                  AND l.revision_number = b.max_rev
+        """
+    ).collect()
+
+    by_date = {r["observation_date"]: r for r in out}
+    revised = by_date["2024-01-01"]
+    assert revised["revision_count"] == 3
+    assert revised["first_value"] == 100.0
+    assert revised["latest_value"] == 99.0
+    assert revised["revision_delta"] == pytest.approx(-1.0)
+
+    unrevised = by_date["2024-02-01"]
+    assert unrevised["revision_count"] == 1
+    assert unrevised["revision_delta"] == 0.0

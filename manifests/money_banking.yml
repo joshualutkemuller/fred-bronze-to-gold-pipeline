@@ -1,0 +1,7091 @@
+name: money_banking
+description: Money supply, bank balance sheets, Fed reserves/balance sheet, credit
+  conditions, and financial stress/uncertainty indices.
+version: 1
+series:
+- series_id: M2SL
+  title: M2
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WM2NS
+  title: M2
+  frequency: w
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: M1SL
+  title: M1
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGMBASE
+  title: 'Monetary Base: Total'
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTRESNS
+  title: 'Reserves of Depository Institutions: Total'
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: M2NS
+  title: M2
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WRMFNS
+  title: Retail Money Market Funds
+  frequency: w
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MBCURRCIR
+  title: 'Monetary Base: Currency in Circulation'
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WM1NS
+  title: M1
+  frequency: w
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BORROW
+  title: Total Borrowings from the Federal Reserve
+  frequency: m
+  category: money_banking
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGMBBM
+  title: 'Monetary Base: Reserve Balances'
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RMFSL
+  title: Retail Money Market Funds
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DEMDEPSL
+  title: Demand Deposits
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CURRSL
+  title: Currency Component of M1
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: M1NS
+  title: M1
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MDLM
+  title: 'Other Liquid Deposits: Total'
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WDDNS
+  title: Demand Deposits
+  frequency: w
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: STDSL
+  title: 'Small-Denomination Time Deposits: Total'
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CURRNS
+  title: Currency Component of M1
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WCURRNS
+  title: Currency Component of M1
+  frequency: w
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MDLNWM
+  title: 'Other Liquid Deposits: Total'
+  frequency: w
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NONBORRES
+  title: 'Reserves of Depository Institutions: Nonborrowed'
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSMTMNS
+  title: 'Small-Denomination Time Deposits: Total'
+  frequency: w
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RMFNS
+  title: Retail Money Market Funds
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: IRA
+  title: 'IRA and Keogh Accounts: Total'
+  frequency: m
+  category: money_banking
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CCLACBW027SBOG
+  title: 'Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DPSACBW027SBOG
+  title: Deposits, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTBKCR
+  title: Bank Credit, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BUSLOANS
+  title: Commercial and Industrial Loans, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTLL
+  title: Loans and Leases in Bank Credit, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLAACBW027SBOG
+  title: Total Assets, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTCI
+  title: Commercial and Industrial Loans, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LOANS
+  title: Loans and Leases in Bank Credit, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TMBACBW027SBOG
+  title: 'Treasury and Agency Securities: Mortgage-Backed Securities (MBS), All Commercial
+    Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CREACBM027NBOG
+  title: 'Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks'
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CASACBW027SBOG
+  title: Cash Assets, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLBACBW027NBOG
+  title: Total Liabilities, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LNFACBW027SBOG
+  title: 'Other Loans and Leases: All Other Loans and Leases: Loans to Nondepository
+    Financial Institutions, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RHEACBW027SBOG
+  title: 'Real Estate Loans: Residential Real Estate Loans: Revolving Home Equity
+    Loans, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: REALLN
+  title: Real Estate Loans, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CARACBW027SBOG
+  title: 'Consumer Loans: Other Consumer Loans: Automobile Loans, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CREACBW027SBOG
+  title: 'Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CONSUMER
+  title: Consumer Loans, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: USGSEC
+  title: Treasury and Agency Securities, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLBACBM027NBOG
+  title: Total Liabilities, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DPSACBM027NBOG
+  title: Deposits, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LOANINV
+  title: Bank Credit, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1001NCBCMG
+  title: Bank Credit, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CLSACBW027SBOG
+  title: Consumer Loans, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CIBOARD
+  title: Commercial and Industrial Loans, Large Domestically Chartered Commercial
+    Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLAACBM027SBOG
+  title: Total Assets, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1152NCBCAG
+  title: Total Liabilities, All Commercial Banks
+  frequency: a
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LOANINVNSA
+  title: Bank Credit, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DPSACBW027NBOG
+  title: Deposits, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1152NCBCMG
+  title: Total Liabilities, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CLDACBW027SBOG
+  title: 'Real Estate Loans: Commercial Real Estate Loans: Construction and Land Development
+    Loans, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CCLACBM027SBOG
+  title: 'Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks'
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BC0ACBQ158SBOG
+  title: Bank Credit, All Commercial Banks
+  frequency: q
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SBCACBW027SBOG
+  title: Securities in Bank Credit, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1301NCBCQG
+  title: 'Treasury and Agency Securities: Mortgage-Backed Securities (MBS), All Commercial
+    Banks'
+  frequency: q
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTBKCRNSA
+  title: Bank Credit, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RREACBW027SBOG
+  title: 'Real Estate Loans: Residential Real Estate Loans, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CILACBQ158SBOG
+  title: Commercial and Industrial Loans, All Commercial Banks
+  frequency: q
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RALACBM027SBOG
+  title: Residual (Assets Less Liabilities), All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RELACBW027SBOG
+  title: Real Estate Loans, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CCLACBW027NBOG
+  title: 'Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DPSSCBW027SBOG
+  title: Deposits, Small Domestically Chartered Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1058NCBCMG
+  title: Deposits, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTLLNSA
+  title: Loans and Leases in Bank Credit, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1247NCBCMG
+  title: 'Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks'
+  frequency: m
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DPSACBM027SBOG
+  title: Deposits, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1023NCBCMG
+  title: Commercial and Industrial Loans, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ODSACBW027SBOG
+  title: Other Deposits, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B3094NCBA
+  title: Borrowings, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1001NCBCAG
+  title: Bank Credit, All Commercial Banks
+  frequency: a
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTCINSA
+  title: Commercial and Industrial Loans, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CASLCBW027NBOG
+  title: Cash Assets, Large Domestically Chartered Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLBACBM027SBOG
+  title: Total Liabilities, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NDFACBW027SBOG
+  title: Net Due to Related Foreign Offices, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLBACBW027SBOG
+  title: Total Liabilities, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CCLACBM027NBOG
+  title: 'Consumer Loans: Credit Cards and Other Revolving Plans, All Commercial Banks'
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LTDACBM027NBOG
+  title: Large Time Deposits, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DPSLCBW027NBOG
+  title: Deposits, Large Domestically Chartered Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B1020NCBCMG
+  title: Loans and Leases in Bank Credit, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LLBSCBW027SBOG
+  title: Loans and Leases in Bank Credit, Small Domestically Chartered Commercial
+    Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TASACBW027SBOG
+  title: Treasury and Agency Securities, All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DPSACBQ158SBOG
+  title: Deposits, All Commercial Banks
+  frequency: q
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LNFACBM027SBOG
+  title: 'Other Loans and Leases: All Other Loans and Leases: Loans to Nondepository
+    Financial Institutions, All Commercial Banks'
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SMPACBW027SBOG
+  title: 'Real Estate Loans: Commercial Real Estate Loans: Secured by Multifamily
+    Properties, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LNFACBW027NBOG
+  title: 'Other Loans and Leases: All Other Loans and Leases: Loans to Nondepository
+    Financial Institutions, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BUSLOANSNSA
+  title: Commercial and Industrial Loans, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CREACBM027SBOG
+  title: 'Real Estate Loans: Commercial Real Estate Loans, All Commercial Banks'
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CILSCBW027SBOG
+  title: Commercial and Industrial Loans, Small Domestically Chartered Commercial
+    Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: INVEST
+  title: Securities in Bank Credit, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLAACBM027NBOG
+  title: Total Assets, All Commercial Banks
+  frequency: m
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H8B3092NCBA
+  title: Total Fed Funds Sold and Securities Purchased Under Agreements to Resell,
+    All Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DPSLCBW027SBOG
+  title: Deposits, Large Domestically Chartered Commercial Banks
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RHEACBW027NBOG
+  title: 'Real Estate Loans: Residential Real Estate Loans: Revolving Home Equity
+    Loans, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: LLBACBQ158SBOG
+  title: Loans and Leases in Bank Credit, All Commercial Banks
+  frequency: q
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TNMACBW027SBOG
+  title: 'Treasury and Agency Securities: Non-MBS, All Commercial Banks'
+  frequency: w
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WALCL
+  title: 'Assets: Total Assets: Total Assets (Less Eliminations from Consolidation):
+    Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WTREGEN
+  title: 'Liabilities and Capital: Liabilities: Deposits with F.R. Banks, Other Than
+    Reserve Balances: U.S. Treasury, General Account: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WRESBAL
+  title: 'Liabilities and Capital: Other Factors Draining Reserve Balances: Reserve
+    Balances with Federal Reserve Banks: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WDTGAL
+  title: 'Liabilities and Capital: Liabilities: Deposits with F.R. Banks, Other Than
+    Reserve Balances: U.S. Treasury, General Account: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TREAST
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: All: Wednesday
+    Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: D2WLTGAL
+  title: 'Liabilities and Capital: Liabilities: Deposits: U.S. Treasury General Account:
+    Wednesday Level in Federal Reserve District 2: New York'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WRBWFRBL
+  title: 'Liabilities and Capital: Other Factors Draining Reserve Balances: Reserve
+    Balances with Federal Reserve Banks: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSHOMCB
+  title: 'Assets: Securities Held Outright: Mortgage-Backed Securities: Wednesday
+    Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SWPT
+  title: 'Assets: Central Bank Liquidity Swaps: Central Bank Liquidity Swaps: Wednesday
+    Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RESPPANWW
+  title: 'Assets: Total Assets: Total Assets: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLRRAL
+  title: 'Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Wednesday
+    Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLCFLPCL
+  title: 'Assets: Liquidity and Credit Facilities: Loans: Primary Credit: Wednesday
+    Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLODLL
+  title: 'Liabilities and Capital: Liabilities: Deposits: Other Deposits Held by Depository
+    Institutions: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSHOSHO
+  title: 'Assets: Securities Held Outright: Securities Held Outright: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSHOBL
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Bills: Wednesday
+    Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WCURCIR
+  title: 'Liabilities and Capital: Other Factors Draining Reserve Balances: Currency
+    in Circulation: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RESPPLLOPNWW
+  title: 'Liabilities and Capital: Liabilities: Earnings Remittances Due to the U.S.
+    Treasury: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WMTSECL1
+  title: 'Memorandum Items: Custody Holdings: Marketable U.S. Treasury Securities:
+    Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TREAS10Y
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Maturing in
+    over 10 Years: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSHOTSL
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WORAL
+  title: 'Assets: Other: Repurchase Agreements: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLCFLL
+  title: 'Assets: Liquidity and Credit Facilities: Loans: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WCBLSA
+  title: 'Assets: Central Bank Liquidity Swaps: Central Bank Liquidity Swaps: Week
+    Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLRRAFOIAL
+  title: 'Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign
+    Official and International Accounts: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WREPO
+  title: 'Assets: Other: Repurchase Agreements: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLTLECL
+  title: 'Liabilities and Capital: Liabilities: Total Liabilities (Less Eliminations
+    from Consolidation): Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WREPODEL
+  title: 'Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Others:
+    Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSHONBNL
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Notes and Bonds,
+    Nominal: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: D2WATAL
+  title: 'Assets: Total Assets: Total Assets: Wednesday Level in Federal Reserve District
+    2: New York'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WPC
+  title: 'Assets: Liquidity and Credit Facilities: Loans: Primary Credit: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSEFINT1
+  title: 'Memorandum Items: Custody Holdings: Securities in Custody for Foreign and
+    International Accounts: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WREPOFOR
+  title: 'Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Foreign
+    Official and International Accounts: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: H41RESPPALGTRFNWW
+  title: 'Assets: Other: Repurchase Agreements - Foreign Official: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSEFINTL1
+  title: 'Memorandum Items: Custody Holdings: Securities in Custody for Foreign and
+    International Accounts: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WOFSRBRBC
+  title: 'Assets: Other Factors Supplying Reserve Balances: Reserve Bank Credit: Wednesday
+    Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WCICL
+  title: 'Liabilities and Capital: Other Factors Draining Reserve Balances: Currency
+    in Circulation: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WTFSRFL
+  title: 'Assets: Other Factors Supplying Reserve Balances: Total Factors Supplying
+    Reserve Funds: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WRESCRT
+  title: 'Assets: Other Factors Supplying Reserve Balances: Reserve Bank Credit: Week
+    Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLFN
+  title: 'Liabilities and Capital: Liabilities: Federal Reserve Notes, Net of F.R.
+    Bank Holdings: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLDLCL
+  title: 'Liabilities and Capital: Liabilities: Deposits (Less Eliminations from Consolidation):
+    Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TREAS15
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Maturing Within
+    15 Days: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLRRAOL
+  title: 'Liabilities and Capital: Liabilities: Reverse Repurchase Agreements: Others:
+    Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TREAS1590
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Maturing in
+    16 Days to 90 Days: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TREAS911Y
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Maturing in
+    91 Days to 1 Year: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WTFSRFA
+  title: 'Assets: Other Factors Supplying Reserve Balances: Total Factors Supplying
+    Reserve Funds: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WGCAL
+  title: 'Assets: Other: Gold Certificate Account: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLAD
+  title: 'Liabilities and Capital: Liabilities: Other Liabilities and Accrued Dividends
+    (Includes the Liability for Earnings Remittances Due to the U.S. Treasury): Wednesday
+    Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WSHOTSA
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Week Average'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TREAS1T5
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Maturing in
+    over 1 Year to 5 Years: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WFCDA
+  title: 'Assets: Other Factors Supplying Reserve Balances: Foreign Currency Denominated
+    Assets: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TREAS5T10
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Maturing in
+    over 5 Years to 10 Years: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLODL
+  title: 'Liabilities and Capital: Liabilities: Deposits: Other: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: D4WACBS
+  title: 'Assets: Central Bank Liquidity Swaps: Central Bank Liquidity Swaps: Wednesday
+    Level in Federal Reserve District 4: Cleveland'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WTFORBAFL
+  title: 'Liabilities and Capital: Other Factors Draining Reserve Balances: Total
+    Factors, Other Than Reserve Balances, Absorbing Reserve Funds: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLCFOCEL
+  title: 'Assets: Liquidity and Credit Facilities: Loans: Other Credit Extensions:
+    Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RESPPALGUOXCH1NWW
+  title: 'Assets: Securities Held Outright: U.S. Treasury Securities: Change in Wednesday
+    Level from Previous Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MBS10Y
+  title: 'Assets: Securities Held Outright: Mortgage-Backed Securities: Maturing in
+    over 10 Years: Wednesday Level'
+  frequency: w
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MMMFFAQ027S
+  title: Money Market Funds; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL192090005Q
+  title: Households; Net Worth, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL153064486Q
+  title: Households and Nonprofit Organizations; Directly and Indirectly Held Corporate
+    Equities as a Percentage of Financial Assets; Assets, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: OEHRENWBSHNO
+  title: Households; Owners' Equity in Real Estate, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL663067003Q
+  title: Security Brokers and Dealers; Receivables Due from Customers (Margin Loans
+    and Other Receivables); Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BCNSDODNS
+  title: Nonfinancial Corporate Business; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ROWFDIQ027S
+  title: Rest of the World; Foreign Direct Investment in U.S.; Asset (Current Cost),
+    Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL075035503Q
+  title: Interest Rates and Price Indexes; Commercial Real Estate Price Index, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA895050005Q
+  title: All Sectors; Total Capital Expenditures, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TCMDO
+  title: All Sectors; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL193020005Q
+  title: Households; Checkable Deposits and Currency; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TNWBSHNO
+  title: Households and Nonprofit Organizations; Net Worth, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL263061130Q
+  title: Rest of the World; Treasury Securities Held by Foreign Official Institutions;
+    Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL403069330Q
+  title: Government-Sponsored Enterprises; FHLB Advances; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL893065215Q
+  title: All Sectors; Total Home Equity Lines of Credit; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL153064476Q
+  title: Households and Nonprofit Organizations; Directly and Indirectly Held Corporate
+    Equities as a Percentage of Total Assets, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HNONWPDPI
+  title: Households and Nonprofit Organizations; Net Worth as a Percentage of Disposable
+    Personal Income, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NCBCMDPMVCE
+  title: Nonfinancial Corporate Business; Debt as a Percentage of the Market Value
+    of Corporate Equities, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL073161113Q
+  title: Interest Rates and Price Indexes; 10-Year Treasury Yield, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NCBEILQ027S
+  title: Nonfinancial Corporate Business; Corporate Equities; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL632051103Q
+  title: Money Market Funds; Security Repurchase Agreements (Federal Reserve Reverse
+    Repurchase Agreement Operations); Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL263092141A
+  title: 'Rest of the World; Foreign Direct Investment in U.S.: Equity; Asset (Market
+    Value), Level'
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1LM193064005Q
+  title: Households; Corporate Equities and Mutual Fund Shares; Asset, Market Value
+    Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MMMFTAQ027S
+  title: Money Market Funds; Total Financial Assets, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CMDEBT
+  title: Households and Nonprofit Organizations; Debt Securities and Loans; Liability,
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1LM654090000Q
+  title: Mutual Funds; Total Financial Assets, Market Value Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL892090005Q
+  title: All Sectors; U.S. Wealth, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL075035403Q
+  title: Interest Rates and Price Indexes; Multi-Family Real Estate Apartment Price
+    Index, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL594090005Q
+  title: Pension Funds; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HOEREPHRE
+  title: Households; Owners' Equity in Real Estate as a Percentage of Household Real
+    Estate, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL194090005Q
+  title: Households; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NCBDBIQ027S
+  title: Nonfinancial Corporate Business; Debt Securities; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HHMSDODNS
+  title: Households and Nonprofit Organizations; One-to-Four-Family Residential Mortgages;
+    Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL072052006Q
+  title: Interest Rates and Price Indexes; Effective Federal Funds Rate (Percent),
+    Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL192000005Q
+  title: Households; Total Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ASTMA
+  title: All Sectors; Total Mortgages; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL624123035Q
+  title: Hedge Funds; Loans, Total Secured Borrowing Via Prime Brokerages (Margin
+    Accounts); Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TFAABSHNO
+  title: Households and Nonprofit Organizations; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: FGCCSAQ027S
+  title: Federal Government; Consumer Credit, Student Loans; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HCCSDODNS
+  title: Households and Nonprofit Organizations; Consumer Credit; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SLGSDODNS
+  title: State and Local Governments; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1LM893064105Q
+  title: All Sectors; Corporate Equities; Asset, Market Value Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ASHMA
+  title: All Sectors; One-to-Four-Family Residential Mortgages; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA105050005Q
+  title: Nonfinancial Corporate Business; Total Capital Expenditures, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL564090005Q
+  title: Exchange-Traded Funds; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL193030205Q
+  title: Households; Other Deposits Including Time and Savings Deposits; Asset (IMA),
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: FGTSL
+  title: Federal Government; Total Marketable Treasury Securities; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ASTDSL
+  title: All Sectors; Total Debt Securities; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TNWMVBSNNCB
+  title: Nonfinancial Corporate Business; Net Worth, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TCMILBSNNCB
+  title: Nonfinancial Corporate Business; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ROWTASA027N
+  title: Rest of the World; Total Financial Assets, Level
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL164090015Q
+  title: Nonprofit Organizations; Total Financial Assets Held by Private Foundations,
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HOOREVLMHMV
+  title: Households; Owner-Occupied Real Estate Including Vacant Land and Mobile Homes
+    at Market Value, Market Value Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CDCABSHNO
+  title: Households and Nonprofit Organizations; Checkable Deposits and Currency;
+    Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL194190005Q
+  title: Households; Total Liabilities, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA713068703Q
+  title: Central Bank; Loans to Domestic Banks Through the Discount Window; Asset,
+    Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL073164003Q
+  title: Interest Rates and Price Indexes; NYSE Composite Index, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL263092141Q
+  title: 'Rest of the World; Foreign Direct Investment in U.S.: Equity; Asset (Market
+    Value), Level'
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SBDDSA
+  title: Security Brokers and Dealers; Debt Securities; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ROWFDNQ027S
+  title: Rest of the World; Foreign Direct Investment in U.S.; Asset (Current Cost),
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MMMFFAA027N
+  title: Money Market Funds; Total Financial Assets, Level
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL162000005Q
+  title: Nonprofit Organizations; Total Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TABSHNO
+  title: Households and Nonprofit Organizations; Total Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ASMRMA
+  title: All Sectors; Multifamily Residential Mortgages; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NCBCMDPNWMV
+  title: Nonfinancial Corporate Business; Debt as a Percentage of Net Worth (Market
+    Value), Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL155035013Q
+  title: Households; Owner-Occupied Real Estate at Market Value, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: AGSEBMPTCMAHDFS
+  title: Agency-and GSE-Backed Mortgage Pools; Total Mortgages; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL193034005Q
+  title: Households; Money Market Fund Shares; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TSDABSHNO
+  title: Households and Nonprofit Organizations; Total Time and Savings Deposits;
+    Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL623069503Q
+  title: Hedge Funds; Leveraged Loans; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL544090005Q
+  title: Life Insurance Companies; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TABSNNCB
+  title: Nonfinancial Corporate Business; Total Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL075035503A
+  title: Interest Rates and Price Indexes; Commercial Real Estate Price Index, Level
+  frequency: a
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL633061105Q
+  title: Money Market Funds; Treasury Securities; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ADSGFIA027N
+  title: All Domestic Sectors; Gross Fixed Investment, Transactions
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL010000016Q
+  title: Financial Soundness Indicator; Regulatory Tier 1 Capital as a Percent of
+    Risk-Weighted Assets, Level, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA105019005Q
+  title: Nonfinancial Corporate Business; Gross Fixed Investment, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL263061145Q
+  title: Rest of the World; Treasury Securities Held by Private Foreigners; Asset,
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HNOCEA
+  title: Households and Nonprofit Organizations; Corporate Equities; Asset, Market
+    Value Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HNOTSAQ027S
+  title: Households and Nonprofit Organizations; Treasury Securities; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NCBCDCA
+  title: Nonfinancial Corporate Business; Checkable Deposits and Currency; Asset (Excluding
+    Ereits), Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1LM153064475Q
+  title: Households and Nonprofit Organizations; Directly and Indirectly Held Corporate
+    Equities; Asset, Market Value Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FU105050005Q
+  title: Nonfinancial Corporate Business; Total Capital Expenditures, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: FGLBAFQ027S
+  title: Federal Government; Net Lending (+) or Borrowing (-) (Financial Account),
+    Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HMLBSHNO
+  title: Households and Nonprofit Organizations; One-to-Four-Family Residential Mortgages;
+    Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TBSDODNS
+  title: Nonfinancial Business; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA663067003Q
+  title: Security Brokers and Dealers; Receivables Due from Customers (Margin Loans
+    and Other Receivables); Asset, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TFAABSNNCB
+  title: Nonfinancial Corporate Business; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL313161110Q
+  title: Federal Government; Total Marketable Treasury Bills; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA106130003Q
+  title: Nonfinancial Corporate Business; Net Interest and Miscellaneous Payments,
+    Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NCBCEPNW
+  title: Nonfinancial Corporate Business; Corporate Equities as a Percentage of Net
+    Worth, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RWLBACQ027S
+  title: Rest of the World; Net Lending (+) or Borrowing (-) (Capital Account), Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLBSHNO
+  title: Households and Nonprofit Organizations; Total Liabilities, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TLBSNNCB
+  title: Nonfinancial Corporate Business; Total Liabilities, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NCBCEL
+  title: Nonfinancial Corporate Business; Corporate Equities; Liability, Market Value
+    Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: FGSDODNS
+  title: Federal Government; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TCMDODNS
+  title: Domestic Nonfinancial Sectors; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA106030005Q
+  title: Nonfinancial Corporate Business; Revenue from Sales of Goods and Services,
+    Excluding Indirect Sales Taxes (FSIs), Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1LM883164115Q
+  title: All Domestic Sectors; Public Corporate Equities; Liability, Market Value
+    Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL153064486A
+  title: Households and Nonprofit Organizations; Directly and Indirectly Held Corporate
+    Equities as a Percentage of Financial Assets; Assets, Level
+  frequency: a
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HNOREMV
+  title: Households and Nonprofit Organizations; Real Estate at Market Value, Market
+    Value Levels
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL192090005A
+  title: Households; Net Worth, Level
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TSDABSNNCB
+  title: Nonfinancial Corporate Business; Total Time and Savings Deposits; Asset,
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL713068703Q
+  title: Central Bank; Loans to Domestic Banks Through the Discount Window; Asset,
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA893065215Q
+  title: All Sectors; Total Home Equity Lines of Credit; Asset, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL713061103Q
+  title: Central Bank; Total Treasury Securities; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MMFSABSHNO
+  title: Households and Nonprofit Organizations; Money Market Fund Shares; Asset,
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL624090005A
+  title: Hedge Funds; Total Financial Assets, Level
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1LM313011203A
+  title: Federal Government; Monetary Gold; Asset, Market Value Levels
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL664090663Q
+  title: Security Brokers and Dealers; Total Assets (Balance Sheet), Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TODNS
+  title: Domestic Nonfinancial Sectors; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL623039013Q
+  title: Hedge Funds; Other Cash and Cash Equivalents; Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL594090055Q
+  title: Defined Contribution Pension Funds; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL073165103Q
+  title: Interest Rates and Price Indexes; Contract Rate on 30-Year, Fixed-Rate Conventional
+    One-to-Four-Family Residential Mortgage Commitments, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL192000005A
+  title: Households; Total Assets, Level
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA105005305Q
+  title: Nonfinancial Corporate Business; Difference Between Capital Expenditures
+    and Gross Savings Less Net Capital Transfers Paid, Excluding Foreign Earnings
+    Retained Abroad (Financing Gap), Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: FBTFASQ027S
+  title: Domestic Financial Sectors; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FA106110115Q
+  title: Nonfinancial Corporate Business; Earnings Before Interest and Tax (FSIs),
+    Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ROWORAQ027S
+  title: Rest of the World; Monetary Gold and SDRs; Assets, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BLNECLBSNNCB
+  title: Nonfinancial Corporate Business; Depository Institution Loans N.e.c.; Liability,
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SCABSHNO
+  title: Households and Nonprofit Organizations; Cash Accounts at Brokers and Dealers,
+    Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL153050015Q
+  title: Households and Nonprofit Organizations; Retirement Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: ASCMA
+  title: All Sectors; Commercial Mortgages; Asset, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NCBCEBQ027S
+  title: Nonfinancial Corporate Business; Corporate Equities; Liability, Transactions
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL664090005Q
+  title: Security Brokers and Dealers; Total Financial Assets, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: FGTFASA027N
+  title: Federal Government; Total Financial Assets, Level
+  frequency: a
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: BOGZ1FL010000346Q
+  title: Financial Soundness Indicator, Households; Debt Service and Principal Payments
+    as a Percent of Income, Level
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DODFFSWCMI
+  title: Rest of the World; Debt Securities and Loans; Liability, Level
+  frequency: q
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TERMCBCCALLNS
+  title: Commercial Bank Interest Rate on Credit Card Plans, All Accounts
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTALSL
+  title: Total Consumer Credit Owned and Securitized
+  frequency: m
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TERMCBAUTO48NS
+  title: Finance Rate on Consumer Installment Loans at Commercial Banks, New Autos
+    48 Month Loan
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: REVOLSL
+  title: Revolving Consumer Credit Owned and Securitized
+  frequency: m
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RIFLPBCIANM60NM
+  title: Finance Rate on Consumer Installment Loans at Commercial Banks, New Autos
+    60 Month Loan
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TERMCBPER24NS
+  title: Finance Rate on Personal Loans at Commercial Banks, 24 Month Loan
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTALSLAR
+  title: Percent Change of Total Consumer Credit
+  frequency: m
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TERMCBCCINTNS
+  title: Commercial Bank Interest Rate on Credit Card Plans, Accounts Assessed Interest
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RIFLPBCIANM72NM
+  title: Finance Rate on Consumer Installment Loans at Commercial Banks, New Autos
+    72 Month Loan
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DTCTLVENANM
+  title: Average Amount Financed for New Car Loans at Finance Companies
+  frequency: m
+  category: money_banking
+  units: U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SLOASM
+  title: Student Loans Owned and Securitized
+  frequency: m
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: TOTALNS
+  title: Total Consumer Credit Owned and Securitized
+  frequency: m
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: RIELPCFANNM
+  title: Average Finance Rate of New Car Loans at Finance Companies, Amount of Finance
+    Weighted
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DTCTLVENMNM
+  title: Average Maturity of New Car Loans at Finance Companies, Amount of Finance
+    Weighted
+  frequency: m
+  category: money_banking
+  units: Months
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: NONREVSL
+  title: Nonrevolving Consumer Credit Owned and Securitized
+  frequency: m
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: REVOLSLAR
+  title: Percent Change of Total Revolving Consumer Credit
+  frequency: m
+  category: money_banking
+  units: Percent Change at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: MVLOASM
+  title: Motor Vehicle Loans Owned and Securitized
+  frequency: m
+  category: money_banking
+  units: Millions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DRTSCILM
+  title: Net Percentage of Domestic Banks Tightening Standards for Commercial and
+    Industrial Loans to Large and Middle-Market Firms
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DRTSCLCC
+  title: Net Percentage of Domestic Banks Tightening Standards for Credit Card Loans
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DRTSCIS
+  title: Net Percentage of Domestic Banks Tightening Standards for Commercial and
+    Industrial Loans to Small Firms
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: STDSAUTO
+  title: Net Percentage of Domestic Banks Tightening Standards for Auto Loans
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SUBLPDRCSC
+  title: Net Percentage of Domestic Banks Tightening Standards for Commercial Real
+    Estate Loans With Construction and Land Development Purposes
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DRSDCILM
+  title: Net Percentage of Domestic Banks Reporting Stronger Demand for Commercial
+    and Industrial Loans From Large and Middle-Market Firms
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DRTSSP
+  title: Net Percentage of Domestic Banks Tightening Standards for Subprime Mortgage
+    Loans
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SUBLPDRCSN
+  title: Net Percentage of Domestic Banks Tightening Standards for Commercial Real
+    Estate Loans Secured by Nonfarm Nonresidential Structures
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: STDSOTHCONS
+  title: Net Percentage of Domestic Banks Tightening Standards for Consumer Loans
+    Excluding Credit Card and Auto Loans
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SUBLPDRCSM
+  title: Net Percentage of Domestic Banks Tightening Standards for Commercial Real
+    Estate Loans Secured by Multifamily Residential Structures
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DRIWCIL
+  title: Net Percentage of Domestic Banks Reporting Increased Willingness to Make
+    Consumer Installment Loans
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DEMAUTO
+  title: Net Percentage of Domestic Banks Reporting Stronger Demand for Auto Loans
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SUBLPDCLCSLGNQ
+  title: Net Percentage of Large Domestic Banks Tightening Standards for Credit Card
+    Loans
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DRISCFLM
+  title: Net Percentage of Domestic Banks Increasing Spreads of Loan Rates Over Banks'
+    Cost of Funds to Large and Middle-Market Firms
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DEMCC
+  title: Net Percentage of Domestic Banks Reporting Stronger Demand for Credit Card
+    Loans
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DRSDCIS
+  title: Net Percentage of Domestic Banks Reporting Stronger Demand for Commercial
+    and Industrial Loans From Small Firms
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SUBLPDRCDC
+  title: Net Percentage of Domestic Banks Reporting Stronger Demand for Commercial
+    Real Estate Loans With Construction and Land Development Purposes
+  frequency: q
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: USEPUINDXD
+  title: Economic Policy Uncertainty Index for United States
+  frequency: d
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: GEPUCURRENT
+  title: 'Global Economic Policy Uncertainty Index: Current Price Adjusted GDP'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: USEPUINDXM
+  title: Economic Policy Uncertainty Index for United States
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EPUTRADE
+  title: 'Economic Policy Uncertainty Index: Categorical Index: Trade policy'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CHNMAINLANDEPU
+  title: 'Economic Policy Uncertainty Index: Mainland Papers for China'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EMVOVERALLEMV
+  title: 'Equity Market Volatility Tracker: Overall'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: WLEMUINDXD
+  title: Equity Market-related Economic Uncertainty Index
+  frequency: d
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EUEPUINDXM
+  title: Economic Policy Uncertainty Index for Europe
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CHNMAINLANDTPU
+  title: 'Trade Policy Uncertainty Index: Mainland Papers for China'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EMVMACROBUS
+  title: 'Equity Market Volatility Tracker: Macroeconomic News and Outlook: Business
+    Investment And Sentiment'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EPUMONETARY
+  title: 'Economic Policy Uncertainty Index: Categorical Index: Monetary policy'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: GEPUPPP
+  title: 'Global Economic Policy Uncertainty Index: PPP-Adjusted GDP'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: DEEPUINDXM
+  title: Economic Policy Uncertainty Index for Germany
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: UKEPUINDXM
+  title: Economic Policy Uncertainty Index for United Kingdom
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: INDEPUINDXM
+  title: Economic Policy Uncertainty Index for India
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EMVMACROINFLATION
+  title: 'Equity Market Volatility Tracker: Macroeconomic News and Outlook: Inflation'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: USEPUNEWSINDXM
+  title: 'Economic Policy Uncertainty Index: News-Based Index for the United States'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EPUFISCAL
+  title: 'Economic Policy Uncertainty Index: Categorical Index: Fiscal Policy (Taxes
+    OR Spending)'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CHIEPUINDXM
+  title: Economic Policy Uncertainty Index for China
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EMVMACROINTEREST
+  title: 'Equity Market Volatility Tracker: Macroeconomic News and Outlook: Interest
+    Rates'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: CANEPUINDXM
+  title: Economic Policy Uncertainty Index for Canada
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: USEPUFEARINDX
+  title: Migration Fear Index for the United States
+  frequency: q
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EMVCOMMMKT
+  title: 'Equity Market Volatility Tracker: Commodity Markets'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EMVEXRATES
+  title: 'Equity Market Volatility Tracker: Exchange Rates'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: EMVFINCRISES
+  title: 'Equity Market Volatility Tracker: Financial Crises'
+  frequency: m
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: STLFSI4
+  title: St. Louis Fed Financial Stress Index
+  frequency: w
+  category: money_banking
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB10YR
+  title: 10-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB20YR
+  title: 20-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB12YR
+  title: 12-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB10YRP
+  title: 10-Year High Quality Market (HQM) Corporate Bond Par Yield
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB30YR
+  title: 30-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB50YR
+  title: 50-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB5YR
+  title: 5-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB100YR
+  title: 100-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB40YR
+  title: 40-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB30YRP
+  title: 30-Year High Quality Market (HQM) Corporate Bond Par Yield
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB1YR
+  title: 1-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB2YRP
+  title: 2-Year High Quality Market (HQM) Corporate Bond Par Yield
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB15YR
+  title: 15-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB25YR
+  title: 25-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB5YRP
+  title: 5-Year High Quality Market (HQM) Corporate Bond Par Yield
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB3YR
+  title: 3-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB2YR
+  title: 2-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: HQMCB7YR
+  title: 7-Year High Quality Market (HQM) Corporate Bond Spot Rate
+  frequency: m
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SOFRVOL
+  title: Secured Overnight Financing Volume
+  frequency: d
+  category: money_banking
+  units: Billions of U.S. Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SOFR99
+  title: 'Secured Overnight Financing Rate: 99th Percentile'
+  frequency: d
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking
+- series_id: SOFR1
+  title: 'Secured Overnight Financing Rate: 1st Percentile'
+  frequency: d
+  category: money_banking
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: financial_conditions
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - money_banking

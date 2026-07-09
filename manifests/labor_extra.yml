@@ -1,0 +1,6796 @@
+name: labor_extra
+description: Employment cost index, JOLTS, ADP, wage growth, and detailed Employment
+  Situation breakdowns beyond the core labor manifest.
+version: 1
+series:
+- series_id: ECIWAG
+  title: 'Employment Cost Index: Wages and Salaries: Private Industry Workers'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ECIALLCIV
+  title: 'Employment Cost Index: Total compensation: All Civilian'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ECICONWAG
+  title: 'Employment Cost Index: Wages and Salaries: Private Industry Workers: Construction'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2023211000000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    Aircraft manufacturing'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2013000000000I
+  title: 'Employment Cost Index: Total compensation for Private industry workers in
+    Manufacturing'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2010000000000I
+  title: 'Employment Cost Index: Total compensation for Private industry workers in
+    All industries and occupations'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ECIMANWAG
+  title: 'Employment Cost Index: Wages and Salaries: Private Industry Workers: Manufacturing'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2015400000000I
+  title: 'Employment Cost Index: Total compensation for Private industry workers in
+    Professional, scientific, and technical services'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2012300000000I
+  title: 'Employment Cost Index: Total compensation for Private industry workers in
+    Construction'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIS1020000000000I
+  title: 'Employment Cost Index: Wages and salaries for All Civilian workers in All
+    industries and occupations'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ECIGVTWAG
+  title: 'Employment Cost Index: Wages and Salaries: State and Local Government: All
+    Workers'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2020000000000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    All industries and occupations'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIS2023211000000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    Aircraft manufacturing'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2023000500000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    Manufacturing; production, transportation, and material moving'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIS2025400000000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    Professional, scientific, and technical services'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2023000000000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    Manufacturing'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIS2015400000000I
+  title: 'Employment Cost Index: Total compensation for Private industry workers in
+    Professional, scientific, and technical services'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIS2020000430000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    Installation, maintenance, and repair'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2022300000000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    Construction'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU2010000520000I
+  title: 'Employment Cost Index: Total compensation for Private industry workers in
+    Transportation and material moving'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIS2024300000000I
+  title: 'Employment Cost Index: Wages and salaries for Private industry workers in
+    Transportation and warehousing'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CIU1010000520000I
+  title: 'Employment Cost Index: Total compensation for All Civilian workers in Transportation
+    and material moving'
+  frequency: q
+  category: labor_extra
+  units: Index Dec 2005=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSHIR
+  title: 'Hires: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSLDL
+  title: 'Layoffs and Discharges: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSQUR
+  title: 'Quits: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSHIL
+  title: 'Hires: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSJOR
+  title: 'Job Openings: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU5100LDL
+  title: 'Layoffs and Discharges: Information'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS2300JOL
+  title: 'Job Openings: Construction'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS3000JOL
+  title: 'Job Openings: Manufacturing'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSQUL
+  title: 'Quits: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSLDR
+  title: 'Layoffs and Discharges: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSOSL
+  title: 'Other Separations: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS540099JOL
+  title: 'Job Openings: Professional and Business Services'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSTSL
+  title: 'Total Separations: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU5100LDR
+  title: 'Layoffs and Discharges: Information'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS1000HIR
+  title: 'Hires: Total Private'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS1000QUR
+  title: 'Quits: Total Private'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU5100JOL
+  title: 'Job Openings: Information'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS7000JOL
+  title: 'Job Openings: Leisure and Hospitality'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS1000JOL
+  title: 'Job Openings: Total Private'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTSTSR
+  title: 'Total Separations: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTUJOL
+  title: 'Job Openings: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU5200JOL
+  title: 'Job Openings: Finance and Insurance'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS6200JOL
+  title: 'Job Openings: Health Care and Social Assistance'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS540099HIR
+  title: 'Hires: Professional and Business Services'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS1000HIL
+  title: 'Hires: Total Private'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS1000LDL
+  title: 'Layoffs and Discharges: Total Private'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU540099LDL
+  title: 'Layoffs and Discharges: Professional and Business Services'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS3000QUR
+  title: 'Quits: Manufacturing'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTUHIL
+  title: 'Hires: Total Nonfarm'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS2300HIL
+  title: 'Hires: Construction'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS1000OSL
+  title: 'Other Separations: Total Private'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS4400JOL
+  title: 'Job Openings: Retail Trade'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU480099JOL
+  title: 'Job Openings: Transportation, Warehousing, and Utilities'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS3000HIL
+  title: 'Hires: Manufacturing'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU3000JOR
+  title: 'Job Openings: Manufacturing'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU480099JOR
+  title: 'Job Openings: Transportation, Warehousing, and Utilities'
+  frequency: m
+  category: labor_extra
+  units: Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTS9000JOL
+  title: 'Job Openings: Government'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: JTU5200HIL
+  title: 'Hires: Finance and Insurance'
+  frequency: m
+  category: labor_extra
+  units: Level in Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ADPWNUSNERSA
+  title: Total Nonfarm Private Payroll Employment
+  frequency: w
+  category: labor_extra
+  units: Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ADPMNUSNERSA
+  title: Total Nonfarm Private Payroll Employment
+  frequency: m
+  category: labor_extra
+  units: Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ADPMNUSNERNSA
+  title: Total Nonfarm Private Payroll Employment
+  frequency: m
+  category: labor_extra
+  units: Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ADPWINDMANNERSA
+  title: Nonfarm Private Payroll Employment for Manufacturing
+  frequency: w
+  category: labor_extra
+  units: Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ADPWES1T19ENERSA
+  title: Nonfarm Private Employment in Small Establishments with 1 to 19 Employees
+  frequency: w
+  category: labor_extra
+  units: Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ADPWNUSNERNSA
+  title: Total Nonfarm Private Payroll Employment
+  frequency: w
+  category: labor_extra
+  units: Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ADPWINDCONNERSA
+  title: Nonfarm Private Payroll Employment for Construction
+  frequency: w
+  category: labor_extra
+  units: Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: ADPMINDMANNERSA
+  title: Nonfarm Private Payroll Employment for Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LES1252881600Q
+  title: 'Employed full time: Median usual weekly real earnings: Wage and salary workers:
+    16 years and over'
+  frequency: q
+  category: labor_extra
+  units: 1982-84 CPI Adjusted Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LES1252881500Q
+  title: 'Employed full time: Median usual weekly nominal earnings (second quartile):
+    Wage and salary workers: 16 years and over'
+  frequency: q
+  category: labor_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0203127200A
+  title: 'Employed: Percent of hourly paid workers: Paid total at or below prevailing
+    federal minimum wage: Wage and salary workers: 16 years and over'
+  frequency: a
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252918500Q
+  title: 'Employed full time: Median usual weekly nominal earnings (second quartile):
+    Wage and salary workers: Bachelor''s degree and higher: 25 years and over'
+  frequency: q
+  category: labor_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LES1252881900Q
+  title: 'Employed full time: Median usual weekly real earnings: Wage and salary workers:
+    16 years and over: Men'
+  frequency: q
+  category: labor_extra
+  units: 1982-84 CPI Adjusted Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0254477200A
+  title: 'Employed full time: Wage and salary workers: Software developers, applications
+    and systems software occupations: 16 years and over'
+  frequency: a
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252881600A
+  title: 'Employed full time: Median usual weekly real earnings: Wage and salary workers:
+    16 years and over'
+  frequency: a
+  category: labor_extra
+  units: 1982-84 CPI Adjusted Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0254477100A
+  title: 'Employed full time: Wage and salary workers: Computer programmers occupations:
+    16 years and over'
+  frequency: a
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252881500A
+  title: 'Employed full time: Median usual weekly nominal earnings (second quartile):
+    Wage and salary workers: 16 years and over'
+  frequency: a
+  category: labor_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252881500Q
+  title: 'Employed full time: Median usual weekly nominal earnings (second quartile):
+    Wage and salary workers: 16 years and over'
+  frequency: q
+  category: labor_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LES1252882800Q
+  title: 'Employed full time: Median usual weekly real earnings: Wage and salary workers:
+    16 years and over: Women'
+  frequency: q
+  category: labor_extra
+  units: 1982-84 CPI Adjusted Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0254506300A
+  title: 'Employed full time: Wage and salary workers: Electricians occupations: 16
+    years and over'
+  frequency: a
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0254475600A
+  title: 'Employed full time: Wage and salary workers: Accountants and auditors occupations:
+    16 years and over'
+  frequency: a
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252918500A
+  title: 'Employed full time: Median usual weekly nominal earnings (second quartile):
+    Wage and salary workers: Bachelor''s degree and higher: 25 years and over'
+  frequency: a
+  category: labor_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252881600Q
+  title: 'Employed full time: Median usual weekly real earnings: Wage and salary workers:
+    16 years and over'
+  frequency: q
+  category: labor_extra
+  units: 1982-84 CPI Adjusted Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252917300Q
+  title: 'Employed full time: Median usual weekly nominal earnings (second quartile):
+    Wage and salary workers: High School graduates, no college: 25 years and over'
+  frequency: q
+  category: labor_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252882500Q
+  title: 'Employed full time: Median usual weekly real earnings: Wage and salary workers:
+    25 years and over: Men'
+  frequency: q
+  category: labor_extra
+  units: 1982-84 CPI Adjusted Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0252916700Q
+  title: 'Employed full time: Median usual weekly nominal earnings (second quartile):
+    Wage and salary workers: Less than a High School diploma: 25 years and over'
+  frequency: q
+  category: labor_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LES1254466800Q
+  title: 'Employed full time: Wage and salary workers: 16 years and over'
+  frequency: q
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LEU0254510500A
+  title: 'Employed full time: Wage and salary workers: Automotive service technicians
+    and mechanics occupations: 16 years and over'
+  frequency: a
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: FRBATLWGT3MMAUMHWGO
+  title: '3-Month Moving Average of Unweighted Median Hourly Wage Growth: Overall'
+  frequency: m
+  category: labor_extra
+  units: Percent Change from Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: FRBATLWGTUMHWGO
+  title: 'Unweighted Median Hourly Wage Growth: Overall'
+  frequency: m
+  category: labor_extra
+  units: Percent Change from Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: FRBATLWGT12MMAWMHWGO
+  title: '12-Month Moving Average of Weighted Median Hourly Wage Growth: Overall'
+  frequency: m
+  category: labor_extra
+  units: Percent Change from Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: FRBATLWGTUMHWG83O
+  title: 'Unweighted Median Hourly Wage Growth (1983): Overall'
+  frequency: m
+  category: labor_extra
+  units: Percent Change from Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: FRBATLWGT12MMUMHWGWD1WP
+  title: '12-Month Moving Average of Unweighted Median Hourly Wage Growth: Wage Distribution:
+    1st to 25th Wage Percentile'
+  frequency: m
+  category: labor_extra
+  units: Percent Change from Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: FRBATLWGT3MMAWMHWGO
+  title: '3-Month Moving Average of Weighted Median Hourly Wage Growth: Overall'
+  frequency: m
+  category: labor_extra
+  units: Percent Change from Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES0500000003
+  title: Average Hourly Earnings of All Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: MANEMP
+  title: All Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: U6RATE
+  title: Total Unemployed, Plus All Persons Marginally Attached to the Labor Force,
+    Plus Total Employed Part Time for Economic Reasons, as a Percent of the Civilian
+    Labor Force Plus All Persons Marginally Attached to the Labor Force (U-6)
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300060
+  title: Labor Force Participation Rate - 25-54 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UNEMPLOY
+  title: Unemployment Level
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CLF16OV
+  title: Civilian Labor Force Level
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: TEMPHELPS
+  title: All Employees, Temporary Help Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UEMP27OV
+  title: Number Unemployed for 27 Weeks & over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000006
+  title: Unemployment Rate - Black or African American
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CE16OV
+  title: Employment Level
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14024887
+  title: Unemployment Rate - 16-24 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: EMRATIO
+  title: Employment-Population Ratio
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES9091000001
+  title: All Employees, Federal
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AHETPI
+  title: Average Hourly Earnings of Production and Nonsupervisory Employees, Total
+    Private
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USCONS
+  title: All Employees, Construction
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300002
+  title: Labor Force Participation Rate - Women
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12300060
+  title: Employment-Population Ratio - 25-54 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AWHAETP
+  title: Average Weekly Hours of All Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Hours
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300001
+  title: Labor Force Participation Rate - Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USPRIV
+  title: All Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12500000
+  title: Employed, Usually Work Full Time
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USGOVT
+  title: All Employees, Government
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES3000000003
+  title: Average Hourly Earnings of All Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11324230
+  title: Labor Force Participation Rate - 55 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UNRATENSA
+  title: Unemployment Rate
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CNP16OV
+  title: Population Level
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12032194
+  title: Employment Level - Part-Time for Economic Reasons, All Industries
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UEMPLT5
+  title: Number Unemployed for Less Than 5 Weeks
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UEMPMEAN
+  title: Average Weeks Unemployed
+  frequency: m
+  category: labor_extra
+  units: Weeks
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES3000000008
+  title: Average Hourly Earnings of Production and Nonsupervisory Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12026620
+  title: Multiple Jobholders as a Percent of Employed
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6054150001
+  title: All Employees, Computer Systems Design and Related Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300012
+  title: Labor Force Participation Rate - 16-19 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES2023610001
+  title: All Employees, Residential Building Construction
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: PAYNSA
+  title: All Employees, Total Nonfarm
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES0500000011
+  title: Average Weekly Earnings of All Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Dollars per Week
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UEMP15OV
+  title: Number Unemployed for 15 Weeks & over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AWHNONAG
+  title: Average Weekly Hours of Production and Nonsupervisory Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Hours
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00074597
+  title: Population - With a Disability, 16 Years and over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USPBS
+  title: All Employees, Professional and Business Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000024
+  title: Unemployment Rate - 20 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS15000000
+  title: Not in Labor Force
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4348400001
+  title: All Employees, Truck Transportation
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USINFO
+  title: All Employees, Information
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UEMP15T26
+  title: Number Unemployed for 15-26 Weeks
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02073395
+  title: Employment Level - Foreign Born
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UEMP5TO14
+  title: Number Unemployed for 5-14 Weeks
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14027662
+  title: Unemployment Rate - Bachelor's Degree and Higher, 25 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000036
+  title: Unemployment Rate - 20-24 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13025703
+  title: Of Total Unemployed, Percent Unemployed 27 Weeks & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AWHMAN
+  title: Average Weekly Hours of Production and Nonsupervisory Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Hours
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU3100000008
+  title: Average Hourly Earnings of Production and Nonsupervisory Employees, Durable
+    Goods
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CGBD2534
+  title: Unemployment Rate - College Graduates - Bachelor's Degree, 25 to 34 years
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USLAH
+  title: All Employees, Leisure and Hospitality
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CGBD2024
+  title: Unemployment Rate - College Graduates - Bachelor's Degree, 20 to 24 years
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES2000000003
+  title: Average Hourly Earnings of All Employees, Construction
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000003
+  title: Unemployment Rate - White
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000002
+  title: Unemployment Rate - Women
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: U4RATE
+  title: Total Unemployed Plus Discouraged Workers, as a Percent of the Civilian Labor
+    Force Plus Discouraged Workers (U-4)
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02073413
+  title: Employment Level - Native Born
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AWOTMAN
+  title: Average Weekly Overtime Hours of Production and Nonsupervisory Employees,
+    Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Hours
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300036
+  title: Labor Force Participation Rate - 20-24 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6562000101
+  title: All Employees, Health Care
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USFIRE
+  title: All Employees, Financial Activities
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES1021100001
+  title: All Employees, Oil and Gas Extraction
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: U5RATE
+  title: Total Unemployed, Plus Discouraged Workers, Plus All Other Persons Marginally
+    Attached to the Labor Force, as a Percent of the Civilian Labor Force Plus All
+    Persons Marginally Attached to the Labor Force (U-5)
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000009
+  title: Unemployment Rate - Hispanic or Latino
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USEHS
+  title: All Employees, Private Education and Health Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES1021210001
+  title: All Employees, Coal Mining
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000012
+  title: Unemployment Rate - 16-19 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USTRADE
+  title: All Employees, Retail Trade
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01074597
+  title: Civilian Labor Force - With a Disability, 16 Years and over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UEMPMED
+  title: Median Weeks Unemployed
+  frequency: m
+  category: labor_extra
+  units: Weeks
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: U2RATE
+  title: Unemployment Rate - Job Losers (U-2)
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU0500000003
+  title: Average Hourly Earnings of All Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000001
+  title: Unemployment Rate - Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13026638
+  title: Unemployment Level - Permanent Job Losers
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CGRA2024
+  title: Unemployment Rate - College Graduates - Bachelor's Degree and Higher, 20
+    to 24 years
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AWHAEMAN
+  title: Average Weekly Hours of All Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Hours
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000031
+  title: Unemployment Rate - 20 Yrs. & over, Black or African American Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES3133600101
+  title: All Employees, Motor Vehicles and Parts
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12600000
+  title: Employed, Usually Work Part Time
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6562000001
+  title: All Employees, Health Care and Social Assistance
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU05026642
+  title: Not in Labor Force - Want a Job Now, Marginally Attached (Searched for Work
+    in Previous Year, Available to Work Now)
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01073395
+  title: Civilian Labor Force Level - Foreign Born
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12034560
+  title: Employment Level - Agriculture and Related Industries
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00073395
+  title: Population Level - Foreign Born
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: SRVPRD
+  title: All Employees, Service-Providing
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00024230
+  title: Population Level - 55 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES7000000003
+  title: Average Hourly Earnings of All Employees, Leisure and Hospitality
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01375379
+  title: Labor Force Participation Rate - With No Disability, 65 Years and over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12026619
+  title: Multiple Jobholders
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04032231
+  title: Unemployment Rate - Construction Industry, Private Wage and Salary Workers
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01300002
+  title: Labor Force Participation Rate - Women
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU05026645
+  title: Not in Labor Force - Want a Job Now, Marginally Attached, Discouraged Workers
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300006
+  title: Labor Force Participation Rate - Black or African American
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02026620
+  title: Multiple Jobholders as a Percent of Employed
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02000000
+  title: Employment Level
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000032
+  title: Unemployment Rate - 20 Yrs. & over, Black or African American Women
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000060
+  title: Unemployment Rate - 25-54 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14027660
+  title: Unemployment Rate - High School Graduates, No College, 25 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01300060
+  title: Labor Force Participation Rate - 25-54 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USGOOD
+  title: All Employees, Goods-Producing
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4300000001
+  title: All Employees, Transportation and Warehousing
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES7072200001
+  title: All Employees, Food Services and Drinking Places
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES9092000001
+  title: All Employees, State Government
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01373395
+  title: Labor Force Participation Rate - Foreign Born
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00000060
+  title: Population Level - 25-54 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: NILFWJN
+  title: Not in Labor Force - Want a Job Now
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES0500000017
+  title: Indexes of Aggregate Weekly Payrolls of All Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Index 2007=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01300000
+  title: Labor Force Participation Rate
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES9093000001
+  title: All Employees, Local Government
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4349300001
+  title: All Employees, Warehousing and Storage
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USTPU
+  title: All Employees, Trade, Transportation, and Utilities
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11327662
+  title: Labor Force Participation Rate - Bachelor's Degree and Higher, 25 Yrs. &
+    over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14027659
+  title: Unemployment Rate - Less Than a High School Diploma, 25 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4300000003
+  title: Average Hourly Earnings of All Employees, Transportation and Warehousing
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU0500000008
+  title: Average Hourly Earnings of Production and Nonsupervisory Employees, Total
+    Private
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01300001
+  title: Labor Force Participation Rate - Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CGMD25O
+  title: Unemployment Rate - College Graduates - Master's Degree, 25 years and over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13023653
+  title: Unemployment Level - Job Losers on Layoff
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04024937
+  title: Unemployment Rate - 50-54 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: U1RATE
+  title: Percent of Civilian Labor Force Unemployed 15 Weeks and over (U-1)
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04032232
+  title: Unemployment Rate - Manufacturing Industry, Private Wage and Salary Workers
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12000001
+  title: Employment Level - Men
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01373413
+  title: Labor Force Participation Rate - Native Born
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES2023620001
+  title: All Employees, Nonresidential Building Construction
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU4348400001
+  title: All Employees, Truck Transportation
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12300001
+  title: Employment-Population Ratio - Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12300012
+  title: Employment-Population Ratio - 16-19 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04032237
+  title: Unemployment Rate - Information Industry, Private Wage and Salary Workers
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12000002
+  title: Employment Level - Women
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU03000000
+  title: Unemployment Level
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6500000003
+  title: Average Hourly Earnings of All Employees, Private Education and Health Services
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU05000000
+  title: Not in Labor Force
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES5552000001
+  title: All Employees, Finance and Insurance
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300028
+  title: Labor Force Participation Rate - 20 Yrs. & over, White Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13000001
+  title: Unemployment Level - Men
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12300002
+  title: Employment-Population Ratio - Women
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USMINE
+  title: All Employees, Mining and Logging
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU03008636
+  title: Number Unemployed for 27 Weeks & over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES5051800001
+  title: All Employees, Computing Infrastructure Providers, Data Processing, Web Hosting,
+    and Related Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13100000
+  title: Unemployment Level - Looking For Full-Time Work
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01000000
+  title: Civilian Labor Force Level
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES0500000030
+  title: Average Weekly Earnings of Production and Nonsupervisory Employees, Total
+    Private
+  frequency: m
+  category: labor_extra
+  units: Dollars per Week
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13000002
+  title: Unemployment Level - Women
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AWHAE
+  title: Indexes of Aggregate Weekly Hours of All Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Index 2007=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CGDD25O
+  title: Unemployment Rate - College Graduates - Doctoral Degree, 25 years and over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES5000000003
+  title: Average Hourly Earnings of All Employees, Information
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12027714
+  title: Employment Level - All Industries Self-Employed, Unincorporated
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6000000003
+  title: Average Hourly Earnings of All Employees, Professional and Business Services
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04073413
+  title: Unemployment Rate - Native Born
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12032195
+  title: Employment Level - Part-Time for Economic Reasons, Slack Work or Business
+    Conditions, All Industries
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6054120001
+  title: All Employees, Accounting, Tax Preparation, Bookkeeping, and Payroll Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00073413
+  title: Population Level - Native Born
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: DMANEMP
+  title: All Employees, Durable Goods
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6054000001
+  title: All Employees, Professional, Scientific, and Technical Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU9091000001
+  title: All Employees, Federal
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU3000000001
+  title: All Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: U6RATENSA
+  title: Total Unemployed, Plus All Persons Marginally Attached to the Labor Force,
+    Plus Total Employed Part Time for Economic Reasons, as a Percent of the Civilian
+    Labor Force Plus All Persons Marginally Attached to the Labor Force (U-6)
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES9091100001
+  title: All Employees, Federal, Except U.S. Postal Service
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES2023800101
+  title: All Employees, Residential Specialty Trade Contractors
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000089
+  title: Unemployment Rate - 25-34 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000018
+  title: Unemployment Rate - 16-19 Yrs., Black or African American
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00000003
+  title: Population Level - White
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES3133440001
+  title: All Employees, Semiconductor and Other Electronic Component Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01073413
+  title: Civilian Labor Force Level - Native Born
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04000006
+  title: Unemployment Rate - Black or African American
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300003
+  title: Labor Force Participation Rate - White
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12027662
+  title: Employment Level - Bachelor's Degree and Higher, 25 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04024933
+  title: Unemployment Rate - 30-34 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES2000000008
+  title: Average Hourly Earnings of Production and Nonsupervisory Employees, Construction
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01374597
+  title: Labor Force Participation Rate - With a Disability, 16 Years and over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES3000000004
+  title: Average Weekly Overtime Hours of All Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Hours
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AWHI
+  title: Indexes of Aggregate Weekly Hours of Production and Nonsupervisory Employees,
+    Total Private
+  frequency: m
+  category: labor_extra
+  units: Index 2002=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES3133660001
+  title: All Employees, Ship and Boat Building
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12000060
+  title: Employment Level - 25-54 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU2000000001
+  title: All Employees, Construction
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6054110001
+  title: All Employees, Legal Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USWTRADE
+  title: All Employees, Wholesale Trade
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: TEMPHELPN
+  title: All Employees, Temporary Help Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6562200001
+  title: All Employees, Hospitals
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04074597
+  title: Unemployment Rate - With a Disability, 16 Years and over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU05075379
+  title: Not in Labor Force - With No Disability, 65 Years and over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02026631
+  title: Multiple Jobholders, Primary and Secondary Jobs Both Full Time
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000028
+  title: Unemployment Rate - 20 Yrs. & over, White Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04032183
+  title: Unemployment Rate - Asian
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12300003
+  title: Employment-Population Ratio - White
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4348200001
+  title: All Employees, Rail Transportation
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04073395
+  title: Unemployment Rate - Foreign Born
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6054160001
+  title: All Employees, Management, Scientific, and Technical Consulting Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300031
+  title: Labor Force Participation Rate - 20 Yrs. & over, Black or African American
+    Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300009
+  title: Labor Force Participation Rate - Hispanic or Latino
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES3000000030
+  title: Average Weekly Earnings of Production and Nonsupervisory Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Dollars per Week
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES0800000001
+  title: All Employees, Private Service-Providing
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: TOTLL65O
+  title: Civilian Labor Force - 65 years and over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12300006
+  title: Employment-Population Ratio - Black or African American
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES7071000001
+  title: All Employees, Arts, Entertainment, and Recreation
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11327659
+  title: Labor Force Participation Rate - Less Than a High School Diploma, 25 Yrs.
+    & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01300012
+  title: Labor Force Participation Rate - 16-19 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES5500000003
+  title: Average Hourly Earnings of All Employees, Financial Activities
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00000006
+  title: Population Level - Black or African American
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00000012
+  title: Population Level - 16-19 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02026625
+  title: Multiple Jobholders, Primary Job Full Time, Secondary Job Part Time
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11000060
+  title: Civilian Labor Force Level - 25-54 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AHEMAN
+  title: Average Hourly Earnings of Production and Nonsupervisory Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6054130001
+  title: All Employees, Architectural, Engineering, and Related Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES2023700001
+  title: All Employees, Heavy and Civil Engineering Construction
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU7000000001
+  title: All Employees, Leisure and Hospitality
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11300029
+  title: Labor Force Participation Rate - 20 Yrs. & over, White Women
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4200000003
+  title: Average Hourly Earnings of All Employees, Retail Trade
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: USSERV
+  title: All Employees, Other Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES0500000006
+  title: Production and Nonsupervisory Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13023621
+  title: Unemployment Level - Job Losers
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CGBD25O
+  title: Unemployment Rate - College Graduates - Bachelor's Degree, 25 years and over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4422000001
+  title: All Employees, Utilities
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES0500000035
+  title: Indexes of Aggregate Weekly Payrolls of Production and Nonsupervisory Employees,
+    Total Private
+  frequency: m
+  category: labor_extra
+  units: Index 2002=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6562440001
+  title: All Employees, Child Care Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13023570
+  title: New Entrants as a Percent of Total Unemployed
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU3000000003
+  title: Average Hourly Earnings of All Employees, Manufacturing
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12032192
+  title: Employment Level - Nonagriculture, Self-Employed Workers, Unincorporated
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS11327660
+  title: Labor Force Participation Rate - High School Graduates, No College, 25 Yrs.
+    & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES1000000003
+  title: Average Hourly Earnings of All Employees, Mining and Logging
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04024932
+  title: Unemployment Rate - 25-29 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00000036
+  title: Population Level - 20-24 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02374597
+  title: Employment-Population Ratio - With a Disability, 16 Years and over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU0500000001
+  title: All Employees, Total Private
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02300000
+  title: Employment-Population Ratio
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES2023800201
+  title: All Employees, Nonresidential Specialty Trade Contractors
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: AWHAEPBS
+  title: Average Weekly Hours of All Employees, Professional and Business Services
+  frequency: m
+  category: labor_extra
+  units: Hours
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES6561000001
+  title: All Employees, Private Educational Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4244200001
+  title: All Employees, Furniture and Home Furnishings Retailers
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: U4RATENSA
+  title: Total Unemployed Plus Discouraged Workers, as a Percent of the Civilian Labor
+    Force Plus Discouraged Workers (U-4)
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04000024
+  title: Unemployment Rate - 20 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01076960
+  title: Civilian Labor Force - With a Disability, 16 to 64 Years, Women
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES7000000008
+  title: Average Hourly Earnings of Production and Nonsupervisory Employees, Leisure
+    and Hospitality
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES5552100001
+  title: All Employees, Monetary Authorities-Central Bank
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12000089
+  title: Employment Level - 25-34 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13023622
+  title: Job Losers as a Percent of Total Unemployed
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU04032238
+  title: Unemployment Rate - Financial Activities Industry, Private Wage and Salary
+    Workers
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14000025
+  title: Unemployment Rate - 20 Yrs. & over, Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02375379
+  title: Employment-Population Ratio - With No Disability, 65 Years and over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS14024230
+  title: Unemployment Rate - 55 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01300036
+  title: Labor Force Participation Rate - 20-24 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12024230
+  title: Employment Level - 55 Yrs. & over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01327662
+  title: Labor Force Participation Rate - Bachelor's Degree and Higher, 25 Yrs. &
+    over
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES4348100001
+  title: All Employees, Air Transportation
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES5051200001
+  title: All Employees, Motion Picture and Sound Recording Industries
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU01376940
+  title: Labor Force Participation Rate - With No Disability, 16 to 64 Years, Men
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU00049526
+  title: Population Level - Total Veterans, 18 Years and over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES9091912001
+  title: All Employees, U.S. Postal Service
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13023569
+  title: Unemployment Level - New Entrants
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU6054120001
+  title: All Employees, Accounting, Tax Preparation, Bookkeeping, and Payroll Services
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12032196
+  title: Employment Level - Part-Time for Economic Reasons, Could Only Find Part-Time
+    Work, All Industries
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02500000
+  title: Employed, Usually Work Full Time
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CES5553000001
+  title: All Employees, Real Estate and Rental and Leasing
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS12000036
+  title: Employment Level - 20-24 Yrs.
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNU02074597
+  title: Employed - With a Disability, 16 Years and over
+  frequency: m
+  category: labor_extra
+  units: Thousands of Persons
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: CEU4200000003
+  title: Average Hourly Earnings of All Employees, Retail Trade
+  frequency: m
+  category: labor_extra
+  units: Dollars per Hour
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: LNS13023706
+  title: Job Leavers as a Percent of Total Unemployed
+  frequency: m
+  category: labor_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra

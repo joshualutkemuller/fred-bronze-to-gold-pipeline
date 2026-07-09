@@ -71,18 +71,22 @@ def test_local_run_is_idempotent(tmp_path, observations_payload, fake_client_cls
 
 
 def test_meta_sync_registers_full_universe(tmp_path):
-    from fred_pipeline.manifest import load_manifests
+    from fred_pipeline.manifest import all_series, load_manifests
+
+    manifests = load_manifests("manifests")
+    n_series = len(all_series(manifests, active_only=False))
+    n_manifests = len(manifests)
 
     db = str(tmp_path / "fred.db")
     wh = LocalWarehouse(_config(), db_path=db)
-    counts = wh.sync_meta(load_manifests("manifests"))
+    counts = wh.sync_meta(manifests)
 
-    assert counts["fred_series"] == 27
-    assert len(wh.query("SELECT * FROM meta_fred_series")) == 27
-    assert len(wh.query("SELECT * FROM meta_fred_manifest")) == 4
+    assert counts["fred_series"] == n_series
+    assert len(wh.query("SELECT * FROM meta_fred_series")) == n_series
+    assert len(wh.query("SELECT * FROM meta_fred_manifest")) == n_manifests
     # re-sync is idempotent (upsert on primary key)
     wh.sync_meta(load_manifests("manifests"))
-    assert len(wh.query("SELECT * FROM meta_fred_series")) == 27
+    assert len(wh.query("SELECT * FROM meta_fred_series")) == n_series
     wh.close()
 
 

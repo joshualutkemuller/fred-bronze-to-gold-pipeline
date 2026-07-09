@@ -2,6 +2,7 @@ from fred_pipeline.config import Environment, PipelineConfig
 from fred_pipeline.features import (
     compute_curve_spreads,
     compute_feature_transforms,
+    compute_revision_stats,
     point_in_time_snapshot,
 )
 from fred_pipeline.local_store import LocalWarehouse
@@ -56,12 +57,47 @@ def test_curve_spreads():
 def _vintage_silver():
     return [
         {"series_id": "G", "observation_date": "2024-01-01", "value": 100.0,
-         "realtime_start": "2024-02-01", "realtime_end": "9999-12-31", "is_missing": False},
+         "realtime_start": "2024-02-01", "realtime_end": "9999-12-31", "is_missing": False,
+         "revision_number": 1},
         {"series_id": "G", "observation_date": "2024-01-01", "value": 101.5,
-         "realtime_start": "2024-03-01", "realtime_end": "9999-12-31", "is_missing": False},
+         "realtime_start": "2024-03-01", "realtime_end": "9999-12-31", "is_missing": False,
+         "revision_number": 2},
         {"series_id": "G", "observation_date": "2024-02-01", "value": 102.0,
-         "realtime_start": "2024-03-15", "realtime_end": "9999-12-31", "is_missing": False},
+         "realtime_start": "2024-03-15", "realtime_end": "9999-12-31", "is_missing": False,
+         "revision_number": 1},
     ]
+
+
+def test_revision_stats():
+    out = compute_revision_stats(_vintage_silver())
+    by_date = {r["observation_date"]: r for r in out}
+
+    revised = by_date["2024-01-01"]
+    assert revised["revision_count"] == 2
+    assert revised["first_value"] == 100.0
+    assert revised["first_realtime_start"] == "2024-02-01"
+    assert revised["latest_value"] == 101.5
+    assert revised["latest_realtime_start"] == "2024-03-01"
+    assert abs(revised["revision_delta"] - 1.5) < 1e-9
+    assert abs(revised["revision_pct"] - 0.015) < 1e-9
+
+    unrevised = by_date["2024-02-01"]
+    assert unrevised["revision_count"] == 1
+    assert unrevised["first_value"] == unrevised["latest_value"] == 102.0
+    assert unrevised["revision_delta"] == 0.0
+
+
+def test_revision_stats_non_vintage_series_always_one_revision():
+    # Non-vintage series: blank realtime_start, revision_number stamped 1.
+    rows = [
+        {"series_id": "NV", "observation_date": "2024-01-01", "value": 5.0,
+         "realtime_start": "", "realtime_end": "", "is_missing": False,
+         "revision_number": 1},
+    ]
+    out = compute_revision_stats(rows)
+    assert len(out) == 1
+    assert out[0]["revision_count"] == 1
+    assert out[0]["revision_delta"] == 0.0
 
 
 def test_point_in_time_snapshot_respects_vintage():
@@ -94,6 +130,10 @@ def test_local_backend_builds_feature_tables(tmp_path):
     assert len(spreads) == 1 and abs(spreads[0]["value"] - 1.0) < 1e-9
     transforms = wh.query("SELECT * FROM gold_fred_feature_transforms")
     assert len(transforms) == 2
+    revisions = wh.query("SELECT * FROM gold_fred_revision_stats ORDER BY series_id")
+    assert len(revisions) == 2
+    assert {r["series_id"] for r in revisions} == {"DGS10", "DGS2"}
+    assert all(r["revision_count"] == 1 for r in revisions)  # single vintage each
     snap = wh.point_in_time_features("2024-06-01")
     assert {r["series_id"] for r in snap} == {"DGS10", "DGS2"}
     wh.close()

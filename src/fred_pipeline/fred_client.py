@@ -15,9 +15,10 @@ from __future__ import annotations
 
 import logging
 import random
+import threading
 import time
 from datetime import date, timedelta
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
 try:  # requests is a light, ubiquitous dependency; import guarded for clarity.
@@ -81,21 +82,28 @@ def _coalesce_observations(observations: list[dict[str, Any]]) -> list[dict[str,
 
 @dataclass
 class RateLimiter:
-    """Simple token-free rate limiter based on a minimum inter-call interval."""
+    """Token-free rate limiter based on a minimum inter-call interval.
+
+    Safe to share across threads: the whole wait-then-stamp sequence is
+    serialized under a lock, so concurrent extraction workers still respect a
+    single aggregate ``per_minute`` ceiling against the FRED API.
+    """
 
     per_minute: int
     _last_call: float = 0.0
     _sleep: Callable[[float], None] = time.sleep
     _now: Callable[[], float] = time.monotonic
+    _lock: "threading.Lock" = field(default_factory=threading.Lock)
 
     def acquire(self) -> None:
         if self.per_minute <= 0:
             return
         min_interval = 60.0 / self.per_minute
-        elapsed = self._now() - self._last_call
-        if elapsed < min_interval:
-            self._sleep(min_interval - elapsed)
-        self._last_call = self._now()
+        with self._lock:
+            elapsed = self._now() - self._last_call
+            if elapsed < min_interval:
+                self._sleep(min_interval - elapsed)
+            self._last_call = self._now()
 
 
 class FredClient:

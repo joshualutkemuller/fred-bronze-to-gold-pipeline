@@ -77,7 +77,11 @@ joined AS (
 SELECT as_of_date, series_id, value AS raw_value, value_ffill AS value
 FROM joined;
 
--- Quant transforms: MoM / first diff / YoY / full-sample z-score per series.
+-- Quant transforms: MoM / first diff / YoY / expanding (point-in-time safe)
+-- z-score per series. The mean_v/std_v window frame is bounded to
+-- UNBOUNDED PRECEDING..CURRENT ROW so each row only reflects observations
+-- at-or-before its own date -- a whole-partition aggregate would leak future
+-- values into every historical row.
 CREATE OR REPLACE TABLE gold.fred_feature_transforms AS
 WITH base AS (
     SELECT series_id, observation_date, value
@@ -86,8 +90,14 @@ WITH base AS (
 w AS (
     SELECT series_id, observation_date, value,
         LAG(value) OVER (PARTITION BY series_id ORDER BY observation_date) AS prev_value,
-        AVG(value) OVER (PARTITION BY series_id) AS mean_v,
-        STDDEV_POP(value) OVER (PARTITION BY series_id) AS std_v
+        AVG(value) OVER (
+            PARTITION BY series_id ORDER BY observation_date
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS mean_v,
+        STDDEV_POP(value) OVER (
+            PARTITION BY series_id ORDER BY observation_date
+            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ) AS std_v
     FROM base
 ),
 ya AS (
@@ -120,3 +130,31 @@ FROM (VALUES
 JOIN gold.fred_latest_observation a ON a.series_id = s.long_leg  AND a.is_missing = false
 JOIN gold.fred_latest_observation b ON b.series_id = s.short_leg AND b.is_missing = false
                                    AND b.observation_date = a.observation_date;
+
+-- Revision magnitude: how much each observation moved between its first
+-- print and today. Reads raw Silver (every vintage), not gold.fred_latest_
+-- observation, since it exists to measure revision behavior itself.
+-- Non-vintage series (blank realtime_start) always have revision_count = 1.
+CREATE OR REPLACE TABLE gold.fred_revision_stats AS
+WITH base AS (
+    SELECT series_id, observation_date, realtime_start, value, revision_number
+    FROM silver.fred_observation
+    WHERE is_missing = false AND value IS NOT NULL
+),
+bounds AS (
+    SELECT series_id, observation_date,
+        MIN(revision_number) AS min_rev, MAX(revision_number) AS max_rev,
+        COUNT(*) AS revision_count
+    FROM base
+    GROUP BY series_id, observation_date
+)
+SELECT b.series_id, b.observation_date, b.revision_count,
+    f.value AS first_value, f.realtime_start AS first_realtime_start,
+    l.value AS latest_value, l.realtime_start AS latest_realtime_start,
+    l.value - f.value AS revision_delta,
+    CASE WHEN f.value <> 0 THEN (l.value - f.value) / f.value END AS revision_pct
+FROM bounds b
+JOIN base f ON f.series_id = b.series_id AND f.observation_date = b.observation_date
+          AND f.revision_number = b.min_rev
+JOIN base l ON l.series_id = b.series_id AND l.observation_date = b.observation_date
+          AND l.revision_number = b.max_rev;

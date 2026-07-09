@@ -20,6 +20,10 @@ dependencies = [
 [project.optional-dependencies]
 # PySpark/Delta are provided by the Databricks runtime; pin locally for dev.
 spark = ["pyspark>=3.5", "delta-spark>=3.1"]
+# Optional: vectorizes the local (SQLite) backend's Gold-layer rebuild for
+# large series universes. Lazily imported; local backend falls back to the
+# pure-Python implementation if it's absent.
+local = ["polars>=1.0"]
 dev = [
     "pytest>=7.4",
     "pytest-cov>=4.1",

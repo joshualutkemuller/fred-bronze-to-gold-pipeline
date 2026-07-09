@@ -11,8 +11,14 @@ Design notes
   ``{schema}_{name}`` (e.g. ``silver_fred_observation``) in one file.
 * Silver upserts use ``INSERT ... ON CONFLICT`` on the same natural key the
   Delta MERGE uses, so re-runs are idempotent here too.
-* Gold is rebuilt in pure Python (reusing :mod:`fred_pipeline.transform`) rather
-  than Spark SQL, keeping exact parity with the tested core functions.
+* Gold is rebuilt with the same semantics as the pure-Python spec functions in
+  :mod:`fred_pipeline.transform` / :mod:`fred_pipeline.features`. When
+  ``polars`` is installed (``pip install -e ".[local]"``), the vectorized
+  implementations in :mod:`fred_pipeline.gold_polars` are used instead — they
+  are output-identical (see ``tests/test_gold_polars_parity.py``) but far
+  faster once the series universe grows past a few dozen series, since the
+  daily feature matrix is a dense ``series x calendar_day`` panel. Falls back
+  to the pure-Python versions automatically if polars isn't installed.
 """
 
 from __future__ import annotations
@@ -27,8 +33,47 @@ from fred_pipeline.config import PipelineConfig
 from fred_pipeline.manifest import Manifest
 from fred_pipeline.meta import build_meta_rows
 from fred_pipeline.quality import QualityReport
-from fred_pipeline.transform import daily_feature_matrix, latest_by_observation
+from fred_pipeline.transform import latest_by_observation
 from fred_pipeline.warehouse import dq_rows
+
+
+def _gold_feature_impls():
+    """("polars" | "python", daily_feature_matrix, compute_feature_transforms,
+    compute_curve_spreads, compute_revision_stats).
+
+    Prefers the polars-accelerated implementations (output-identical to the
+    pure-Python spec — see tests/test_gold_polars_parity.py) when polars is
+    installed; falls back to the pure-Python versions otherwise, exactly as
+    Spark is an optional, lazily-imported dependency elsewhere in this repo.
+    In "polars" mode the functions return DataFrames (see
+    ``LocalWarehouse._insert_frame``); in "python" mode they return
+    ``list[dict]`` (see ``LocalWarehouse._insert``).
+    """
+    try:
+        from fred_pipeline.gold_polars import (
+            compute_curve_spreads_frame,
+            compute_feature_transforms_frame,
+            compute_revision_stats_frame,
+            daily_feature_matrix_frame,
+        )
+
+        return (
+            "polars", daily_feature_matrix_frame, compute_feature_transforms_frame,
+            compute_curve_spreads_frame, compute_revision_stats_frame,
+        )
+    except ImportError:
+        from fred_pipeline.features import (
+            compute_curve_spreads,
+            compute_feature_transforms,
+            compute_revision_stats,
+        )
+        from fred_pipeline.transform import daily_feature_matrix
+
+        return (
+            "python", daily_feature_matrix, compute_feature_transforms,
+            compute_curve_spreads, compute_revision_stats,
+        )
+
 
 # DDL for the SQLite mirror of the Delta tables. Kept in one place for clarity.
 _SCHEMA = """
@@ -76,6 +121,12 @@ CREATE TABLE IF NOT EXISTS gold_fred_feature_transforms (
 );
 CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
     spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT, value REAL
+);
+CREATE TABLE IF NOT EXISTS gold_fred_revision_stats (
+    series_id TEXT, observation_date TEXT, revision_count INTEGER,
+    first_value REAL, first_realtime_start TEXT,
+    latest_value REAL, latest_realtime_start TEXT,
+    revision_delta REAL, revision_pct REAL
 );
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
@@ -152,6 +203,38 @@ class LocalWarehouse:
         self.conn.executemany(sql, data)
         self.conn.commit()
         return len(rows)
+
+    def _insert_frame(
+        self,
+        table: str,
+        df: Any,
+        upsert_keys: Optional[Sequence[str]] = None,
+    ) -> int:
+        """Like :meth:`_insert` but for a polars DataFrame.
+
+        Inserts straight from ``df.iter_rows()`` (plain tuples), skipping the
+        per-row dict allocation ``_insert`` does — that dict-building step is
+        what dominates wall-clock time at large row counts (see the
+        gold_polars module docstring). Callers must ensure the DataFrame has
+        no bool/date/datetime columns (cast to Utf8/int first), since this
+        path skips ``_encode``.
+        """
+        if df.is_empty():
+            return 0
+        cols = df.columns
+        collist = ", ".join(cols)
+        placeholders = ", ".join(["?"] * len(cols))
+        sql = f"INSERT INTO {table} ({collist}) VALUES ({placeholders})"
+        if upsert_keys:
+            updates = ", ".join(
+                f"{c}=excluded.{c}" for c in cols if c not in upsert_keys
+            )
+            conflict = ", ".join(upsert_keys)
+            sql += f" ON CONFLICT({conflict}) DO UPDATE SET {updates}"
+        n = df.height
+        self.conn.executemany(sql, df.iter_rows())
+        self.conn.commit()
+        return n
 
     def _read(self, table: str) -> list[dict[str, Any]]:
         cur = self.conn.execute(f"SELECT * FROM {table}")
@@ -257,27 +340,34 @@ class LocalWarehouse:
         ]
         self._insert("gold_fred_latest_observation", latest_rows)
 
-        # daily forward-filled feature matrix
-        self.conn.execute("DELETE FROM gold_fred_macro_feature_daily")
-        self._insert("gold_fred_macro_feature_daily", daily_feature_matrix(latest))
-
-        # quant transforms (mom/yoy/diff/zscore) + curve spreads
-        from fred_pipeline.features import (
-            compute_curve_spreads,
-            compute_feature_transforms,
+        # daily forward-filled feature matrix; quant transforms (mom/yoy/diff/
+        # zscore); curve spreads; revision-magnitude stats. Prefers the
+        # polars-accelerated versions (output-identical, see gold_polars
+        # module docstring) when available, inserting straight from the
+        # DataFrame to skip Python dict overhead.
+        mode, build_daily_matrix, build_transforms, build_spreads, build_revision_stats = (
+            _gold_feature_impls()
         )
+        insert = self._insert_frame if mode == "polars" else self._insert
+
+        self.conn.execute("DELETE FROM gold_fred_macro_feature_daily")
+        insert("gold_fred_macro_feature_daily", build_daily_matrix(latest))
 
         self.conn.execute("DELETE FROM gold_fred_feature_transforms")
-        self._insert("gold_fred_feature_transforms",
-                     compute_feature_transforms(latest))
+        insert("gold_fred_feature_transforms", build_transforms(latest))
         self.conn.execute("DELETE FROM gold_fred_curve_spread")
-        self._insert("gold_fred_curve_spread", compute_curve_spreads(latest))
+        insert("gold_fred_curve_spread", build_spreads(latest))
+
+        # revision stats read raw Silver (every vintage), not latest-revision
+        # rows — they exist to measure how much observations get revised.
+        self.conn.execute("DELETE FROM gold_fred_revision_stats")
+        insert("gold_fred_revision_stats", build_revision_stats(silver))
 
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
             "fred_macro_feature_daily", "fred_feature_transforms",
-            "fred_curve_spread",
+            "fred_curve_spread", "fred_revision_stats",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

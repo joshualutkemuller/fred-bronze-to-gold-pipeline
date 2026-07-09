@@ -56,6 +56,7 @@ _SETTING_FIELDS = (
     "alert_webhook_url",
     "notify_on",
     "complete_vintage_history",
+    "extract_workers",
 )
 
 # Environment-variable name for each setting (12-factor style overrides).
@@ -72,6 +73,7 @@ _ENV_OVERRIDES = {
     "alert_webhook_url": "FRED_ALERT_WEBHOOK_URL",
     "notify_on": "FRED_NOTIFY_ON",
     "complete_vintage_history": "FRED_COMPLETE_VINTAGE_HISTORY",
+    "extract_workers": "FRED_EXTRACT_WORKERS",
 }
 
 _INT_FIELDS = {
@@ -79,6 +81,7 @@ _INT_FIELDS = {
     "max_retries",
     "rate_limit_per_minute",
     "restate_last_n",
+    "extract_workers",
 }
 
 _BOOL_FIELDS = {"complete_vintage_history"}
@@ -185,6 +188,11 @@ class PipelineConfig:
     rate_limit_per_minute: int = 120
     raw_volume_path: str = ""
     restate_last_n: int = 90
+    # Concurrent extraction workers (thread pool). Extraction is I/O-bound and
+    # rate-limited (see rate_limit_per_minute), so this overlaps per-series
+    # response wait / retry backoff rather than exceeding the aggregate call
+    # rate — the shared RateLimiter still serializes actual request issuance.
+    extract_workers: int = 8
     # Notifications: POST a run summary to this webhook (Slack-compatible JSON).
     # notify_on: "never" | "failure" (default) | "always".
     alert_webhook_url: str = field(repr=False, default="")

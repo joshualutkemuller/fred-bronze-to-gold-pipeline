@@ -253,6 +253,64 @@ The implementation should:
 
 ------------------------------------------------------------------------
 
+# Gold Layer Feature Engineering Roadmap
+
+Identified once the series universe grew beyond the initial seed set (27 →
+2,300+ series across rates, inflation, labor, growth, money/banking, prices,
+production/housing, and international domains). Not yet implemented.
+
+## 1. Point-in-time-safe (rolling) z-score --- correctness fix
+
+**Status: implemented** (`features.py::compute_feature_transforms` /
+`gold_polars.py::compute_feature_transforms_frame`, expanding z-score).
+
+`gold.fred_feature_transforms.zscore` was previously computed from the
+**full-sample** mean/std of each series (past *and* future observations
+relative to any given row's date). That leaks future information into
+historical rows, which conflicts with the pipeline's stated leak-free,
+point-in-time design goal. Replace with a rolling or expanding-as-of-date
+z-score (mean/std computed only from observations at-or-before each row's
+date) so every row only reflects what was knowable as of that date.
+
+## 2. Revision-magnitude / vintage-volatility Gold table
+
+**Status: implemented** (`gold.fred_revision_stats` table +
+`gold.v_series_revision_summary` view; `features.py::compute_revision_stats`
+/ `gold_polars.py::compute_revision_stats_frame` / `gold.py::
+_revision_stats_sql`).
+
+The pipeline already retains full point-in-time vintage history
+(`gold.fred_point_in_time`) but doesn't surface *how much* a series
+typically gets revised. A new Gold table --- e.g. `gold.fred_revision_stats`
+--- could capture, per series (and optionally per observation_date):
+
+-   first-release value vs. latest-revised value (revision delta / % change)
+-   number of revisions per observation_date
+-   average / max revision magnitude over a trailing window
+
+This is uniquely cheap to produce here (the vintage data is already
+captured) and is valuable for quant researchers assessing how much to trust
+a series' initial print (e.g. GDP/payrolls are heavily revised; market
+series are not).
+
+## 3. Config-driven spreads/ratios (generalize `curve_spread`)
+
+`gold.fred_curve_spread` currently hardcodes 4 Treasury curve pairs
+(`DEFAULT_CURVE_SPREADS` in `features.py`). Now that the series universe
+spans rates, prices, labor, production/housing, international, and national
+accounts, a manifest-style YAML list of `(name, long_leg, short_leg, op)`
+definitions --- spreads *and* ratios --- would let new cross-series features
+(e.g. real yields = nominal minus breakeven inflation, credit spreads =
+corporate yield minus Treasury, PCE vs. CPI divergence) be added by
+reviewers without touching Python, the same way series are added today.
+
+**Prioritization:** (1) is a correctness fix to existing tested code and
+should land first; (2) is net-new and additive; (3) is a design/config
+decision that needs quant sign-off on which pairs matter before
+implementation.
+
+------------------------------------------------------------------------
+
 # Engineering Handoff Checklist
 
 ## Quant

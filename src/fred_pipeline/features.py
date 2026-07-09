@@ -4,7 +4,8 @@ Derived Gold features for research / optimizer / ML inputs, computed from the
 latest-revision series and the full vintage history:
 
   * **transforms** — period-over-period % change (MoM-style), first difference,
-    year-over-year % change (date-based), and full-sample z-score, per series;
+    year-over-year % change (date-based), and an **expanding, point-in-time
+    safe** z-score, per series;
   * **curve spreads** — differences between series (e.g. 10Y-2Y);
   * **as-of-date point-in-time snapshot** — each series' value *as it was known*
     on a given date (leakage-free feature vector for backtests).
@@ -15,7 +16,6 @@ logic; the Spark equivalents live in :mod:`fred_pipeline.gold`.
 
 from __future__ import annotations
 
-import statistics
 from bisect import bisect_right
 from datetime import date, datetime, timedelta
 from typing import Any, Iterable, Optional
@@ -74,6 +74,27 @@ def _year_ago_value(
     return values[pos]
 
 
+def _expanding_mean_std(values: list[float]) -> tuple[list[float], list[float]]:
+    """Expanding (point-in-time safe) population mean/std, via Welford's
+    online algorithm.
+
+    ``means[i]``/``stds[i]`` are computed from ``values[0..i]`` only — never
+    later values — so a z-score built from them can't leak future
+    information into earlier rows the way a full-sample mean/std would.
+    """
+    means: list[float] = []
+    stds: list[float] = []
+    mean = 0.0
+    m2 = 0.0
+    for n, v in enumerate(values, start=1):
+        delta = v - mean
+        mean += delta / n
+        m2 += delta * (v - mean)
+        means.append(mean)
+        stds.append((m2 / n) ** 0.5 if n > 1 else 0.0)
+    return means, stds
+
+
 def compute_feature_transforms(
     latest_rows: Iterable[dict[str, Any]]
 ) -> list[dict[str, Any]]:
@@ -83,11 +104,11 @@ def compute_feature_transforms(
     for series_id, series in grouped.items():
         dates = [d for d, _ in series]
         values = [v for _, v in series]
-        mean = statistics.fmean(values) if values else None
-        std = statistics.pstdev(values) if len(values) > 1 else 0.0
+        exp_means, exp_stds = _expanding_mean_std(values)
         for i, (d, v) in enumerate(series):
             prev = values[i - 1] if i > 0 else None
             year_ago = _year_ago_value(dates, values, i)
+            std = exp_stds[i]
             out.append({
                 "series_id": series_id,
                 "observation_date": d.isoformat(),
@@ -95,7 +116,7 @@ def compute_feature_transforms(
                 "mom": _pct_change(v, prev),
                 "diff": (v - prev) if prev is not None else None,
                 "yoy": _pct_change(v, year_ago),
-                "zscore": ((v - mean) / std) if std else None,
+                "zscore": ((v - exp_means[i]) / std) if std else None,
             })
     return out
 
@@ -127,6 +148,49 @@ def compute_curve_spreads(
                 "value": values[(long_leg, d)] - values[(short_leg, d)],
             })
     return out
+
+
+def compute_revision_stats(silver_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
+    """How much each observation moved between its first print and today.
+
+    Unlike the other transforms (which read *latest-revision* rows),
+    this reads raw **Silver** rows — every vintage — since it exists to
+    measure revision behavior itself. Groups by ``(series_id,
+    observation_date)`` and compares the vintage with the lowest
+    ``revision_number`` (first release) against the one with the highest
+    (latest as of this run).
+
+    Non-vintage series (``vintage_enabled: false``) always have
+    ``revision_count == 1`` — no vintage history is tracked for them, so
+    there's nothing to compare; that's a legitimate "not revised" signal,
+    not a data gap.
+    """
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for r in silver_rows:
+        if r.get("is_missing") or r.get("value") is None:
+            continue
+        key = (r["series_id"], str(r["observation_date"])[:10])
+        groups.setdefault(key, []).append(r)
+
+    out: list[dict[str, Any]] = []
+    for (series_id, obs_date), rows in groups.items():
+        rows.sort(key=lambda r: r.get("revision_number") or 0)
+        first, latest = rows[0], rows[-1]
+        first_value = float(first["value"])
+        latest_value = float(latest["value"])
+        delta = latest_value - first_value
+        out.append({
+            "series_id": series_id,
+            "observation_date": obs_date,
+            "revision_count": len(rows),
+            "first_value": first_value,
+            "first_realtime_start": first.get("realtime_start") or "",
+            "latest_value": latest_value,
+            "latest_realtime_start": latest.get("realtime_start") or "",
+            "revision_delta": delta,
+            "revision_pct": (delta / first_value) if first_value else None,
+        })
+    return sorted(out, key=lambda r: (r["series_id"], r["observation_date"]))
 
 
 def point_in_time_snapshot(

@@ -1,0 +1,6384 @@
+name: national_accounts_extra
+description: GDP components, personal income and outlays, and GDP by industry beyond
+  the core growth manifest.
+version: 1
+series:
+- series_id: A939RX0Q048SBEA
+  title: Real gross domestic product per capita
+  frequency: q
+  category: national_accounts_extra
+  units: Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RL1Q225SBEA
+  title: Real Gross Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCCRV1Q225SBEA
+  title: Personal Consumption Expenditures (PCE) Excluding Food and Energy (Chain-Type
+    Price Index)
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A091RC1Q027SBEA
+  title: 'Federal government current expenditures: Interest payments'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GDPDEF
+  title: 'Gross Domestic Product: Implicit Price Deflator'
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: CP
+  title: Corporate Profits After Tax (without IVA and CCAdj)
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FGEXPND
+  title: 'Federal Government: Current Expenditures'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GDPA
+  title: Gross Domestic Product
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GPDIC1
+  title: Real Gross Private Domestic Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RL1A225NBEA
+  title: Real Gross Domestic Product
+  frequency: a
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCECC96
+  title: Real Personal Consumption Expenditures
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GDPCA
+  title: Real Gross Domestic Product
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GPDI
+  title: Gross Private Domestic Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCERE1Q156NBEA
+  title: 'Shares of gross domestic product: Personal consumption expenditures'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W006RC1Q027SBEA
+  title: Federal government current tax receipts
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A939RC0A052NBEA
+  title: Gross domestic product per capita
+  frequency: a
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PNFI
+  title: Private Nonresidential Fixed Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A792RC0A052NBEA
+  title: Personal income per capita
+  frequency: a
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GNP
+  title: Gross National Product
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NETEXP
+  title: Net Exports of Goods and Services
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: IMPGS
+  title: Imports of Goods and Services
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: EXPGS
+  title: Exports of Goods and Services
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RO1Q156NBEA
+  title: Real Gross Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Quarter One Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PNFIC1
+  title: Real Private Nonresidential Fixed Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCEC
+  title: Personal Consumption Expenditures
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A053RC1Q027SBEA
+  title: 'National income: Corporate profits before tax (without IVA and CCAdj)'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCECTPI
+  title: 'Personal Consumption Expenditures: Chain-type Price Index'
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A939RC0Q052SBEA
+  title: Gross domestic product per capita
+  frequency: q
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B235RC1Q027SBEA
+  title: 'Federal government current tax receipts: Taxes on production and imports:
+    Customs duties'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: M318501Q027NBEA
+  title: Federal government budget surplus or deficit (-)
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: CPATAX
+  title: Corporate Profits After Tax with Inventory Valuation Adjustment (IVA) and
+    Capital Consumption Adjustment (CCAdj)
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W068RCQ027SBEA
+  title: Government total expenditures
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A679RC1Q027SBEA
+  title: Private fixed investment in information processing equipment and software
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RI1Q225SBEA
+  title: 'Gross Domestic Product: Implicit Price Deflator'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NA000334Q
+  title: Gross Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FPI
+  title: Fixed Private Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PRFI
+  title: Private Residential Fixed Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GCEC1
+  title: Real Government Consumption Expenditures and Gross Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RD3A086NBEA
+  title: Gross domestic product (implicit price deflator)
+  frequency: a
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FGRECPT
+  title: Federal Government Current Receipts
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FDEFX
+  title: 'Federal Government: National Defense Consumption Expenditures and Gross
+    Investment'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PRFIC1
+  title: Real Private Residential Fixed Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A792RC0Q052SBEA
+  title: Personal income per capita
+  frequency: q
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RP1Q027SBEA
+  title: Gross Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: LB0000031Q020SBEA
+  title: Real Final Sales to Private Domestic Purchasers
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of 2017 US Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W273RE1A156NBEA
+  title: 'Shares of gross domestic income: Corporate profits with inventory valuation
+    and capital consumption adjustments, domestic industries: Profits after tax with
+    inventory valuation and capital consumption adjustments'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FCTAX
+  title: 'Federal Government: Tax Receipts on Corporate Income'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: C307RX1Q020SBEA
+  title: 'Real private fixed investment: Nonresidential: Structures: Manufacturing'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PSAVE
+  title: Personal Saving
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A006RE1Q156NBEA
+  title: 'Shares of gross domestic product: Gross private domestic investment'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPI
+  title: Disposable Personal Income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DFUNRG3A086NBEA
+  title: 'Personal consumption expenditures: Funeral and burial services (chain-type
+    price index)'
+  frequency: a
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCERD3Q086SBEA
+  title: Personal consumption expenditures (implicit price deflator)
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A072RC1Q156SBEA
+  title: Personal saving as a percentage of disposable personal income
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GDI
+  title: Gross Domestic Income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W270RE1A156NBEA
+  title: 'Shares of gross domestic income: Compensation of employees, paid: Wage and
+    salary accruals: Disbursements: to persons'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: IMPGSC1
+  title: Real imports of goods and services
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A229RC0A052NBEA
+  title: 'Disposable personal income: Per capita'
+  frequency: a
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A794RC0Q052SBEA
+  title: Personal consumption expenditures per capita
+  frequency: q
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A4002E1A156NBEA
+  title: 'Shares of gross domestic income: Compensation of employees, paid'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: EXPGSC1
+  title: Real Exports of Goods and Services
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: BA06RC1A027NBEA
+  title: Total wages and salaries, BLS
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A466RD3Q052SBEA
+  title: 'Profit per unit of real gross value added of nonfinancial corporate business:
+    Corporate profits after tax with IVA and CCAdj (unit profits from current production)'
+  frequency: q
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B230RC0A052NBEA
+  title: Population
+  frequency: a
+  category: national_accounts_extra
+  units: Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NETFI
+  title: Balance on Current Account, NIPA's
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: CPROFIT
+  title: Corporate Profits with Inventory Valuation Adjustment (IVA) and Capital Consumption
+    Adjustment (CCAdj)
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GDPCTPI
+  title: 'Gross Domestic Product: Chain-type Price Index'
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DHLCRC1Q027SBEA
+  title: 'Personal consumption expenditures: Services: Health care'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A794RX0Q048SBEA
+  title: Real personal consumption expenditures per capita
+  frequency: q
+  category: national_accounts_extra
+  units: Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PB0000091Q225SBEA
+  title: Real Average of GDP and GDI
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FPIA
+  title: 'Gross private domestic investment: Fixed investment'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: C307RC1Q027SBEA
+  title: 'Private fixed investment: Nonresidential: Structures: Manufacturing'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W207RC1Q156SBEA
+  title: Net saving as a percentage of gross national income
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NICUR
+  title: National Income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W790RC1Q027SBEA
+  title: 'Net domestic investment: Private: Domestic business'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: ND000334Q
+  title: Real Gross Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B1448C1A027NBEA
+  title: Net farm income, USDA
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCERL1Q225SBEA
+  title: Real Personal Consumption Expenditures
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCCRV1A225NBEA
+  title: Personal Consumption Expenditures (PCE) Excluding Food and Energy (chain-type
+    price index)
+  frequency: a
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GSAVE
+  title: Gross Saving
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCDG
+  title: 'Personal Consumption Expenditures: Durable Goods'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GCE
+  title: Government Consumption Expenditures and Gross Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y033RX1Q020SBEA
+  title: 'Real Gross Private Domestic Investment: Fixed Investment: Nonresidential:
+    Equipment'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B935RC1Q027SBEA
+  title: 'Private fixed investment: Nonresidential: Information processing equipment
+    and software: Computers and peripheral equipment'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCECA
+  title: Personal Consumption Expenditures
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: BPCCRO1Q156NBEA
+  title: Personal Consumption Expenditures Excluding Food and Energy (Chain-Type Price
+    Index)
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Quarter One Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W398RC1A027NBEA
+  title: Household saving
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B4701C0A222NBEA
+  title: Hours worked by full-time and part-time employees
+  frequency: a
+  category: national_accounts_extra
+  units: Millions of hours
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A032RC1A027NBEA
+  title: National income
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RP1A027NBEA
+  title: Gross Domestic Product
+  frequency: a
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: G160461A027NBEA
+  title: 'Government current expenditures: Federal: National defense'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PB0000031Q225SBEA
+  title: Real final sales to private domestic purchasers
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W019RCQ027SBEA
+  title: Federal government total expenditures
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NETEXC
+  title: Real Net Exports of Goods and Services
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FINSAL
+  title: Final Sales of Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W172RC1A027NBEA
+  title: Gross domestic fixed investment
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCESV
+  title: 'Personal Consumption Expenditures: Services'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: CBI
+  title: Change in Private Inventories
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: SLEXPND
+  title: State and Local Government Current Expenditures
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PINCOME
+  title: Personal Income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GPDIA
+  title: Gross Private Domestic Investment
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: BB01RC1Q027SBEA
+  title: 'Gross domestic product: Final sales of computers'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GPSAVE
+  title: Gross Private Saving
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GNPDEF
+  title: 'Gross National Product: Implicit Price Deflator'
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCND
+  title: 'Personal Consumption Expenditures: Nondurable Goods'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B075RC1Q027SBEA
+  title: 'Federal government current tax receipts: Taxes on corporate income'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCERY2Q224SBEA
+  title: 'Contributions to percent change in real gross domestic product: Personal
+    consumption expenditures'
+  frequency: q
+  category: national_accounts_extra
+  units: Percentage Points at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A261RX1Q020SBEA
+  title: Real gross domestic income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B985RC1Q027SBEA
+  title: 'Private fixed investment: Nonresidential: Intellectual property products:
+    Software'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B056RC1A027NBEA
+  title: Net corporate dividend payments
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: OB000334Q
+  title: Real Gross Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Quarter One Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: EXPGSCA
+  title: Real Exports of Goods and Services
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: G160371A027NBEA
+  title: 'Government current expenditures: Income security: Welfare and social services'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A229RC0Q052SBEA
+  title: 'Disposable personal income: Per capita'
+  frequency: q
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DGAMRC1A027NBEA
+  title: 'Personal consumption expenditures: Services: Gambling'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FPIC1
+  title: Real Private Fixed Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: TRP6001A027NBEA
+  title: 'Government social benefits: to persons: Federal: Supplemental Nutrition
+    Assistance Program (SNAP)'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A019RE1Q156NBEA
+  title: 'Shares of gross domestic product: Net exports of goods and services'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A824RE1Q156NBEA
+  title: 'Shares of gross domestic product: Government consumption expenditures and
+    gross investment: Federal: National defense'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A180RC1Q027SBEA
+  title: 'Government current expenditures: Interest payments'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A033RC1A027NBEA
+  title: 'National income: Compensation of employees'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCDGCC96
+  title: 'Real Personal Consumption Expenditures: Durable Goods'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y033RC1Q027SBEA
+  title: 'Gross Private Domestic Investment: Fixed Investment: Nonresidential: Equipment'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DCAFRC1A027NBEA
+  title: 'Personal consumption expenditures: Clothing, footwear, and related services'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DHLCRG3Q086SBEA
+  title: 'Personal consumption expenditures: Services: Health care (chain-type price
+    index)'
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A261RL1Q225SBEA
+  title: Real Gross Domestic Income
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCECCA
+  title: Real Personal Consumption Expenditures
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GGSAVE
+  title: Gross Government Saving
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A074RC1Q027SBEA
+  title: 'Federal government current tax receipts: Personal current taxes'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: COE
+  title: 'National Income: Compensation of Employees, Paid'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B020RE1Q156NBEA
+  title: 'Shares of gross domestic product: Exports of goods and services'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCERG3A086NBEA
+  title: 'Personal Consumption Expenditures: Chain-type Price Index'
+  frequency: a
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A464RC1Q027SBEA
+  title: 'Nonfinancial corporate business: Profits before tax (without IVA and CCAdj)'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A027RC1A027NBEA
+  title: Net national product
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A455RC1Q027SBEA
+  title: Gross value added of nonfinancial corporate business
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: X032RC1A027NBEA
+  title: Net national factor income
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y694RC1Q027SBEA
+  title: 'Gross Domestic Product: Research and Development'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A067RC1A027NBEA
+  title: Disposable personal income
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B230RC0Q173SBEA
+  title: Population
+  frequency: q
+  category: national_accounts_extra
+  units: Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W070RC1Q027SBEA
+  title: State and local government current tax receipts
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B181RC1Q027SBEA
+  title: Exports of agricultural goods
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DHAPRC1A027NBEA
+  title: 'Personal consumption expenditures: Household appliances'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPHCRC1A027NBEA
+  title: 'Personal consumption expenditures: Household consumption expenditures'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A255RX1Q020SBEA
+  title: Real imports of goods
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: IMPGSCA
+  title: Real Imports of Goods and Services
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A822RE1Q156NBEA
+  title: 'Shares of gross domestic product: Government consumption expenditures and
+    gross investment'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: COFC
+  title: Consumption of Fixed Capital
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A067RO1Q156NBEA
+  title: Real Disposable Personal Income
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Quarter One Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A680RC1Q027SBEA
+  title: 'Private fixed investment: Nonresidential: Equipment: Industrial equipment'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: CBIC1
+  title: Change in Real Private Inventories
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A463RD3Q052SBEA
+  title: 'Profit per unit of real gross value added of nonfinancial corporate business:
+    Corporate profits with IVA and CCAdj (unit profits from current production)'
+  frequency: q
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A019RE1A156NBEA
+  title: 'Shares of gross domestic product: Net exports of goods and services'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NA000349Q
+  title: Personal Consumption Expenditures
+  frequency: q
+  category: national_accounts_extra
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NFCPATAX
+  title: 'Nonfinancial Corporate Business: Profits After Tax (without IVA and CCAdj)'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPIC96
+  title: Real Disposable Personal Income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: G160291A027NBEA
+  title: 'Government current expenditures: Education'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B087RC1Q027SBEA
+  title: 'Federal government current transfer payments: Government social benefits:
+    to persons'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DGOERC1Q027SBEA
+  title: 'Personal consumption expenditures: Nondurable goods: Gasoline and other
+    energy goods'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W171RC1Q027SBEA
+  title: Net domestic investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B651RC1Q027SBEA
+  title: 'Imports of goods: Automotive vehicles, engines, and parts'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: EXPGSA
+  title: Exports of Goods and Services
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: L312041A027NBEA
+  title: 'Government subsidies: Federal: Agricultural'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B009RC1Q027SBEA
+  title: 'Private fixed investment: Nonresidential: Structures'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A445RE1A156NBEA
+  title: 'Shares of gross domestic income: Corporate profits with inventory valuation
+    and capital consumption adjustments, domestic industries'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPETRC1A027NBEA
+  title: 'Personal consumption expenditures: Pets, pet products, and related services'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DMOTRC1Q027SBEA
+  title: 'Personal consumption expenditures: Durable goods: Motor vehicles and parts'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y001RC1Q027SBEA
+  title: 'Gross Private Domestic Investment: Fixed Investment: Nonresidential: Intellectual
+    Property Products'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W986RC1Q027SBEA
+  title: 'Net private saving: Households and institutions'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A446RC1Q027SBEA
+  title: 'Corporate business: Profits before tax (without IVA and CCAdj)'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W987RC1Q027SBEA
+  title: 'Gross private domestic investment: Domestic business'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DRCARC1Q027SBEA
+  title: 'Personal consumption expenditures: Recreation services'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A229RX0A048NBEA
+  title: 'Real Disposable Personal Income: Per Capita'
+  frequency: a
+  category: national_accounts_extra
+  units: Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B021RE1A156NBEA
+  title: 'Shares of gross domestic product: Imports of goods and services'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DFDHRC1Q027SBEA
+  title: 'Personal consumption expenditures: Durable goods: Furnishings and durable
+    household equipment'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: JCXFE
+  title: 'Personal Consumption Expenditures: Chain-type Price Index Less Food and
+    Energy'
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y001RX1Q020SBEA
+  title: 'Real Gross Private Domestic Investment: Fixed Investment: Nonresidential:
+    Intellectual Property Products'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCESVC96
+  title: 'Real Personal Consumption Expenditures: Services'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A084RC1Q027SBEA
+  title: Government current transfer payments
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y034RC1Q027SBEA
+  title: 'Gross Private Domestic Investment: Fixed Investment: Nonresidential: Equipment:
+    Information Processing Equipment'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DLIGRC1A027NBEA
+  title: 'Personal consumption expenditures: Admissions to specified spectator amusements:
+    Live entertainment, excluding sports'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A019RY2Q224SBEA
+  title: 'Contributions to percent change in real gross domestic product: Net exports
+    of goods and services'
+  frequency: q
+  category: national_accounts_extra
+  units: Percentage Points at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A371RC1Q027SBEA
+  title: Private inventories
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y034RY2Q224SBEA
+  title: 'Contributions to Percent Change in Real Gross Domestic Product: Gross Private
+    Domestic Investment: Fixed Investment: Nonresidential: Equipment: Information
+    Processing Equipment'
+  frequency: q
+  category: national_accounts_extra
+  units: Percentage Points at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: M318501A027NBEA
+  title: Federal government budget surplus or deficit (-)
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: X032RC1Q027SBEA
+  title: Net national factor income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W018RC1Q027SBEA
+  title: Federal government total receipts
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A229RX0Q048SBEA
+  title: 'Real Disposable Personal Income: Per Capita'
+  frequency: q
+  category: national_accounts_extra
+  units: Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A4102C1Q027SBEA
+  title: 'Gross domestic income: Compensation of employees, paid: Wages and salaries'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A014RY2Q224SBEA
+  title: 'Contributions to percent change in real gross domestic product: Gross private
+    domestic investment: Change in private inventories'
+  frequency: q
+  category: national_accounts_extra
+  units: Percentage Points at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: IMPGSA
+  title: Imports of Goods and Services
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A782RC1A027NBEA
+  title: Gross government investment
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RI1A225NBEA
+  title: 'Gross Domestic Product: Implicit Price Deflator'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B096RC1Q027SBEA
+  title: 'Federal government current expenditures: Subsidies'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A023RC1Q027SBEA
+  title: Gross national income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y006RC1Q027SBEA
+  title: 'Gross Private Domestic Investment: Fixed Investment: Nonresidential: Intellectual
+    Property Products: Research and Development'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DHUTRC1Q027SBEA
+  title: 'Personal consumption expenditures: Services: Housing and utilities'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A011RE1Q156NBEA
+  title: 'Shares of gross domestic product: Gross private domestic investment: Fixed
+    investment: Residential'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: WASCUR
+  title: 'Compensation of Employees: Wages and Salary Accruals'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A027RC1Q027SBEA
+  title: Net national product
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DFSARX1Q020SBEA
+  title: 'Real personal consumption expenditures: Services: Food services and accommodations'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NC000334Q
+  title: Gross Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A829RD3Q086SBEA
+  title: 'Government consumption expenditures and gross investment: State and local
+    (implicit price deflator)'
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y012RX1A020NBEA
+  title: 'Real Private Fixed Investment in Intellectual Property Products: Research
+    and development: Business: Manufacturing: Semiconductor and other electronic component
+    manufacturing'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PNFIA
+  title: Private Nonresidential Fixed Investment
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B935RY2Q224SBEA
+  title: 'Contributions to percent change in real gross domestic product: Gross private
+    domestic investment: Fixed investment: Nonresidential: Equipment: Information
+    processing equipment: Computers and peripheral equipment'
+  frequency: q
+  category: national_accounts_extra
+  units: Percentage Points at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A679RX1Q020SBEA
+  title: 'Real gross private domestic investment: Fixed investment: Nonresidential:
+    Information processing equipment and software'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: G160851A027NBEA
+  title: 'Government current expenditures: State and local: Public order and safety:
+    Police'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: CNCF
+  title: Corporate Net Cash Flow with IVA
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A652RC1Q027SBEA
+  title: 'Imports of goods: Consumer goods, except food and automotive'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A006RE1A156NBEA
+  title: 'Shares of gross domestic product: Gross private domestic investment'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DIVIDEND
+  title: 'Corporate Profits after tax with IVA and CCAdj: Net Dividends'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: S210401A027NBEA
+  title: 'Personal current taxes: State and local: Property taxes'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A946RC1A027NBEA
+  title: 'Private fixed investment in structures: Residential: Improvements'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GNPA
+  title: Gross National Product
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W170RC1Q027SBEA
+  title: Gross domestic investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DJRYRC1A027NBEA
+  title: 'Personal consumption expenditures: Durable goods: Jewelry and watches'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A136RC1Q027SBEA
+  title: 'Personal consumption expenditures: New autos'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W388RC1A027NBEA
+  title: Disposable household income
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PIECTR
+  title: Real personal income excluding current transfer receipts
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W206RC1Q156SBEA
+  title: Gross saving as a percentage of gross national income
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GNPC96
+  title: Real Gross National Product
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DCLTRC1A027NBEA
+  title: 'Personal consumption expenditures: Clothing'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A071RC1A027NBEA
+  title: Personal saving
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DCLORC1Q027SBEA
+  title: 'Personal consumption expenditures: Nondurable goods: Clothing and footwear'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A027RX1Q020SBEA
+  title: Real net national product
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCNDGC96
+  title: 'Real Personal Consumption Expenditures: Nondurable Goods'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: NB000334Q
+  title: Real Gross Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: M318191Q027NBEA
+  title: 'Federal government expenditures: Budget outlays'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCERO1Q156NBEA
+  title: Real Personal Consumption Expenditures
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Quarter One Year Ago
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A034RC1A027NBEA
+  title: 'National income: Compensation of employees: Wages and salaries'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: TGDEF
+  title: Net Government Saving
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B149RC1Q027SBEA
+  title: Sales of imported new autos
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: SLCE
+  title: State and Local Consumption Expenditures & Gross Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A065RC1A027NBEA
+  title: Personal income
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DFXARC1Q027SBEA
+  title: 'Personal consumption expenditures: Nondurable goods: Food and beverages
+    purchased for off-premises consumption'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W201RC1Q027SBEA
+  title: Net saving
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A023RX1Q020SBEA
+  title: Real gross national income
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DSPERC1A027NBEA
+  title: 'Personal consumption expenditures: Admissions to specified spectator amusements:
+    Spectator sports'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B235RC1A027NBEA
+  title: 'Federal government current tax receipts: Taxes on production and imports:
+    Customs duties'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A822RY2Q224SBEA
+  title: 'Contributions to percent change in real gross domestic product: Government
+    consumption expenditures and gross investment'
+  frequency: q
+  category: national_accounts_extra
+  units: Percentage Points at Annual Rate
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B009RX1Q020SBEA
+  title: 'Real gross private domestic investment: Fixed investment: Nonresidential:
+    Structures'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W170RC1A027NBEA
+  title: Gross domestic investment
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DELCRC1A027NBEA
+  title: 'Personal consumption expenditures: Services: Household utilities: Electricity'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W370RG3Q020SBEA
+  title: 'Gross domestic product: Terms of trade index: Terms of trade, goods'
+  frequency: q
+  category: national_accounts_extra
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A824RE1A156NBEA
+  title: 'Shares of gross domestic product: Government consumption expenditures and
+    gross investment: Federal: National defense'
+  frequency: a
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A255RC1Q027SBEA
+  title: 'Current payments to the rest of the world: Imports of goods'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A4201C0A173NBEA
+  title: Full-time and part-time employees
+  frequency: a
+  category: national_accounts_extra
+  units: Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: Y694RX1Q020SBEA
+  title: 'Real Gross Domestic Product: Research and Development'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A679RL1Q225SBEA
+  title: 'Real Private Fixed Investment: Private Fixed Investment in Information Processing
+    Equipment and Software'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A713RX1Q020SBEA
+  title: Real final sales to domestic purchasers
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FGDEF
+  title: Net Federal Government Saving
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FINSLC1
+  title: Real Final Sales of Domestic Product
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A796RX0Q048SBEA
+  title: 'Real personal consumption expenditures per capita: Goods: Nondurable goods'
+  frequency: q
+  category: national_accounts_extra
+  units: Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A027RX1A020NBEA
+  title: Real net national product
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A445RC1Q027SBEA
+  title: 'Corporate profits with inventory valuation and capital consumption adjustments:
+    Domestic industries'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A006RL1Q225SBEA
+  title: Real Gross Private Domestic Investment
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCCRG3A086NBEA
+  title: Personal consumption expenditures excluding food and energy (chain-type price
+    index)
+  frequency: a
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B021RE1Q156NBEA
+  title: 'Shares of gross domestic product: Imports of goods and services'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: G160091A027NBEA
+  title: 'Government current expenditures: Public order and safety: Police'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: FSDP
+  title: Final Sales to Domestic Purchasers
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A067RX1A020NBEA
+  title: Real disposable personal income
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W003RC1Q027SBEA
+  title: 'Private fixed investment: Nonresidential: Structures: Power and communication'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: LB0000091Q020SBEA
+  title: Real Average of GDP and GDI
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DDENRC1A027NBEA
+  title: 'Personal consumption expenditures: Health care: Outpatient services: Dental
+    services'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DVMRRC1A027NBEA
+  title: 'Personal consumption expenditures: Services: Motor vehicle maintenance and
+    repair'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A008RL1Q225SBEA
+  title: 'Real Gross Private Domestic Investment: Fixed Investment: Nonresidential'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A191RG3A086NBEA
+  title: Gross domestic product (chain-type price index)
+  frequency: a
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PRFIA
+  title: Private Residential Fixed Investment
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DFHHRC1A027NBEA
+  title: 'Personal consumption expenditures: Furnishings, household equipment, and
+    routine household maintenance'
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W457RC1A027NBEA
+  title: Gap, IRS less BEA gross output of nonprofit institutions and current transfer
+    payments
+  frequency: a
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PSAVERT
+  title: Personal Saving Rate
+  frequency: m
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCE
+  title: Personal Consumption Expenditures
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCEC96
+  title: Real Personal Consumption Expenditures
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DSPIC96
+  title: Real Disposable Personal Income
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: POPTHM
+  title: Population
+  frequency: m
+  category: national_accounts_extra
+  units: Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DSPI
+  title: Disposable Personal Income
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A229RX0
+  title: 'Real Disposable Personal Income: Per Capita'
+  frequency: m
+  category: national_accounts_extra
+  units: Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PI
+  title: Personal Income
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PMSAVE
+  title: Personal Saving
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: RPI
+  title: Real Personal Income
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCEDG
+  title: 'Personal Consumption Expenditures: Durable Goods'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W875RX1
+  title: Real personal income excluding current transfer receipts
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCEDGC96
+  title: 'Real Personal Consumption Expenditures: Durable Goods'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: IA001260M
+  title: 'Personal Consumption Expenditures: Services Excluding Energy and Housing
+    (Chain-Type Price Index)'
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCES
+  title: 'Personal Consumption Expenditures: Services'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DGDSRX1
+  title: 'Real Personal Consumption Expenditures: Goods'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCEND
+  title: 'Personal Consumption Expenditures: Nondurable Goods'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A576RC1
+  title: 'Compensation of Employees, Received: Wage and Salary Disbursements'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DGDSRC1
+  title: 'Personal Consumption Expenditures: Goods'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCESC96
+  title: 'Real Personal Consumption Expenditures: Services'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: B069RC1
+  title: Personal interest payments
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A229RC0
+  title: 'Disposable Personal Income: Per capita: Current dollars'
+  frequency: m
+  category: national_accounts_extra
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCENDC96
+  title: 'Real Personal Consumption Expenditures: Nondurable Goods'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DFXARC1M027SBEA
+  title: 'Personal consumption expenditures: Food'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DDURRG3M086SBEA
+  title: 'Personal consumption expenditures: Durable goods (chain-type price index)'
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W823RC1
+  title: 'Personal current transfer receipts: Government social benefits to persons:
+    Social security'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DNRGRC1M027SBEA
+  title: 'Personal consumption expenditures: Energy goods and services'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DSERRG3M086SBEA
+  title: 'Personal consumption expenditures: Services (chain-type price index)'
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCERAM1M225NBEA
+  title: Real Personal Consumption Expenditures
+  frequency: m
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DGDSRG3M086SBEA
+  title: 'Personal consumption expenditures: Goods (chain-type price index)'
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: IA001176M
+  title: Personal Consumption Expenditures Excluding Food, Energy, and Housing (Chain-Type
+    Price Index)
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCCRC1M027SBEA
+  title: Personal consumption expenditures excluding food and energy
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PCTR
+  title: Personal Current Transfer Receipts
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DFXARX1M020SBEA
+  title: 'Real personal consumption expenditures: Food'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCERA3M086SBEA
+  title: Real personal consumption expenditures (chain-type quantity index)
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: A068RC1
+  title: Personal outlays
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DFXARG3M086SBEA
+  title: 'Personal consumption expenditures: Food (chain-type price index)'
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W825RC1
+  title: 'Personal current transfer receipts: Government social benefits to persons:
+    Unemployment insurance'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DNDGRG3M086SBEA
+  title: 'Personal consumption expenditures: Nondurable goods (chain-type price index)'
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W209RC1
+  title: Compensation of employees, received
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W824RC1
+  title: 'Personal current transfer receipts: Government social benefits to persons:
+    Medicare'
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: W055RC1
+  title: Personal current taxes
+  frequency: m
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: PQ001260M
+  title: 'Real Personal Consumption Expenditures: PCE: Services Excluding Energy and
+    Housing'
+  frequency: m
+  category: national_accounts_extra
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: DPCXRG3M086SBEA
+  title: 'Personal consumption expenditures: Market-based PCE excluding food and energy
+    (chain-type price index)'
+  frequency: m
+  category: national_accounts_extra
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPMA
+  title: 'Value Added by Industry: Manufacturing as a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GOAI
+  title: 'Gross Output by Industry: All Industries'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: GOMA
+  title: 'Gross Output by Industry: Manufacturing'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPFI
+  title: 'Value Added by Industry: Finance, Insurance, Real Estate, Rental, and Leasing:
+    Finance and Insurance as a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: CPGDPAI
+  title: 'Contributions to Percent Change in Real GDP by Industry: Gross Domestic
+    Product'
+  frequency: q
+  category: national_accounts_extra
+  units: Percentage Points
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: RVAMA
+  title: 'Real Value Added by Industry: Manufacturing'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPC
+  title: 'Value Added by Industry: Construction as a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPSPI
+  title: 'Value Added by Industry: Private Services-Producing Industries as a Percentage
+    of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPAFH
+  title: 'Value Added by Industry: Agriculture, Forestry, Fishing, and Hunting as
+    a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPRL
+  title: 'Value Added by Industry: Finance, Insurance, Real Estate, Rental, and Leasing:
+    Real Estate and Rental and Leasing as a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPI
+  title: 'Value Added by Industry: Information as a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAMA
+  title: 'Value Added by Industry: Manufacturing'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAI
+  title: 'Value Added by Industry: Information'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPPBS
+  title: 'Value Added by Industry: Professional and Business Services as a Percentage
+    of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPR
+  title: 'Value Added by Industry: Retail Trade as a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPHCSA
+  title: 'Value Added by Industry: Educational Services, Health Care, and Social Assistance:
+    Health Care and Social Assistance as a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: VAPGDPFIRL
+  title: 'Value Added by Industry: Finance, Insurance, Real Estate, Rental, and Leasing
+    as a Percentage of GDP'
+  frequency: q
+  category: national_accounts_extra
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra
+- series_id: RVAI
+  title: 'Real Value Added by Industry: Information'
+  frequency: q
+  category: national_accounts_extra
+  units: Billions of Chained 2017 Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: national_accounts
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - national_accounts_extra

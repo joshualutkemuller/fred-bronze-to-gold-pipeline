@@ -1,0 +1,1602 @@
+name: international
+description: FX rates, U.S. international trade and transactions, and dollar value
+  indices.
+version: 1
+series:
+- series_id: EXJPUS
+  title: Japanese Yen to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Japanese Yen to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXUSEU
+  title: U.S. Dollars to Euro Spot Exchange Rate
+  frequency: m
+  category: international
+  units: U.S. Dollars to One Euro
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: TWEXBGSMTH
+  title: Nominal Broad U.S. Dollar Index
+  frequency: m
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXCHUS
+  title: Chinese Yuan Renminbi to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Chinese Yuan Renminbi to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXUSUK
+  title: U.S. Dollars to U.K. Pound Sterling Spot Exchange Rate
+  frequency: m
+  category: international
+  units: U.S. Dollars to One U.K. Pound Sterling
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXCAUS
+  title: Canadian Dollars to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Canadian Dollars to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXINUS
+  title: Indian Rupees to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Indian Rupees to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXMXUS
+  title: Mexican Pesos to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Mexican Pesos to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXBZUS
+  title: Brazilian Reals to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Brazilian Reals to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXKOUS
+  title: South Korean Won to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: South Korean Won to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXSZUS
+  title: Swiss Francs to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Swiss Francs to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXUSAL
+  title: U.S. Dollars to Australian Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: U.S. Dollars to One Australian Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXTHUS
+  title: Thai Baht to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Thai Baht to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXSFUS
+  title: South African Rand to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: South African Rand to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXVZUS
+  title: Venezuelan Bolivares to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Venezuelan Bolivares to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXTAUS
+  title: Taiwan Dollars to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Taiwan Dollars to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXMAUS
+  title: Malaysian Ringgit to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Malaysian Ringgit to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXSLUS
+  title: Sri Lankan Rupees to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Sri Lankan Rupees to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXSDUS
+  title: Swedish Kronor to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Swedish Kronor to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXSIUS
+  title: Singapore Dollars to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Singapore Dollars to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXNOUS
+  title: Norwegian Kroner to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Norwegian Kroner to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXHKUS
+  title: Hong Kong Dollars to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Hong Kong Dollars to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXUSNZ
+  title: U.S. Dollars to New Zealand Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: U.S. Dollars to One New Zealand Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: TWEXAFEGSMTH
+  title: Nominal Advanced Foreign Economies U.S. Dollar Index
+  frequency: m
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXDNUS
+  title: Danish Kroner to U.S. Dollar Spot Exchange Rate
+  frequency: m
+  category: international
+  units: Danish Kroner to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: TWEXEMEGSMTH
+  title: Nominal Emerging Market Economies U.S. Dollar Index
+  frequency: m
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DTWEXBGS
+  title: Nominal Broad U.S. Dollar Index
+  frequency: d
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXUSEU
+  title: U.S. Dollars to Euro Spot Exchange Rate
+  frequency: d
+  category: international
+  units: U.S. Dollars to One Euro
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXJPUS
+  title: Japanese Yen to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Japanese Yen to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXCHUS
+  title: Chinese Yuan Renminbi to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Chinese Yuan Renminbi to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXCAUS
+  title: Canadian Dollars to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Canadian Dollars to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXKOUS
+  title: South Korean Won to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: South Korean Won to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXUSUK
+  title: U.S. Dollars to U.K. Pound Sterling Spot Exchange Rate
+  frequency: d
+  category: international
+  units: U.S. Dollars to One U.K. Pound Sterling
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXMXUS
+  title: Mexican Pesos to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Mexican Pesos to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXINUS
+  title: Indian Rupees to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Indian Rupees to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DTWEXAFEGS
+  title: Nominal Advanced Foreign Economies U.S. Dollar Index
+  frequency: d
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXBZUS
+  title: Brazilian Reals to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Brazilian Reals to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXUSAL
+  title: U.S. Dollars to Australian Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: U.S. Dollars to One Australian Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXSZUS
+  title: Swiss Francs to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Swiss Francs to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DTWEXEMEGS
+  title: Nominal Emerging Market Economies U.S. Dollar Index
+  frequency: d
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXTHUS
+  title: Thai Baht to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Thai Baht to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXMAUS
+  title: Malaysian Ringgit to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Malaysian Ringgit to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXVZUS
+  title: Venezuelan Bolivares to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Venezuelan Bolivares to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXTAUS
+  title: Taiwan Dollars to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Taiwan Dollars to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXHKUS
+  title: Hong Kong Dollars to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Hong Kong Dollars to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXSFUS
+  title: South African Rand to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: South African Rand to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXSIUS
+  title: Singapore Dollars to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Singapore Dollars to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXSDUS
+  title: Swedish Kronor to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Swedish Kronor to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXUSNZ
+  title: U.S. Dollars to New Zealand Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: U.S. Dollars to One New Zealand Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXNOUS
+  title: Norwegian Kroner to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Norwegian Kroner to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXDNUS
+  title: Danish Kroner to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Danish Kroner to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEXSLUS
+  title: Sri Lankan Rupees to U.S. Dollar Spot Exchange Rate
+  frequency: d
+  category: international
+  units: Sri Lankan Rupees to One U.S. Dollar
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BOPGSTB
+  title: 'Trade Balance: Goods and Services, Balance of Payments Basis'
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IMPCH
+  title: U.S. Imports of Goods by Customs Basis from China
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BOPGTB
+  title: 'Trade Balance: Goods, Balance of Payments Basis'
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BOPTEXP
+  title: Exports of Goods and Services, Balance of Payments Basis
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXPCH
+  title: U.S. Exports of Goods by F.A.S. Basis to Mainland China
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BOPTIMP
+  title: 'Imports of Goods and Services: Balance of Payments Basis'
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IMPMX
+  title: U.S. Imports of Goods by Customs Basis from Mexico
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXPJP
+  title: U.S. Exports of Goods by F.A.S. Basis to Japan
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IMP4190
+  title: U.S. Imports of Goods by Customs Basis from Ireland
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IMPJP
+  title: U.S. Imports of Goods by Customs Basis from Japan
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BOPGEXP
+  title: Exports of Goods, Balance of Payments Basis
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IMPCA
+  title: U.S. Imports of Goods by Customs Basis from Canada
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BOPGIMP
+  title: 'Imports of Goods: Balance of Payments Basis'
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IMP5520
+  title: U.S. Imports of Goods by Customs Basis from Vietnam
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BOPSTB
+  title: 'Trade Balance: Services, Balance of Payments Basis'
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IMP0004
+  title: U.S. Imports of Goods by Customs Basis from World
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXPCA
+  title: U.S. Exports of Goods by F.A.S. Basis to Canada
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: EXPMX
+  title: U.S. Exports of Goods by F.A.S. Basis to Mexico
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IMPKR
+  title: U.S. Imports of Goods by Customs Basis from South Korea
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BOPSEXP
+  title: Exports of Services, Balance of Payments Basis
+  frequency: m
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEABC
+  title: Balance on current account
+  frequency: q
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEAXGG
+  title: 'Exports of Goods: Nonmonetary gold'
+  frequency: q
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEABCP
+  title: Balance on capital account
+  frequency: q
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEAXGS
+  title: Exports of goods and services
+  frequency: q
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEABCA
+  title: Balance on current account
+  frequency: a
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEAMGSN
+  title: Imports of goods and services
+  frequency: q
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEAA
+  title: Net U.S. acquisition of financial assets excluding financial derivatives
+    (net increase in assets / financial outflow (+))
+  frequency: q
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEABCPI
+  title: Balance on primary income
+  frequency: q
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IEAMGGN
+  title: 'Imports of Goods: Nonmonetary gold'
+  frequency: q
+  category: international
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: RTWEXBGS
+  title: Real Broad Dollar Index
+  frequency: m
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: RTWEXEMEGS
+  title: Real Emerging Market Economies Dollar Index
+  frequency: m
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: RTWEXAFEGS
+  title: Real Advanced Foreign Economies Dollar Index
+  frequency: m
+  category: international
+  units: Index Jan 2006=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international

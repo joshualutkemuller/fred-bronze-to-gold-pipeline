@@ -12,6 +12,7 @@ finishing as ``PARTIAL`` rather than losing all progress.
 from __future__ import annotations
 
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Iterable, Optional
 
 from fred_pipeline.audit import EtlRun, RunStatus
@@ -116,8 +117,23 @@ class FredPipeline:
         )
         log.info("Starting run %s (%d series)", run.run_id, len(specs))
 
-        for spec in specs:
-            self._process_series(run, spec, force_full=force_full)
+        # Phase 1 (sequential): decide each series' load window. This reads the
+        # warehouse (one SQLite/Delta connection), so it must not run
+        # concurrently with itself or with phase 3's writes.
+        plans = [self._plan_extract(spec, force_full=force_full) for spec in specs]
+
+        # Phase 2 (thread pool): the network-bound, rate-limited FRED calls.
+        # Workers share one FredClient/RateLimiter, so the aggregate request
+        # rate is still capped — concurrency here overlaps response wait and
+        # per-series retry backoff rather than exceeding the configured rate.
+        workers = max(1, self.config.extract_workers)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            outcomes = list(pool.map(self._safe_extract, specs, plans))
+
+        # Phase 3 (sequential): bronze/silver/DQ + all warehouse writes + audit
+        # bookkeeping, in original spec order.
+        for spec, (_observation_start, load_type), outcome in zip(specs, plans, outcomes):
+            self._finish_series(run, spec, load_type, outcome)
 
         run.finalize()
 
@@ -152,15 +168,28 @@ class FredPipeline:
 
     # ---- per-series -----------------------------------------------------
 
-    def _process_series(
-        self, run: EtlRun, spec: SeriesSpec, *, force_full: bool = False
+    def _safe_extract(
+        self, spec: SeriesSpec, plan: tuple[Optional[str], str]
+    ) -> Any:
+        """Run on the thread pool: never raises, so one series' network failure
+        can't sink the whole batch or short-circuit ``pool.map``. Returns the
+        raw payload, or the caught exception for phase 3 to record.
+        """
+        observation_start, _load_type = plan
+        try:
+            return self._extract(spec, observation_start=observation_start)
+        except Exception as exc:  # isolate per-series failures
+            return exc
+
+    def _finish_series(
+        self, run: EtlRun, spec: SeriesSpec, load_type: str, outcome: Any
     ) -> None:
         sr = run.start_series(spec.series_id, load_type=spec.load_type.value)
+        sr.load_type = load_type
         try:
-            observation_start, sr.load_type = self._plan_extract(
-                spec, force_full=force_full
-            )
-            payload = self._extract(spec, observation_start=observation_start)
+            if isinstance(outcome, Exception):
+                raise outcome
+            payload = outcome
             observations = payload.get("observations") or []
 
             bronze_row = build_bronze_row(

@@ -44,3 +44,17 @@ WITH latest AS (
 SELECT series_id, observation_date, value
 FROM latest
 WHERE rn = 1;
+
+-- Per-series revision-magnitude summary (rolled up from gold.fred_revision_stats):
+-- how much a series' observations typically get revised, and how often.
+-- Useful for judging how much to trust a series' initial print (e.g.
+-- GDP/payrolls are heavily revised; market/price series usually are not).
+CREATE OR REPLACE VIEW gold.v_series_revision_summary AS
+SELECT series_id,
+    COUNT(*)                       AS observation_count,
+    AVG(revision_count)            AS avg_revision_count,
+    MAX(revision_count)            AS max_revision_count,
+    AVG(ABS(revision_pct))         AS avg_abs_revision_pct,
+    MAX(ABS(revision_pct))         AS max_abs_revision_pct
+FROM gold.fred_revision_stats
+GROUP BY series_id;

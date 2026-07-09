@@ -215,3 +215,31 @@ def test_rate_limiter_sleeps_when_too_fast():
     now[0] = 0.1          # only 0.1s elapsed, need 1.0s
     rl.acquire()
     assert slept and slept[-1] == pytest.approx(0.9, abs=1e-6)
+
+
+def test_rate_limiter_serializes_concurrent_acquires():
+    """Threaded extraction workers share one RateLimiter; acquire() must not
+    race (e.g. two threads both reading a stale _last_call and skipping the
+    sleep). A real clock/sleep exercises actual lock contention."""
+    import threading
+    import time as real_time
+
+    rl = RateLimiter(per_minute=1000)  # 60ms min interval
+    calls: list[float] = []
+    lock = threading.Lock()
+
+    def worker():
+        rl.acquire()
+        with lock:
+            calls.append(real_time.monotonic())
+
+    threads = [threading.Thread(target=worker) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    calls.sort()
+    min_interval = 60.0 / 1000
+    gaps = [b - a for a, b in zip(calls, calls[1:])]
+    assert all(g >= min_interval * 0.9 for g in gaps)

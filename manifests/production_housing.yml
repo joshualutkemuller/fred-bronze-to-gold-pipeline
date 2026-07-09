@@ -1,0 +1,6896 @@
+name: production_housing
+description: Industrial production, manufacturing/retail/wholesale activity, construction,
+  and housing market indicators.
+version: 1
+series:
+- series_id: IPMAN
+  title: 'Industrial Production: Manufacturing (NAICS)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TCU
+  title: 'Capacity Utilization: Total Index'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MCUMFN
+  title: 'Capacity Utilization: Manufacturing (NAICS)'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG3344S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Semiconductor and Other
+    Electronic Component (NAICS = 3344)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPMANSICS
+  title: 'Industrial Production: Manufacturing (SIC)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG3361T3S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Motor Vehicles and
+    Parts (NAICS = 3361-3)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG3311A2S
+  title: 'Capacity Utilization: Manufacturing: Durable Goods: Iron and Steel Products
+    (NAICS = 3311,2)'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG325S
+  title: 'Industrial Production: Manufacturing: Nondurable Goods: Chemical (NAICS
+    = 325)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPB50001N
+  title: 'Industrial Production: Total Index'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MVAAUTLTTS
+  title: 'Motor Vehicle Assemblies: Autos and Light Truck Assemblies'
+  frequency: m
+  category: production_housing
+  units: Millions of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPB52300S
+  title: 'Industrial Production: Equipment: Defense and Space Equipment'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG334S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Computer and Electronic
+    Product (NAICS = 334)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPN3311A2RS
+  title: 'Industrial Production: Manufacturing: Durable Goods: Raw Steel (NAICS =
+    3311,2pt.)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG311A2S
+  title: 'Industrial Production: Manufacturing: Nondurable Goods: Food, Beverage,
+    and Tobacco (NAICS = 311,2)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPUTIL
+  title: 'Industrial Production: Utilities: Electric and Gas Utilities (NAICS = 2211,2)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG331S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Primary Metal (NAICS
+    = 331)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG3344S
+  title: 'Capacity Utilization: Manufacturing: Durable Goods: Semiconductor and Other
+    Electronic Component (NAICS = 3344)'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG333S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Machinery (NAICS =
+    333)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CUMFNS
+  title: 'Capacity Utilization: Manufacturing (SIC)'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG33591S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Battery (NAICS = 33591)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG211S
+  title: 'Industrial Production: Mining: Oil and Gas Extraction (NAICS = 211)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG2211A2N
+  title: 'Industrial Production: Utilities: Electric and Gas Utilities (NAICS = 2211,2)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG2211S
+  title: 'Capacity Utilization: Utilities: Electric Power Generation, Transmission,
+    and Distribution (NAICS = 2211)'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG3364S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Aerospace Product and
+    Parts (NAICS = 3364)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPBUSEQ
+  title: 'Industrial Production: Equipment: Business Equipment'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG326S
+  title: 'Industrial Production: Manufacturing: Nondurable Goods: Plastics and Rubber
+    Products (NAICS = 326)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPB50001SQ
+  title: 'Industrial Production: Total Index'
+  frequency: q
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG3311A2S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Iron and Steel Products
+    (NAICS = 3311,2)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPMINE
+  title: 'Industrial Production: Mining: Mining (NAICS = 21)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPN32221S
+  title: 'Industrial Production: Manufacturing: Nondurable Goods: Paperboard Container
+    (NAICS = 32221)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPNMAN
+  title: 'Industrial Production: Nondurable Manufacturing (NAICS)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG33612S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Heavy Duty Truck (NAICS
+    = 33612)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG335S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Electrical Equipment,
+    Appliance, and Component (NAICS = 335)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPDMAN
+  title: 'Industrial Production: Durable Manufacturing (NAICS)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG322S
+  title: 'Industrial Production: Manufacturing: Nondurable Goods: Paper (NAICS = 322)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG2211S
+  title: 'Industrial Production: Utilities: Electric Power Generation, Transmission,
+    and Distribution (NAICS = 2211)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPGMFN
+  title: 'Industrial Production: Manufacturing (NAICS)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG321S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Wood Product (NAICS
+    = 321)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPN31152N
+  title: 'Industrial Production: Manufacturing: Nondurable Goods: Ice Cream and Frozen
+    Dessert (NAICS = 31152)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPCONGD
+  title: 'Industrial Production: Consumer Goods'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG332S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Fabricated Metal Product
+    (NAICS = 332)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPN213111S
+  title: 'Industrial Production: Mining: Drilling Oil and Gas Wells (NAICS = 213111)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG3273S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Cement and Concrete
+    Product (NAICS = 3273)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG21112S
+  title: 'Industrial Production: Mining: Crude Oil (NAICS = 21112)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MVATOTASSS
+  title: 'Motor Vehicle Assemblies: Total Motor Vehicle Assemblies'
+  frequency: m
+  category: production_housing
+  units: Millions of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPB00004S
+  title: 'Industrial Capacity: Manufacturing (SIC)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG3313S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Alumina and Aluminum
+    Production and Processing (NAICS = 3313)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG33611SQ
+  title: 'Capacity Utilization: Manufacturing: Durable Goods: Automobile and Light
+    Duty Motor Vehicle (NAICS = 33611)'
+  frequency: q
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MVAHMTRCKS
+  title: 'Motor Vehicle Assemblies: Heavy and Medium Truck Assemblies'
+  frequency: m
+  category: production_housing
+  units: Millions of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG3254S
+  title: 'Industrial Production: Manufacturing: Nondurable Goods: Pharmaceutical and
+    Medicine (NAICS = 3254)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG21S
+  title: 'Capacity Utilization: Mining: Mining (NAICS = 21)'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG327S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Nonmetallic Mineral
+    Product (NAICS = 327)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG33611S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Automobile and Light
+    Duty Motor Vehicle (NAICS = 33611)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPB53122S
+  title: 'Industrial Production: Durable Goods Materials: Semiconductors, Printed
+    Circuit Boards, and Other'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG3311A2A
+  title: 'Capacity Utilization: Manufacturing: Durable Goods: Iron and Steel Products
+    (NAICS = 3311,2)'
+  frequency: a
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG311S
+  title: 'Industrial Production: Manufacturing: Nondurable Goods: Food (NAICS = 311)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPGMFS
+  title: 'Industrial Capacity: Manufacturing (NAICS)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPDCONGD
+  title: 'Industrial Production: Durable Consumer Goods: Durable Consumer Goods'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG21223S
+  title: 'Industrial Production: Mining: Copper, Nickel, Lead, and Zinc Mining (NAICS
+    = 21223)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPNCONGD
+  title: 'Industrial Production: Nondurable Consumer Goods'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG326S
+  title: 'Capacity Utilization: Manufacturing: Nondurable Goods: Plastics and Rubber
+    Products (NAICS = 326)'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG337S
+  title: 'Industrial Production: Manufacturing: Durable Goods: Furniture and Related
+    Product (NAICS = 337)'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPB50001A
+  title: 'Industrial Production: Total Index'
+  frequency: a
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPG3344A
+  title: 'Industrial Production: Manufacturing: Durable Goods: Semiconductor and Other
+    Electronic Component (NAICS = 3344)'
+  frequency: a
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IPB54100S
+  title: 'Industrial Production: Construction Supplies'
+  frequency: m
+  category: production_housing
+  units: Index 2017=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG3364T9S
+  title: 'Capacity Utilization: Manufacturing: Durable Goods: Aerospace and Miscellaneous
+    Transportation Equipment (NAICS = 3364-9)'
+  frequency: m
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CAPUTLG325SQ
+  title: 'Capacity Utilization: Manufacturing: Nondurable Goods: Chemical (NAICS =
+    325)'
+  frequency: q
+  category: production_housing
+  units: Percent
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: BUSINV
+  title: Total Business Inventories
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ISRATIO
+  title: 'Total Business: Inventories to Sales Ratio'
+  frequency: m
+  category: production_housing
+  units: Ratio
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RETAILIRSA
+  title: 'Retailers: Inventories to Sales Ratio'
+  frequency: m
+  category: production_housing
+  units: Ratio
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MNFCTRIRSA
+  title: 'Manufacturers: Inventories to Sales Ratio'
+  frequency: m
+  category: production_housing
+  units: Ratio
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: WHLSLRIRSA
+  title: 'Merchant Wholesalers: Inventories to Sales Ratio'
+  frequency: m
+  category: production_housing
+  units: Ratio
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RETAILIMSA
+  title: Retailers Inventories
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: WHLSLRIMSA
+  title: Merchant Wholesalers Inventories
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TOTBUSSMSA
+  title: Total Business Sales
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RETAILSMNSA
+  title: Retailers Sales
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TOTBUSIMNSA
+  title: Total Business Inventories
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RETAILSMSA
+  title: Retailers Sales
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MNFCTRIMSA
+  title: Manufacturers Inventories
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MNFCTRSMSA
+  title: Manufacturers Sales
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: WHLSLRSMSA
+  title: Merchant Wholesalers Sales
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TOTBUSMPCIMSA
+  title: Total Business Inventories
+  frequency: m
+  category: production_housing
+  units: Percent Change
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MNFCTRMPCIMSA
+  title: Manufacturers Inventories
+  frequency: m
+  category: production_housing
+  units: Percent Change
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: DGORDER
+  title: 'Manufacturers'' New Orders: Durable Goods'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NEWORDER
+  title: 'Manufacturers'' New Orders: Nondefense Capital Goods Excluding Aircraft'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: AMTMNO
+  title: 'Manufacturers'' New Orders: Total Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A34SNO
+  title: 'Manufacturers'' New Orders: Computers and Electronic Products'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ADXTNO
+  title: 'Manufacturers'' New Orders: Durable Goods Excluding Transportation'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ACOGNO
+  title: 'Manufacturers'' New Orders: Consumer Goods'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A35SNO
+  title: 'Manufacturers'' New Orders: Electrical Equipment, Appliances and Components'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ADXDNO
+  title: 'Manufacturers'' New Orders: Durable Goods Excluding Defense'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A33SNO
+  title: 'Manufacturers'' New Orders: Machinery'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ANXAVS
+  title: 'Manufacturers'' Value of Shipments: Nondefense Capital Goods Excluding Aircraft'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A33CNO
+  title: 'Manufacturers'' New Orders: Construction Machinery Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: AMTMVS
+  title: 'Manufacturers'' Value of Shipments: Total Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ACDGNO
+  title: 'Manufacturers'' New Orders: Consumer Durable Goods'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: AMTMTI
+  title: 'Manufacturers'' Total Inventories: Total Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: AMVPNO
+  title: 'Manufacturers'' New Orders: Motor Vehicles and Parts'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UMTMNO
+  title: 'Manufacturers'' New Orders: Total Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A33ATI
+  title: 'Manufacturers'' Total Inventories: Farm Machinery and Equipment Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A31SNO
+  title: 'Manufacturers'' New Orders: Primary Metals'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A32SNO
+  title: 'Manufacturers'' New Orders: Fabricated Metal Products'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A37SNO
+  title: 'Manufacturers'' New Orders: Furniture and Related Products'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATCGNO
+  title: 'Manufacturers'' New Orders: Capital Goods'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ADEFNO
+  title: 'Manufacturers'' New Orders: Defense Capital Goods'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A36SNO
+  title: 'Manufacturers'' New Orders: Transportation Equipment'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A34SVS
+  title: 'Manufacturers'' Value of Shipments: Computers and Electronic Products'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: AITINO
+  title: 'Manufacturers'' New Orders: Information Technology Industries'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A31ANO
+  title: 'Manufacturers'' New Orders: Iron and Steel Mills and Ferroalloy and Steel
+    Product Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UNXANO
+  title: 'Manufacturers'' New Orders: Nondefense Capital Goods Excluding Aircraft'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A34DNO
+  title: 'Manufacturers'' New Orders: Communications Equipment, Nondefense'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ANAPNO
+  title: 'Manufacturers'' New Orders: Nondefense Aircraft and Parts'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A33ENO
+  title: 'Manufacturers'' New Orders: Industrial Machinery Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A36ZNO
+  title: 'Manufacturers'' New Orders: Ships and Boats'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ADAPNO
+  title: 'Manufacturers'' New Orders: Defense Aircraft and Parts'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UMDMNO
+  title: 'Manufacturers'' New Orders: Durable Goods'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UANMTI
+  title: 'Manufacturers'' Total Inventories: Aluminum and Nonferrous Metal Products'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ANDENO
+  title: 'Manufacturers'' New Orders: Nondefense Capital Goods'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A35BNO
+  title: 'Manufacturers'' New Orders: Household Appliance Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A34HNO
+  title: 'Manufacturers'' New Orders: Other Electronic Component Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A35CNO
+  title: 'Manufacturers'' New Orders: Electrical Equipment Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: A36CVS
+  title: 'Manufacturers'' Value of Shipments: Heavy Duty Truck Manufacturing'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ACMSNO
+  title: 'Manufacturers'' New Orders: Construction Materials and Supplies'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSXFS
+  title: 'Advance Retail Sales: Retail Trade'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSXFSN
+  title: 'Advance Retail Sales: Retail Trade'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSFSDP
+  title: 'Advance Retail Sales: Food Services and Drinking Places'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSFHFS
+  title: 'Advance Retail Sales: Furniture and Home Furnishings Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSFSXMV
+  title: 'Advance Retail Sales: Retail Trade and Food Services, Excluding Motor Vehicle
+    and Parts Dealers'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSAFSNA
+  title: 'Advance Retail Sales: Retail Trade and Food Services'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSCCAS
+  title: 'Advance Retail Sales: Clothing and Clothing Accessory Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSEAS
+  title: 'Advance Retail Sales: Electronics and Appliance Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSBMGESD
+  title: 'Advance Retail Sales: Building Materials, Garden Equipment and Supplies
+    Dealers'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSGASS
+  title: 'Advance Retail Sales: Gasoline Stations'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MARTSSM44W72USS
+  title: 'Advance Retail Sales: Retail Trade and Food Services, Excluding Motor Vehicle
+    and Parts Dealers and Gasoline Stations'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSCCASN
+  title: 'Advance Retail Sales: Clothing and Clothing Accessory Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MARTSMPCSM44X72USS
+  title: 'Advance Retail Sales: Retail Trade and Food Services'
+  frequency: m
+  category: production_housing
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MARTSMPCSM44000USS
+  title: 'Advance Retail Sales: Retail Trade'
+  frequency: m
+  category: production_housing
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSMVPD
+  title: 'Advance Retail Sales: Motor Vehicle and Parts Dealers'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSNSR
+  title: 'Advance Retail Sales: Nonstore Retailers'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSDBS
+  title: 'Advance Retail Sales: Food and Beverage Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSGCS
+  title: 'Advance Retail Sales: Grocery Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSFSDPN
+  title: 'Advance Retail Sales: Food Services and Drinking Places'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSFSXMVN
+  title: 'Advance Retail Sales: Retail Trade and Food Services, Excluding Motor Vehicle
+    and Parts Dealers'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSSGHBMS
+  title: 'Advance Retail Sales: Sporting Goods, Hobby, Musical Instrument, and Book
+    Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MARTSMPCSM44000USN
+  title: 'Advance Retail Sales: Retail Trade'
+  frequency: m
+  category: production_housing
+  units: Percent Change from Preceding Period
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSHPCS
+  title: 'Advance Retail Sales: Health and Personal Care Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSFHFSN
+  title: 'Advance Retail Sales: Furniture and Home Furnishings Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RSDSELD
+  title: 'Advance Retail Sales: Department Stores'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLMFGCONS
+  title: 'Total Construction Spending: Manufacturing in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TTLCONS
+  title: 'Total Construction Spending: Total Construction in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLNRESCONS
+  title: 'Total Construction Spending: Nonresidential in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLRESCONS
+  title: 'Total Construction Spending: Residential in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLCOMCONS
+  title: 'Total Construction Spending: Commercial in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLPBLCONS
+  title: 'Total Public Construction Spending: Total Construction in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLHWYCONS
+  title: 'Total Construction Spending: Highway and Street in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PNRESCONS
+  title: 'Total Private Construction Spending: Nonresidential in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PRRESCONS
+  title: 'Total Private Construction Spending: Residential in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLHLTHCONS
+  title: 'Total Construction Spending: Health Care in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLMFGCON
+  title: 'Total Construction Spending: Manufacturing in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLOFCONS
+  title: 'Total Construction Spending: Office in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PRMFGCONS
+  title: 'Total Private Construction Spending: Manufacturing in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLPWRCONS
+  title: 'Total Construction Spending: Power in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLWSCONS
+  title: 'Total Construction Spending: Water Supply in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLEDUCONS
+  title: 'Total Construction Spending: Educational in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TTLCON
+  title: 'Total Construction Spending: Total Construction in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLPRVCONS
+  title: 'Total Private Construction Spending: Total Construction in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PRMFGCON
+  title: 'Total Private Construction Spending: Manufacturing in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLSWDCONS
+  title: 'Total Construction Spending: Sewage and Waste Disposal in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PBHWYCONS
+  title: 'Total Public Construction Spending: Highway and Street in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PROFCONS
+  title: 'Total Private Construction Spending: Office in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLNRESCON
+  title: 'Total Construction Spending: Nonresidential in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PNRESCON
+  title: 'Total Private Construction Spending: Nonresidential in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PBNRESCONS
+  title: 'Total Public Construction Spending: Nonresidential in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLPWRCON
+  title: 'Total Construction Spending: Power in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLLODGCONS
+  title: 'Total Construction Spending: Lodging in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLWSCON
+  title: 'Total Construction Spending: Water Supply in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TLCOMCON
+  title: 'Total Construction Spending: Commercial in the United States'
+  frequency: m
+  category: production_housing
+  units: Millions of Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUST1F
+  title: 'New Privately-Owned Housing Units Started: Single-Family Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: COMPUTSA
+  title: 'New Privately-Owned Housing Units Completed: Total Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUST5F
+  title: 'New Privately-Owned Housing Units Started: Units in Buildings with 5 Units
+    or More'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UNDCONTSA
+  title: 'New Privately-Owned Housing Units Under Construction: Total Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PERMIT1
+  title: 'New Privately-Owned Housing Units Authorized in Permit-Issuing Places: Single-Family
+    Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: COMPU1USA
+  title: 'New Privately-Owned Housing Units Completed: Single-Family Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: COMPU5MUSA
+  title: 'New Privately-Owned Housing Units Completed: Units in Buildings with 5 Units
+    or More'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUSTNSA
+  title: 'New Privately-Owned Housing Units Started: Total Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PERMIT5
+  title: 'New Privately-Owned Housing Units Authorized in Permit-Issuing Places: Units
+    in Buildings with 5 Units or More'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UNDCON5MUSA
+  title: 'New Privately-Owned Housing Units Under Construction: Units in Buildings
+    with 5 Units or More'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UNDCON1USA
+  title: 'New Privately-Owned Housing Units Under Construction: Single-Family Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUST1FNSA
+  title: 'New Privately-Owned Housing Units Started: Single-Family Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUST2F
+  title: 'New Privately-Owned Housing Units Started: Units in Buildings with 2-4 Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUST5FNSA
+  title: 'New Privately-Owned Housing Units Started: Units in Buildings with 5 Units
+    or More'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PERMITNSA
+  title: 'New Privately-Owned Housing Units Authorized in Permit-Issuing Places: Total
+    Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUSTS
+  title: 'New Privately-Owned Housing Units Started: Total Units in the South Census
+    Region'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PERMIT24
+  title: 'New Privately-Owned Housing Units Authorized in Permit-Issuing Places: Units
+    in Buildings with 2-4 Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUSTNE
+  title: 'New Privately-Owned Housing Units Started: Total Units in the Northeast
+    Census Region'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: AUTHNOTT
+  title: 'New Privately-Owned Housing Units Authorized but Not Started: Total Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: COMPUTNSA
+  title: 'New Privately-Owned Housing Units Completed: Total Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: AUTHNOT5MUSA
+  title: 'New Privately-Owned Housing Units Authorized but Not Started: Units in Buildings
+    with 5 Units or More'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUSTMW
+  title: 'New Privately-Owned Housing Units Started: Total Units in the Midwest Census
+    Region'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PERMIT5NSA
+  title: 'New Privately-Owned Housing Units Authorized in Permit-Issuing Places: Units
+    in Buildings with 5 Units or More'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UNDCONTNSA
+  title: 'New Privately-Owned Housing Units Under Construction: Total Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: COMPU1UNSA
+  title: 'New Privately-Owned Housing Units Completed: Single-Family Units'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOUSTW
+  title: 'New Privately-Owned Housing Units Started: Total Units in the West Census
+    Region'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSPUS
+  title: Median Sales Price of Houses Sold for the United States
+  frequency: q
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ASPUS
+  title: Average Sales Price of Houses Sold for the United States
+  frequency: q
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HSN1F
+  title: 'New One Family Houses Sold: United States'
+  frequency: m
+  category: production_housing
+  units: Thousands
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSACSR
+  title: Monthly Supply of New Houses in the United States
+  frequency: m
+  category: production_housing
+  units: Months' Supply
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSPNHSUS
+  title: Median Sales Price for New Houses Sold in the United States
+  frequency: m
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HNFSEPUSSA
+  title: New One Family Homes for Sale in the United States
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NHFSEPCS
+  title: New Houses for Sale by Stage of Construction, Completed
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ASPNHSUS
+  title: Average Sales Price for New Houses Sold in the United States
+  frequency: m
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HSN1FNSA
+  title: 'New One Family Houses Sold: United States'
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSPNE
+  title: Median Sales Price of Houses Sold for the Northeast Census Region
+  frequency: q
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NHSDPCS
+  title: New Houses Sold by Stage of Construction, Completed
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSPS
+  title: Median Sales Price of Houses Sold for the South Census Region
+  frequency: q
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HNFSUSNSA
+  title: New One Family Houses for Sale in the United States
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSPMW
+  title: Median Sales Price of Houses Sold for the Midwest Census Region
+  frequency: q
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NHFSEPUCS
+  title: New Houses for Sale by Stage of Construction, Under Construction
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSPW
+  title: Median Sales Price of Houses Sold for the West Census Region
+  frequency: q
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HSN1FA
+  title: 'New One Family Houses Sold: United States'
+  frequency: a
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSPNHSUSA
+  title: Median Sales Price for New Houses Sold in the United States
+  frequency: a
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HSTFC
+  title: Houses Sold by Type of Financing, Cash Purchase
+  frequency: q
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NHFSEPNTS
+  title: New Houses for Sale by Stage of Construction, Not Started
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MNMFS
+  title: Median Number of Months on Sales Market for Newly Completed Homes
+  frequency: m
+  category: production_housing
+  units: Months
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NHSDPC
+  title: New Houses Sold by Stage of Construction, Completed
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NHFSEPTS
+  title: New Houses for Sale by Stage of Construction, Total
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NHSDPTS
+  title: New Houses Sold by Stage of Construction, Total
+  frequency: m
+  category: production_housing
+  units: Thousands of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MSACSRNSA
+  title: Monthly Supply of New Houses in the United States
+  frequency: m
+  category: production_housing
+  units: Months' Supply
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ASPNE
+  title: Average Sales Price of Houses Sold for the Northeast Census Region
+  frequency: q
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: EXHOSLUSM495S
+  title: Existing Home Sales
+  frequency: m
+  category: production_housing
+  units: Number of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOSINVUSM495N
+  title: 'Existing Home Sales: Housing Inventory'
+  frequency: m
+  category: production_housing
+  units: Number of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOSMEDUSM052N
+  title: Median Sales Price of Existing Homes
+  frequency: m
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HOSSUPUSM673N
+  title: 'Existing Home Sales: Months Supply'
+  frequency: m
+  category: production_housing
+  units: Months' Supply
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: EXSFHSUSM495S
+  title: Existing Single-Family Home Sales
+  frequency: m
+  category: production_housing
+  units: Number of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HSFMEDUSM052N
+  title: Median Sales Price of Existing Single-Family Homes
+  frequency: m
+  category: production_housing
+  units: Dollars
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: EXHOSLUSM495N
+  title: Existing Home Sales
+  frequency: m
+  category: production_housing
+  units: Number of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HSFINVUSM495N
+  title: 'Existing Single-Family Home Sales: Housing Inventory'
+  frequency: m
+  category: production_housing
+  units: Number of Units
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HSFSUPUSM673N
+  title: 'Existing Single-Family Home Sales: Months Supply'
+  frequency: m
+  category: production_housing
+  units: Months' Supply
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: USSTHPI
+  title: All-Transactions House Price Index for the United States
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CASTHPI
+  title: All-Transactions House Price Index for California
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NYSTHPI
+  title: All-Transactions House Price Index for New York
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS12420Q
+  title: All-Transactions House Price Index for Austin-Round Rock-Georgetown, TX (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: FLSTHPI
+  title: All-Transactions House Price Index for Florida
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS06037A
+  title: All-Transactions House Price Index for Los Angeles County, CA
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TXSTHPI
+  title: All-Transactions House Price Index for Texas
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NJSTHPI
+  title: All-Transactions House Price Index for New Jersey
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HPIPONM226S
+  title: Purchase Only House Price Index for the United States
+  frequency: m
+  category: production_housing
+  units: Index Jan 1991=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS41884Q
+  title: All-Transactions House Price Index for San Francisco-San Mateo-Redwood City,
+    CA (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS19124Q
+  title: All-Transactions House Price Index for Dallas-Plano-Irving, TX (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MASTHPI
+  title: All-Transactions House Price Index for Massachusetts
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS38060Q
+  title: All-Transactions House Price Index for Phoenix-Mesa-Chandler, AZ (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS19740Q
+  title: All-Transactions House Price Index for Denver-Aurora-Lakewood, CO (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS26420Q
+  title: All-Transactions House Price Index for Houston-The Woodlands-Sugar Land,
+    TX (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS42644Q
+  title: All-Transactions House Price Index for Seattle-Bellevue-Kent, WA (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS34980Q
+  title: All-Transactions House Price Index for Nashville-Davidson--Murfreesboro--Franklin,
+    TN (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS33124Q
+  title: All-Transactions House Price Index for Miami-Miami Beach-Kendall, FL (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: UTSTHPI
+  title: All-Transactions House Price Index for Utah
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS29820Q
+  title: All-Transactions House Price Index for Las Vegas-Henderson-Paradise, NV (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS14454Q
+  title: All-Transactions House Price Index for Boston, MA (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS41940Q
+  title: All-Transactions House Price Index for San Jose-Sunnyvale-Santa Clara, CA
+    (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS39580Q
+  title: All-Transactions House Price Index for Raleigh-Cary, NC (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS41740Q
+  title: All-Transactions House Price Index for San Diego-Chula Vista-Carlsbad, CA
+    (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MISTHPI
+  title: All-Transactions House Price Index for Michigan
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: OHSTHPI
+  title: All-Transactions House Price Index for Ohio
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: COSTHPI
+  title: All-Transactions House Price Index for Colorado
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS06059A
+  title: All-Transactions House Price Index for Orange County, CA
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CTSTHPI
+  title: All-Transactions House Price Index for Connecticut
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS38300Q
+  title: All-Transactions House Price Index for Pittsburgh, PA (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS45300Q
+  title: All-Transactions House Price Index for Tampa-St. Petersburg-Clearwater, FL
+    (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS37964Q
+  title: All-Transactions House Price Index for Philadelphia, PA (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS36740Q
+  title: All-Transactions House Price Index for Orlando-Kissimmee-Sanford, FL (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS15980Q
+  title: All-Transactions House Price Index for Cape Coral-Fort Myers, FL (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS38900Q
+  title: All-Transactions House Price Index for Portland-Vancouver-Hillsboro, OR-WA
+    (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS12060Q
+  title: All-Transactions House Price Index for Atlanta-Sandy Springs-Alpharetta,
+    GA (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS41700Q
+  title: All-Transactions House Price Index for San Antonio-New Braunfels, TX (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS41620Q
+  title: All-Transactions House Price Index for Salt Lake City, UT (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MNSTHPI
+  title: All-Transactions House Price Index for Minnesota
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS40900Q
+  title: All-Transactions House Price Index for Sacramento-Roseville-Folsom, CA (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: VASTHPI
+  title: All-Transactions House Price Index for Virginia
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS14260Q
+  title: All-Transactions House Price Index for Boise City, ID (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: AZSTHPI
+  title: All-Transactions House Price Index for Arizona
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ILSTHPI
+  title: All-Transactions House Price Index for Illinois
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS35004Q
+  title: All-Transactions House Price Index for Nassau County-Suffolk County, NY (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: PASTHPI
+  title: All-Transactions House Price Index for Pennsylvania
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS19804Q
+  title: All-Transactions House Price Index for Detroit-Dearborn-Livonia, MI (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HISTHPI
+  title: All-Transactions House Price Index for Hawaii
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NCSTHPI
+  title: All-Transactions House Price Index for North Carolina
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS17140Q
+  title: All-Transactions House Price Index for Cincinnati, OH-KY-IN (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS16740Q
+  title: All-Transactions House Price Index for Charlotte-Concord-Gastonia, NC-SC
+    (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS27260Q
+  title: All-Transactions House Price Index for Jacksonville, FL (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: GASTHPI
+  title: All-Transactions House Price Index for Georgia
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS26900Q
+  title: All-Transactions House Price Index for Indianapolis-Carmel-Anderson, IN (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS36084Q
+  title: All-Transactions House Price Index for Oakland-Berkeley-Livermore, CA (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ORSTHPI
+  title: All-Transactions House Price Index for Oregon
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS30700Q
+  title: All-Transactions House Price Index for Lincoln, NE (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS28140Q
+  title: All-Transactions House Price Index for Kansas City, MO-KS (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS17820Q
+  title: All-Transactions House Price Index for Colorado Springs, CO (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NHSTHPI
+  title: All-Transactions House Price Index for New Hampshire
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IASTHPI
+  title: All-Transactions House Price Index for Iowa
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS18140Q
+  title: All-Transactions House Price Index for Columbus, OH (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TNSTHPI
+  title: All-Transactions House Price Index for Tennessee
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: WASTHPI
+  title: All-Transactions House Price Index for Washington
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS46060Q
+  title: All-Transactions House Price Index for Tucson, AZ (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS28940Q
+  title: All-Transactions House Price Index for Knoxville, TN (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS33460Q
+  title: All-Transactions House Price Index for Minneapolis-St. Paul-Bloomington,
+    MN-WI (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS06085A
+  title: All-Transactions House Price Index for Santa Clara County, CA
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS14500Q
+  title: All-Transactions House Price Index for Boulder, CO (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS26620Q
+  title: All-Transactions House Price Index for Huntsville, AL (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: DCSTHPI
+  title: All-Transactions House Price Index for the District of Columbia
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS40060Q
+  title: All-Transactions House Price Index for Richmond, VA (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: WISTHPI
+  title: All-Transactions House Price Index for Wisconsin
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS41180Q
+  title: All-Transactions House Price Index for St. Louis, MO-IL (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS20500Q
+  title: All-Transactions House Price Index for Durham-Chapel Hill, NC (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS31084Q
+  title: All-Transactions House Price Index for Los Angeles-Long Beach-Glendale, CA
+    (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS17460Q
+  title: All-Transactions House Price Index for Cleveland-Elyria, OH (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MDSTHPI
+  title: All-Transactions House Price Index for Maryland
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS12115A
+  title: All-Transactions House Price Index for Sarasota County, FL
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS31540Q
+  title: All-Transactions House Price Index for Madison, WI (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MESTHPI
+  title: All-Transactions House Price Index for Maine
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS34940Q
+  title: All-Transactions House Price Index for Naples-Marco Island, FL (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS16700Q
+  title: All-Transactions House Price Index for Charleston-North Charleston, SC (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: INSTHPI
+  title: All-Transactions House Price Index for Indiana
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS48424Q
+  title: All-Transactions House Price Index for West Palm Beach-Boca Raton-Boynton
+    Beach, FL (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS21340Q
+  title: All-Transactions House Price Index for El Paso, TX (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: KYSTHPI
+  title: All-Transactions House Price Index for Kentucky
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: RISTHPI
+  title: All-Transactions House Price Index for Rhode Island
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: SCSTHPI
+  title: All-Transactions House Price Index for South Carolina
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS48085A
+  title: All-Transactions House Price Index for Collin County, TX
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS15380Q
+  title: All-Transactions House Price Index for Buffalo-Cheektowaga, NY (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS10740Q
+  title: All-Transactions House Price Index for Albuquerque, NM (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS23104Q
+  title: All-Transactions House Price Index for Fort Worth-Arlington-Grapevine, TX
+    (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS36540Q
+  title: All-Transactions House Price Index for Omaha-Council Bluffs, NE-IA (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ALSTHPI
+  title: All-Transactions House Price Index for Alabama
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MOSTHPI
+  title: All-Transactions House Price Index for Missouri
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS36119A
+  title: All-Transactions House Price Index for Westchester County, NY
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS12086A
+  title: All-Transactions House Price Index for Miami-Dade County, FL
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: MTSTHPI
+  title: All-Transactions House Price Index for Montana
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS53033A
+  title: All-Transactions House Price Index for King County, WA
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: HPIPONM226N
+  title: Purchase Only House Price Index for the United States
+  frequency: m
+  category: production_housing
+  units: Index Jan 1991=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: VTSTHPI
+  title: All-Transactions House Price Index for Vermont
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS46140Q
+  title: All-Transactions House Price Index for Tulsa, OK (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS47894Q
+  title: All-Transactions House Price Index for Washington-Arlington-Alexandria, DC-VA-MD-WV
+    (MSAD)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS11700Q
+  title: All-Transactions House Price Index for Asheville, NC (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS51059A
+  title: All-Transactions House Price Index for Fairfax County, VA
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS39900Q
+  title: All-Transactions House Price Index for Reno, NV (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS31140Q
+  title: All-Transactions House Price Index for Louisville/Jefferson County, KY-IN
+    (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: IDSTHPI
+  title: All-Transactions House Price Index for Idaho
+  frequency: q
+  category: production_housing
+  units: Index 1980:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS36103A
+  title: All-Transactions House Price Index for Suffolk County, NY
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS36420Q
+  title: All-Transactions House Price Index for Oklahoma City, OK (MSA)
+  frequency: q
+  category: production_housing
+  units: Index 1995:Q1=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ATNHPIUS12099A
+  title: All-Transactions House Price Index for Palm Beach County, FL
+  frequency: a
+  category: production_housing
+  units: Index 2000=100
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CFNAI
+  title: Chicago Fed National Activity Index
+  frequency: m
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CFNAIMA3
+  title: 'Chicago Fed National Activity Index: Three Month Moving Average'
+  frequency: m
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: CFNAIDIFF
+  title: 'Chicago Fed National Activity Index: Diffusion Index'
+  frequency: m
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NFCI
+  title: Chicago Fed National Financial Conditions Index
+  frequency: w
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 1
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: ANFCI
+  title: Chicago Fed Adjusted National Financial Conditions Index
+  frequency: w
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NFCILEVERAGE
+  title: Chicago Fed National Financial Conditions Leverage Subindex
+  frequency: w
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NFCICREDIT
+  title: Chicago Fed National Financial Conditions Credit Subindex
+  frequency: w
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NFCIRISK
+  title: Chicago Fed National Financial Conditions Risk Subindex
+  frequency: w
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: NFCINONFINLEVERAGE
+  title: Chicago Fed National Financial Conditions Index Nonfinancial Leveral Subindex
+  frequency: w
+  category: production_housing
+  units: Index
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing

@@ -88,7 +88,7 @@ def test_active_series_filtering():
 
 def test_load_shipped_manifests_are_valid():
     manifests = load_manifests(MANIFESTS_DIR)
-    assert len(manifests) == 4  # rates, inflation, labor, growth
+    assert len(manifests) >= 4  # at least: rates, inflation, labor, growth
     specs = all_series(manifests, active_only=False)
     ids = [s.series_id for s in specs]
     # spot-check a few from each category

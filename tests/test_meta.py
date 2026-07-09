@@ -1,15 +1,16 @@
-from fred_pipeline.manifest import load_manifests
+from fred_pipeline.manifest import all_series, load_manifests
 from fred_pipeline.meta import build_meta_rows
 
 
 def test_build_meta_rows_from_shipped_manifests():
     manifests = load_manifests("manifests")
     rows = build_meta_rows(manifests)
+    n_series = len(all_series(manifests, active_only=False))
 
     assert set(rows) == {"fred_series", "fred_manifest", "fred_series_manifest_map"}
-    assert len(rows["fred_manifest"]) == 4
-    assert len(rows["fred_series"]) == 27
-    assert len(rows["fred_series_manifest_map"]) == 27
+    assert len(rows["fred_manifest"]) == len(manifests)
+    assert len(rows["fred_series"]) == n_series
+    assert len(rows["fred_series_manifest_map"]) == n_series
 
     # series rows carry serialized enums + updated_at stamp
     sample = rows["fred_series"][0]

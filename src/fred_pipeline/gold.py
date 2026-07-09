@@ -116,6 +116,12 @@ def _feature_transforms_sql(config: PipelineConfig) -> str:
     Note: YoY here matches the exact −12-month observation (works for monthly/
     quarterly month-end series). The Local/SQLite backend uses nearest-on-or-
     before within a tolerance; results agree for regular monthly/quarterly data.
+
+    z-score is an *expanding* (point-in-time safe) mean/std — the window frame
+    is bounded to UNBOUNDED PRECEDING..CURRENT ROW, so each row's mean/std only
+    reflects observations at-or-before its own date, never later ones. A plain
+    ``PARTITION BY series_id`` (whole-partition) aggregate would leak future
+    values into every historical row.
     """
     latest = config.table("gold", "fred_latest_observation")
     gold = config.table("gold", "fred_feature_transforms")
@@ -128,8 +134,14 @@ def _feature_transforms_sql(config: PipelineConfig) -> str:
     w AS (
         SELECT series_id, observation_date, value,
             LAG(value) OVER (PARTITION BY series_id ORDER BY observation_date) AS prev_value,
-            AVG(value) OVER (PARTITION BY series_id) AS mean_v,
-            STDDEV_POP(value) OVER (PARTITION BY series_id) AS std_v
+            AVG(value) OVER (
+                PARTITION BY series_id ORDER BY observation_date
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            ) AS mean_v,
+            STDDEV_POP(value) OVER (
+                PARTITION BY series_id ORDER BY observation_date
+                ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+            ) AS std_v
         FROM base
     ),
     ya AS (
@@ -170,6 +182,43 @@ def _curve_spread_sql(config: PipelineConfig) -> str:
     return f"CREATE OR REPLACE TABLE {gold} AS\n{union}"
 
 
+def _revision_stats_sql(config: PipelineConfig) -> str:
+    """How much each observation moved between its first print and today.
+
+    Unlike the other Gold tables (built from ``gold.fred_latest_observation``),
+    this reads raw Silver (every vintage), since it exists to measure revision
+    behavior itself. Non-vintage series (blank ``realtime_start``) always have
+    ``revision_count = 1`` — no vintage history is tracked for them.
+    """
+    silver = config.table("silver", "fred_observation")
+    gold = config.table("gold", "fred_revision_stats")
+    return f"""
+    CREATE OR REPLACE TABLE {gold} AS
+    WITH base AS (
+        SELECT series_id, observation_date, realtime_start, value, revision_number
+        FROM {silver}
+        WHERE is_missing = false AND value IS NOT NULL
+    ),
+    bounds AS (
+        SELECT series_id, observation_date,
+            MIN(revision_number) AS min_rev, MAX(revision_number) AS max_rev,
+            COUNT(*) AS revision_count
+        FROM base
+        GROUP BY series_id, observation_date
+    )
+    SELECT b.series_id, b.observation_date, b.revision_count,
+        f.value AS first_value, f.realtime_start AS first_realtime_start,
+        l.value AS latest_value, l.realtime_start AS latest_realtime_start,
+        l.value - f.value AS revision_delta,
+        CASE WHEN f.value <> 0 THEN (l.value - f.value) / f.value END AS revision_pct
+    FROM bounds b
+    JOIN base f ON f.series_id = b.series_id AND f.observation_date = b.observation_date
+              AND f.revision_number = b.min_rev
+    JOIN base l ON l.series_id = b.series_id AND l.observation_date = b.observation_date
+              AND l.revision_number = b.max_rev
+    """
+
+
 def point_in_time_features_sql(config: PipelineConfig, as_of: str) -> str:
     """Ad-hoc SQL: each series' value as known on ``as_of`` (leakage-free)."""
     silver = config.table("silver", "fred_observation")
@@ -202,6 +251,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "fred_macro_feature_daily": _macro_feature_daily_sql(config),
         "fred_feature_transforms": _feature_transforms_sql(config),
         "fred_curve_spread": _curve_spread_sql(config),
+        "fred_revision_stats": _revision_stats_sql(config),
     }
     results: dict[str, str] = {}
     for name, sql in steps.items():
