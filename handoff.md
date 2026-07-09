@@ -170,17 +170,26 @@ Each manifest should define:
 
 # Point-in-Time Support
 
-Persist:
+Persisted per Silver observation (see `silver.fred_observation` /
+`transform.SILVER_COLUMNS`):
 
+-   source
+-   series_id
 -   observation_date
 -   realtime_start
 -   realtime_end
 -   value
--   first_seen_at
--   latest_seen_at
--   revision_number
+-   revision_number   (1..N per (series_id, observation_date), by realtime_start)
+-   is_missing
+-   ingested_at
 
-Maintain two analytical views:
+Vintage history is captured as the set of `realtime_start` rows per
+observation_date rather than separate `first_seen_at` / `latest_seen_at`
+columns: the earliest `realtime_start` is the first print and the latest is the
+current revision. `ingested_at` records when each row was loaded.
+
+Maintain two analytical views (implemented as `gold.v_latest_revised` /
+`gold.v_point_in_time`):
 
 -   latest_revised
 -   point_in_time
