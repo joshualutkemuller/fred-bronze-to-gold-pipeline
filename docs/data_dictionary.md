@@ -172,7 +172,10 @@ market/price series usually are not).
 point_in_time_features(as_of)` return each series' value **as it was known** on
 `as_of` — a leakage-free feature vector for backtests.
 
-### Views (`gold.v_*`)
+### Views (`gold.v_*` on Databricks; `gold_v_*` in the local SQLite backend)
+Defined in `sql/60_views.sql` (Delta) and mirrored by hand in
+`local_store.py`'s schema for the local backend (SQLite has no `CREATE OR
+REPLACE VIEW`, so these must be kept in sync manually between the two).
 * `v_latest_revised` — latest revision per date (backs the Gold table).
 * `v_point_in_time` — every vintage row; filter by real-time window.
 * `v_series_latest_value` — most recent non-missing value per series.

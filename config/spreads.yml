@@ -35,3 +35,33 @@ spreads:
     short_leg: DGS10
     op: spread
     description: 30-year minus 10-year Treasury yield -- long-end curve slope.
+
+  - name: T10Y5Y
+    long_leg: DGS10
+    short_leg: DGS5
+    op: spread
+    description: 10-year minus 5-year Treasury yield -- mid-curve slope.
+
+  - name: T5Y2Y
+    long_leg: DGS5
+    short_leg: DGS2
+    op: spread
+    description: 5-year minus 2-year Treasury yield -- short-mid curve slope.
+
+  - name: T10Y1Y
+    long_leg: DGS10
+    short_leg: DGS1
+    op: spread
+    description: 10-year minus 1-year Treasury yield -- mid-long curve slope.
+
+  - name: T30Y2Y
+    long_leg: DGS30
+    short_leg: DGS2
+    op: spread
+    description: 30-year minus 2-year Treasury yield -- long-mid curve slope.
+
+  - name: T5Y3M
+    long_leg: DGS5
+    short_leg: DGS3MO
+    op: spread
+    description: 5-year minus 3-month Treasury yield -- short-mid curve slope.

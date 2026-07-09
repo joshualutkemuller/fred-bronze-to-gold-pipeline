@@ -52,6 +52,45 @@ def test_local_run_persists_all_layers(tmp_path, observations_payload, fake_clie
     wh.close()
 
 
+def test_local_backend_gold_views_exist_and_match_tables(
+    tmp_path, observations_payload, fake_client_cls
+):
+    """SQLite equivalents of the Delta-only gold.v_* views (sql/60_views.sql)
+    must exist and agree with the tables they're derived from."""
+    db = str(tmp_path / "fred.db")
+    client = fake_client_cls({"DGS10": observations_payload})
+    wh = LocalWarehouse(_config(), db_path=db)
+    pipe = FredPipeline(_config(), client=client, warehouse=wh)
+    pipe.run([_spec("DGS10")], build_gold_layer=True)
+
+    views = {
+        r["name"] for r in wh.query(
+            "SELECT name FROM sqlite_master WHERE type='view'"
+        )
+    }
+    assert views == {
+        "gold_v_latest_revised", "gold_v_point_in_time",
+        "gold_v_series_latest_value", "gold_v_series_revision_summary",
+    }
+
+    latest_table = wh.query("SELECT * FROM gold_fred_latest_observation")
+    latest_view = wh.query("SELECT * FROM gold_v_latest_revised")
+    assert len(latest_view) == len(latest_table)
+
+    pit_table = wh.query("SELECT * FROM gold_fred_point_in_time")
+    pit_view = wh.query("SELECT * FROM gold_v_point_in_time")
+    assert len(pit_view) == len(pit_table)
+
+    # one non-missing row per series in the latest-value view
+    latest_value = wh.query("SELECT * FROM gold_v_series_latest_value")
+    assert {r["series_id"] for r in latest_value} == {"DGS10"}
+
+    revision_summary = wh.query("SELECT * FROM gold_v_series_revision_summary")
+    assert {r["series_id"] for r in revision_summary} == {"DGS10"}
+    assert revision_summary[0]["observation_count"] > 0
+    wh.close()
+
+
 def test_local_run_is_idempotent(tmp_path, observations_payload, fake_client_cls):
     db = str(tmp_path / "fred.db")
     cfg = _config()

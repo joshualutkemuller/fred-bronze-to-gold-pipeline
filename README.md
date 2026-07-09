@@ -9,7 +9,9 @@ dashboards, optimizer inputs, and **point-in-time** macro features.
 > [`handoff.md`](./handoff.md). This README is the practical guide to the
 > implementation. Architecture rationale is in
 > [`docs/architecture.md`](./docs/architecture.md); every table/column is in
-> [`docs/data_dictionary.md`](./docs/data_dictionary.md).
+> [`docs/data_dictionary.md`](./docs/data_dictionary.md); the data-quality
+> rules and where to review/change them are in
+> [`docs/validation.md`](./docs/validation.md).
 
 ## What it does
 

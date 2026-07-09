@@ -154,6 +154,50 @@ CREATE TABLE IF NOT EXISTS meta_fred_series_drift (
     series_id TEXT, field TEXT, manifest_value TEXT, fred_value TEXT,
     kind TEXT, severity TEXT, detected_at TEXT
 );
+
+-- SQLite equivalents of the Delta-only gold.v_* views in sql/60_views.sql
+-- (SQLite has no CREATE OR REPLACE VIEW, so these use IF NOT EXISTS and are
+-- expected to stay in sync with that file by hand).
+CREATE VIEW IF NOT EXISTS gold_v_latest_revised AS
+WITH ranked AS (
+    SELECT *, ROW_NUMBER() OVER (
+        PARTITION BY series_id, observation_date
+        ORDER BY realtime_start DESC
+    ) AS rn
+    FROM silver_fred_observation
+)
+SELECT series_id, observation_date, value, realtime_start, realtime_end,
+       is_missing, revision_number, ingested_at
+FROM ranked
+WHERE rn = 1;
+
+CREATE VIEW IF NOT EXISTS gold_v_point_in_time AS
+SELECT series_id, observation_date, realtime_start, realtime_end, value,
+       revision_number, is_missing, ingested_at
+FROM silver_fred_observation;
+
+CREATE VIEW IF NOT EXISTS gold_v_series_latest_value AS
+WITH latest AS (
+    SELECT series_id, observation_date, value,
+        ROW_NUMBER() OVER (
+            PARTITION BY series_id ORDER BY observation_date DESC
+        ) AS rn
+    FROM gold_v_latest_revised
+    WHERE is_missing = false
+)
+SELECT series_id, observation_date, value
+FROM latest
+WHERE rn = 1;
+
+CREATE VIEW IF NOT EXISTS gold_v_series_revision_summary AS
+SELECT series_id,
+    COUNT(*)               AS observation_count,
+    AVG(revision_count)    AS avg_revision_count,
+    MAX(revision_count)    AS max_revision_count,
+    AVG(ABS(revision_pct)) AS avg_abs_revision_pct,
+    MAX(ABS(revision_pct)) AS max_abs_revision_pct
+FROM gold_fred_revision_stats
+GROUP BY series_id;
 """
 
 
