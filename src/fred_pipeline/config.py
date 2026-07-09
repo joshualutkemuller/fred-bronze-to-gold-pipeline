@@ -46,6 +46,8 @@ DEFAULT_CONFIG_PATH = "config/config.yaml"
 _SETTING_FIELDS = (
     "fred_api_key",
     "fred_base_url",
+    "bls_api_key",
+    "eia_api_key",
     "secret_scope",
     "secret_key",
     "request_timeout_seconds",
@@ -63,6 +65,8 @@ _SETTING_FIELDS = (
 _ENV_OVERRIDES = {
     "fred_api_key": "FRED_API_KEY",
     "fred_base_url": "FRED_BASE_URL",
+    "bls_api_key": "BLS_API_KEY",
+    "eia_api_key": "EIA_API_KEY",
     "secret_scope": "FRED_SECRET_SCOPE",
     "secret_key": "FRED_SECRET_KEY",
     "request_timeout_seconds": "FRED_REQUEST_TIMEOUT_SECONDS",
@@ -181,6 +185,10 @@ class PipelineConfig:
     environment: Environment = Environment.DEV
     fred_api_key: str = field(repr=False, default="")
     fred_base_url: str = "https://api.stlouisfed.org/fred"
+    # Optional keys for additional sources (see fred_pipeline.sources). BLS works
+    # keyless at a lower quota; EIA requires a key. Never logged.
+    bls_api_key: str = field(repr=False, default="")
+    eia_api_key: str = field(repr=False, default="")
     secret_scope: str = "fred"
     secret_key: str = "api_key"
     request_timeout_seconds: int = 30

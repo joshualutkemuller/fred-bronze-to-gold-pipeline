@@ -9,6 +9,7 @@ _ENV_VARS = [
     "FRED_API_KEY", "FRED_BASE_URL", "FRED_SECRET_SCOPE", "FRED_SECRET_KEY",
     "FRED_REQUEST_TIMEOUT_SECONDS", "FRED_MAX_RETRIES",
     "FRED_RATE_LIMIT_PER_MINUTE", "FRED_RAW_VOLUME_PATH", "FRED_CONFIG_FILE",
+    "BLS_API_KEY", "EIA_API_KEY",
 ]
 
 
@@ -123,6 +124,28 @@ def test_defaults_when_no_file_no_env():
     assert cfg.rate_limit_per_minute == 120
     assert cfg.restate_last_n == 90
     assert cfg.catalog == "macro_prod"
+
+
+def test_source_keys_from_env_reach_clients(monkeypatch):
+    monkeypatch.setenv("BLS_API_KEY", "bls-secret")
+    monkeypatch.setenv("EIA_API_KEY", "eia-secret")
+    cfg = PipelineConfig.resolve(environment="dev", config_file="nope.yaml")
+    assert cfg.bls_api_key == "bls-secret"
+    assert cfg.eia_api_key == "eia-secret"
+
+    # and the pipeline factories feed them into the right clients
+    from fred_pipeline.pipeline import _make_bls, _make_eia
+
+    assert _make_bls(cfg).api_key == "bls-secret"
+    assert _make_eia(cfg).api_key == "eia-secret"
+
+
+def test_source_keys_default_empty():
+    cfg = PipelineConfig.resolve(environment="dev", config_file="nope.yaml")
+    assert cfg.bls_api_key == ""
+    assert cfg.eia_api_key == ""
+    # secrets stay out of repr
+    assert "bls-" not in repr(cfg) and "eia-" not in repr(cfg)
 
 
 def test_restate_last_n_from_env(monkeypatch):

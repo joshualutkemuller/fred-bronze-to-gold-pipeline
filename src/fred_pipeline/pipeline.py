@@ -47,7 +47,7 @@ def _make_fred(config: PipelineConfig) -> SourceClient:
 def _make_bls(config: PipelineConfig) -> SourceClient:
     # BLS keyless works at a lower quota; a key is used if one is configured.
     return BLSClient(
-        api_key=getattr(config, "bls_api_key", None),
+        api_key=getattr(config, "bls_api_key", "") or None,
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
     )
@@ -56,7 +56,7 @@ def _make_bls(config: PipelineConfig) -> SourceClient:
 def _make_eia(config: PipelineConfig) -> SourceClient:
     # EIA requires a key; EIAClient raises if one isn't configured.
     return EIAClient(
-        api_key=getattr(config, "eia_api_key", None) or "",
+        api_key=getattr(config, "eia_api_key", "") or "",
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
     )
