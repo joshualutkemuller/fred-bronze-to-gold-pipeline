@@ -22,6 +22,7 @@ from fred_pipeline.manifest import LoadType, SeriesSpec, all_series, load_manife
 from fred_pipeline.quality import run_quality_checks
 from fred_pipeline.sources.base import SourceClient
 from fred_pipeline.sources.bls import BLSClient
+from fred_pipeline.sources.eia import EIAClient
 from fred_pipeline.sources.fred import FredClient
 from fred_pipeline.transform import assign_revision_numbers, normalize_observations
 from fred_pipeline.warehouse import SparkWarehouse, Warehouse
@@ -52,11 +53,21 @@ def _make_bls(config: PipelineConfig) -> SourceClient:
     )
 
 
+def _make_eia(config: PipelineConfig) -> SourceClient:
+    # EIA requires a key; EIAClient raises if one isn't configured.
+    return EIAClient(
+        api_key=getattr(config, "eia_api_key", None) or "",
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
 # Registry of source name -> client factory. Adding a source is one entry here
 # plus its client module under fred_pipeline.sources.
 SOURCE_FACTORIES = {
     "fred": _make_fred,
     "bls": _make_bls,
+    "eia": _make_eia,
 }
 
 

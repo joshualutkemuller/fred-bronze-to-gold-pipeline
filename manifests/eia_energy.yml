@@ -1,0 +1,42 @@
+name: eia_energy
+description: >
+  Demonstration manifest for a third source: energy series pulled from the EIA
+  v2 API (source: eia), flowing through the same Bronze/Silver/Gold path as FRED
+  and BLS. Shipped inactive (active: false) so default runs don't fetch them;
+  EIA requires a free API key (set FRED_ style config eia_api_key), so enable by
+  setting active: true once a key is configured.
+version: 1
+
+series:
+  - series_id: PET.RWTC.M
+    title: Cushing OK WTI Spot Price FOB (Monthly)
+    category: energy
+    frequency: m
+    units: Dollars per Barrel
+    active: false
+    source: eia
+    load_type: incremental
+    expected_update_frequency: monthly
+    # EIA feed carries current values only (no ALFRED-style vintages).
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: commodity_features
+    priority: 2
+    min_value: 0
+    tags: [energy, oil, wti, eia]
+
+  - series_id: ELEC.PRICE.US-ALL.M
+    title: Average Retail Price of Electricity, All Sectors, US (Monthly)
+    category: energy
+    frequency: m
+    units: Cents per Kilowatthour
+    active: false
+    source: eia
+    load_type: incremental
+    expected_update_frequency: monthly
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: energy_costs
+    priority: 3
+    min_value: 0
+    tags: [energy, electricity, price, eia]
