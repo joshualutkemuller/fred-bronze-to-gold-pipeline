@@ -118,6 +118,16 @@ sources can never collide even if they shared a `series_id` (manifests still
 enforce globally-unique IDs today). Gold aggregations remain keyed on
 `series_id`, which stays unambiguous under that guarantee.
 
+### Bronze lineage + replay
+
+Bronze rows also carry `source` and record the actual `endpoint` called
+(`series/observations`, `timeseries/data/{id}`, `seriesid/{id}`), with an
+`observation_count` taken from the normalized rows so it's accurate for sources
+that nest their data. Because Bronze stores the source, the Bronze→Silver
+replay (`replay.py`) re-derives each payload with the right normalizer —
+dispatched by `silver._normalize_for_source`, which is module-level so replay
+never has to construct a client (EIA needs a key just to instantiate).
+
 ### Still optional
 
 * **Deploy.** Add one Databricks job per source (or per manifest group) in

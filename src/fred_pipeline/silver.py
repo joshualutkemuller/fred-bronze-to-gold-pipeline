@@ -23,6 +23,42 @@ from fred_pipeline.transform import (
 SILVER_MERGE_KEYS = ("source", "series_id", "observation_date", "realtime_start")
 
 
+def _normalize_for_source(
+    source: str,
+    series_id: str,
+    payload: dict[str, Any],
+    *,
+    run_id: str,
+    ingested_at: str | None,
+    track_vintage: bool,
+) -> list[dict[str, Any]]:
+    """Dispatch to the right source normalizer (module-level, no client needed).
+
+    Kept out of the client objects so Bronze replay can re-derive Silver for any
+    source without constructing a client (EIA, for instance, requires an API key
+    just to instantiate).
+    """
+    if source == "bls":
+        from fred_pipeline.sources.bls import normalize_bls_observations
+
+        return normalize_bls_observations(
+            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            source=source,
+        )
+    if source == "eia":
+        from fred_pipeline.sources.eia import normalize_eia_observations
+
+        return normalize_eia_observations(
+            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            source=source,
+        )
+    # default: FRED (and any unknown source, which stays FRED-shaped)
+    return normalize_observations(
+        series_id, payload, run_id=run_id, ingested_at=ingested_at,
+        track_vintage=track_vintage, source=source or "fred",
+    )
+
+
 def build_silver_rows(
     series_id: str,
     payload: dict[str, Any],
@@ -32,10 +68,14 @@ def build_silver_rows(
     track_vintage: bool = True,
     source: str = "fred",
 ) -> list[dict[str, Any]]:
-    """Normalize a raw payload into silver rows with revision numbers."""
-    rows = normalize_observations(
-        series_id, payload, run_id=run_id, ingested_at=ingested_at,
-        track_vintage=track_vintage, source=source,
+    """Normalize a raw payload into silver rows with revision numbers.
+
+    ``source`` selects the normalizer, so this works for FRED, BLS, and EIA
+    payloads alike (used by the Bronze→Silver replay path).
+    """
+    rows = _normalize_for_source(
+        source, series_id, payload, run_id=run_id, ingested_at=ingested_at,
+        track_vintage=track_vintage,
     )
     return assign_revision_numbers(rows)
 

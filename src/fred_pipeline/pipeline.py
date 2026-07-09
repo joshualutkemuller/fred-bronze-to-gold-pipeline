@@ -246,14 +246,17 @@ class FredPipeline:
             if isinstance(outcome, Exception):
                 raise outcome
             payload = outcome
+            source = getattr(spec, "source", "fred") or "fred"
 
-            bronze_row = build_bronze_row(
-                spec.series_id, "series/observations", payload, run_id=run.run_id
-            )
             silver_rows = self._normalize(spec, payload, run_id=run.run_id)
             # Count from normalized rows so the metric is source-agnostic (BLS
             # nests observations under Results.series[].data, not a top-level key).
             observations_extracted = len(silver_rows)
+            bronze_row = build_bronze_row(
+                spec.series_id, self._observations_endpoint(spec), payload,
+                run_id=run.run_id, source=source,
+                observation_count=observations_extracted,
+            )
             report = run_quality_checks(
                 spec.series_id, silver_rows, profile=spec.validation_profile,
                 frequency=spec.frequency,
@@ -331,6 +334,16 @@ class FredPipeline:
         if observation_start:
             kwargs["observation_start"] = observation_start
         return client.get_observations(spec.series_id, **kwargs)
+
+    def _observations_endpoint(self, spec: SeriesSpec) -> str:
+        """The upstream endpoint used for this series, for Bronze lineage.
+
+        Clients advertise it via ``observations_endpoint``; lightweight test
+        doubles that don't fall back to the FRED path.
+        """
+        client = self._client_for(spec)
+        fn = getattr(client, "observations_endpoint", None)
+        return fn(spec.series_id) if fn else "series/observations"
 
     def _normalize(
         self, spec: SeriesSpec, payload: dict[str, Any], *, run_id: str

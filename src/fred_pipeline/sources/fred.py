@@ -96,6 +96,10 @@ class FredClient(HTTPSource):
     def _default_query(self) -> dict[str, Any]:
         return {"api_key": self.api_key, "file_type": "json"}
 
+    def observations_endpoint(self, series_id: str) -> str:
+        """The endpoint hit for observations (recorded in Bronze lineage)."""
+        return "series/observations"
+
     # ---- SourceClient contract ------------------------------------------
 
     def normalize(

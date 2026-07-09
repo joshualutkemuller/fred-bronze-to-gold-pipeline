@@ -157,6 +157,10 @@ class EIAClient(HTTPSource):
         except Exception:
             return getattr(resp, "text", "<no body>")
 
+    def observations_endpoint(self, series_id: str) -> str:
+        """The endpoint hit for observations (recorded in Bronze lineage)."""
+        return f"seriesid/{series_id}"
+
     # ---- SourceClient contract ------------------------------------------
 
     def get_observations(

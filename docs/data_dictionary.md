@@ -91,16 +91,18 @@ One row per `(run_id, series_id, check_name)` with `passed`, `severity`
 ## bronze
 
 ### `bronze.fred_api_response`
-Verbatim FRED payloads (system of record), partitioned by `series_id`.
+Verbatim upstream payloads (system of record, multi-source), partitioned by
+`series_id`.
 
 | Column | Type | Notes |
 |---|---|---|
 | run_id | STRING | Owning run |
+| source | STRING | Upstream API the payload came from (`fred`, `bls`, `eia`, …) |
 | series_id | STRING | Series |
-| endpoint | STRING | e.g. `series/observations` |
+| endpoint | STRING | The source endpoint actually called (e.g. `series/observations`, `timeseries/data/{id}`, `seriesid/{id}`) |
 | request_params | STRING | JSON of request params (**api_key never stored**) |
-| response_payload | STRING | Verbatim FRED JSON |
-| observation_count | INT | Count in payload |
+| response_payload | STRING | Verbatim upstream JSON |
+| observation_count | INT | Rows normalized from the payload (accurate across sources) |
 | payload_bytes | INT | Payload size |
 | ingested_at | TIMESTAMP | Ingestion time |
 

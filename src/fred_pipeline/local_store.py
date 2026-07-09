@@ -94,7 +94,8 @@ CREATE TABLE IF NOT EXISTS meta_fred_series_manifest_map (
     PRIMARY KEY (series_id, manifest_name)
 );
 CREATE TABLE IF NOT EXISTS bronze_fred_api_response (
-    run_id TEXT, series_id TEXT, endpoint TEXT, request_params TEXT,
+    run_id TEXT, source TEXT NOT NULL DEFAULT 'fred', series_id TEXT,
+    endpoint TEXT, request_params TEXT,
     response_payload TEXT, observation_count INTEGER, payload_bytes INTEGER,
     ingested_at TEXT
 );
@@ -328,7 +329,7 @@ class LocalWarehouse:
     def read_bronze(
         self, series_ids: Optional[list[str]] = None
     ) -> list[dict[str, Any]]:
-        sql = ("SELECT series_id, response_payload, run_id, ingested_at "
+        sql = ("SELECT source, series_id, response_payload, run_id, ingested_at "
                "FROM bronze_fred_api_response")
         params: tuple = ()
         if series_ids:

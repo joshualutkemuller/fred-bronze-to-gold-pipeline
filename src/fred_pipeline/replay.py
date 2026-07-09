@@ -35,10 +35,9 @@ def replay_from_bronze(
     ingestion order; because Silver is a MERGE on the natural key, replaying the
     full history reconstructs the accumulated state without duplicates.
     """
-    vintage = {
-        s.series_id: s.vintage_enabled
-        for s in all_series(list(manifests), active_only=False)
-    }
+    specs = all_series(list(manifests), active_only=False)
+    vintage = {s.series_id: s.vintage_enabled for s in specs}
+    source_by_id = {s.series_id: s.source for s in specs}
     bronze_rows = warehouse.read_bronze(series_ids)
     log.info("Replaying %d bronze payload(s)", len(bronze_rows))
 
@@ -52,9 +51,12 @@ def replay_from_bronze(
         except (json.JSONDecodeError, TypeError):
             log.warning("Skipping unparseable bronze payload for %s", series_id)
             continue
+        # Prefer the source recorded in the bronze row (what was actually
+        # fetched); fall back to the manifest, then FRED for legacy rows.
+        source = row.get("source") or source_by_id.get(series_id) or "fred"
         silver_rows = build_silver_rows(
             series_id, payload, run_id=row.get("run_id") or "replay",
-            track_vintage=vintage.get(series_id, True),
+            track_vintage=vintage.get(series_id, True), source=source,
         )
         silver_merged += warehouse.merge_silver(silver_rows)
         payloads += 1

@@ -146,6 +146,13 @@ def test_pipeline_routes_bls_series_end_to_end(tmp_path, fake_session_cls,
     rows = wh.query("SELECT source, count(*) c FROM silver_fred_observation "
                     "GROUP BY source")
     assert rows == [{"source": "bls", "c": 2}]
+    # Bronze lineage is source-accurate (not FRED-shaped): right source,
+    # endpoint, and an observation_count that isn't 0 for a nested payload
+    bronze = wh.query("SELECT source, endpoint, observation_count "
+                      "FROM bronze_fred_api_response")
+    assert bronze == [{"source": "bls",
+                       "endpoint": "timeseries/data/CUUR0000SA0",
+                       "observation_count": 2}]
     wh.close()
 
 
