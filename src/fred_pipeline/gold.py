@@ -164,19 +164,28 @@ def _feature_transforms_sql(config: PipelineConfig) -> str:
 
 
 def _curve_spread_sql(config: PipelineConfig) -> str:
-    from fred_pipeline.features import DEFAULT_CURVE_SPREADS
+    """Cross-series spreads/ratios, defined in ``config/spreads.yml`` (see
+    :func:`fred_pipeline.spread_config.load_spread_defs`) rather than
+    hardcoded, so a reviewer can add new pairs without touching this file."""
+    from fred_pipeline.spread_config import load_spread_defs
 
     latest = config.table("gold", "fred_latest_observation")
     gold = config.table("gold", "fred_curve_spread")
     legs = []
-    for name, long_leg, short_leg in DEFAULT_CURVE_SPREADS:
+    for sd in load_spread_defs():
+        if sd.op == "ratio":
+            value_sql = "a.value / b.value"
+            zero_guard = "\n          AND b.value <> 0"
+        else:
+            value_sql = "a.value - b.value"
+            zero_guard = ""
         legs.append(f"""
-        SELECT '{name}' AS spread_name, a.observation_date,
-               '{long_leg}' AS long_leg, '{short_leg}' AS short_leg,
-               a.value - b.value AS value
+        SELECT '{sd.name}' AS spread_name, a.observation_date,
+               '{sd.long_leg}' AS long_leg, '{sd.short_leg}' AS short_leg,
+               {value_sql} AS value
         FROM {latest} a JOIN {latest} b ON a.observation_date = b.observation_date
-        WHERE a.series_id = '{long_leg}' AND b.series_id = '{short_leg}'
-          AND a.is_missing = false AND b.is_missing = false
+        WHERE a.series_id = '{sd.long_leg}' AND b.series_id = '{sd.short_leg}'
+          AND a.is_missing = false AND b.is_missing = false{zero_guard}
         """)
     union = "\nUNION ALL\n".join(legs)
     return f"CREATE OR REPLACE TABLE {gold} AS\n{union}"

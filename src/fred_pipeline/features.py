@@ -6,7 +6,8 @@ latest-revision series and the full vintage history:
   * **transforms** — period-over-period % change (MoM-style), first difference,
     year-over-year % change (date-based), and an **expanding, point-in-time
     safe** z-score, per series;
-  * **curve spreads** — differences between series (e.g. 10Y-2Y);
+  * **curve spreads / ratios** — cross-series features (e.g. 10Y-2Y) defined in
+    a reviewable YAML config (see :mod:`fred_pipeline.spread_config`);
   * **as-of-date point-in-time snapshot** — each series' value *as it was known*
     on a given date (leakage-free feature vector for backtests).
 
@@ -20,13 +21,7 @@ from bisect import bisect_right
 from datetime import date, datetime, timedelta
 from typing import Any, Iterable, Optional
 
-# Common Treasury curve spreads over the seed universe (name, long_leg, short_leg).
-DEFAULT_CURVE_SPREADS: tuple[tuple[str, str, str], ...] = (
-    ("T10Y2Y", "DGS10", "DGS2"),
-    ("T10Y3M", "DGS10", "DGS3MO"),
-    ("T2Y3M", "DGS2", "DGS3MO"),
-    ("T30Y10Y", "DGS30", "DGS10"),
-)
+from fred_pipeline.spread_config import SpreadDef, load_spread_defs
 
 # How far back a "year ago" match may be before YoY is left null (daily series
 # won't have an exact −365d point).
@@ -123,9 +118,19 @@ def compute_feature_transforms(
 
 def compute_curve_spreads(
     latest_rows: Iterable[dict[str, Any]],
-    spreads: Iterable[tuple[str, str, str]] = DEFAULT_CURVE_SPREADS,
+    spreads: Optional[Iterable[SpreadDef]] = None,
 ) -> list[dict[str, Any]]:
-    """Compute spread series (long_leg − short_leg) where both legs exist."""
+    """Compute spread (long−short) or ratio (long/short) series per ``spreads``.
+
+    ``spreads`` defaults to :func:`fred_pipeline.spread_config.load_spread_defs`
+    (``config/spreads.yml``), resolved fresh on every call so edits to that
+    reviewable YAML take effect without a code change. A date is only emitted
+    when both legs have a non-missing value (and, for a ratio, the short leg
+    is nonzero) — there's no partial/null row for an undefined spread.
+    """
+    if spreads is None:
+        spreads = load_spread_defs()
+
     values: dict[tuple[str, str], float] = {}
     for r in latest_rows:
         if r.get("is_missing") or r.get("value") is None:
@@ -137,15 +142,23 @@ def compute_curve_spreads(
         dates_by_series.setdefault(sid, set()).add(d)
 
     out: list[dict[str, Any]] = []
-    for name, long_leg, short_leg in spreads:
-        common = dates_by_series.get(long_leg, set()) & dates_by_series.get(short_leg, set())
+    for sd in spreads:
+        common = dates_by_series.get(sd.long_leg, set()) & dates_by_series.get(sd.short_leg, set())
         for d in sorted(common):
+            long_v = values[(sd.long_leg, d)]
+            short_v = values[(sd.short_leg, d)]
+            if sd.op == "ratio":
+                if short_v == 0:
+                    continue
+                value = long_v / short_v
+            else:
+                value = long_v - short_v
             out.append({
-                "spread_name": name,
+                "spread_name": sd.name,
                 "observation_date": d,
-                "long_leg": long_leg,
-                "short_leg": short_leg,
-                "value": values[(long_leg, d)] - values[(short_leg, d)],
+                "long_leg": sd.long_leg,
+                "short_leg": sd.short_leg,
+                "value": value,
             })
     return out
 

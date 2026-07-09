@@ -146,9 +146,14 @@ at-or-before each row's date, never later ones). Keyed `(series_id,
 observation_date)`.
 
 ### `gold.fred_curve_spread`
-Yield-curve spreads (`long_leg − short_leg`), e.g. `T10Y2Y`, `T10Y3M`, `T2Y3M`,
-`T30Y10Y`. Columns: `spread_name`, `observation_date`, `long_leg`, `short_leg`,
-`value`.
+Cross-series spreads (`long_leg − short_leg`) and ratios (`long_leg /
+short_leg`), **defined in `config/spreads.yml`** (see
+`fred_pipeline.spread_config.load_spread_defs`) rather than hardcoded —
+review and add pairs there without touching Python. Ships with the original
+4 Treasury curve spreads (`T10Y2Y`, `T10Y3M`, `T2Y3M`, `T30Y10Y`). A date is
+only emitted when both legs have a non-missing value (and, for a ratio, the
+short leg is nonzero). Columns: `spread_name`, `observation_date`,
+`long_leg`, `short_leg`, `value`.
 
 ### `gold.fred_revision_stats`
 How much each observation moved between its first print and today. Reads raw

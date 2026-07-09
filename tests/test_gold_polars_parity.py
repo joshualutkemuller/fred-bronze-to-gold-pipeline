@@ -179,6 +179,21 @@ def test_compute_curve_spreads_parity_empty():
     assert compute_curve_spreads_pl([]) == compute_curve_spreads([]) == []
 
 
+def test_compute_curve_spreads_parity_ratio_op_and_zero_guard():
+    from fred_pipeline.spread_config import SpreadDef
+
+    rows = [
+        _row("A", "2024-01-01", 10.0),
+        _row("B", "2024-01-01", 4.0),
+        _row("A", "2024-01-02", 10.0),
+        _row("B", "2024-01-02", 0.0),  # zero short leg -> must be skipped by both
+    ]
+    defs = [SpreadDef(name="A_OVER_B", long_leg="A", short_leg="B", op="ratio")]
+    _assert_same_rows(
+        compute_curve_spreads_pl(rows, defs), compute_curve_spreads(rows, defs)
+    )
+
+
 # ---- compute_revision_stats --------------------------------------------------
 
 def _revision_stats_fixture():

@@ -34,12 +34,12 @@ Each computation has two entry points:
 from __future__ import annotations
 
 import warnings
-from typing import Any, Iterable
+from typing import Any, Iterable, Optional
 
 import polars as pl
 
-# Same defaults as fred_pipeline.features, kept in sync deliberately.
-from fred_pipeline.features import DEFAULT_CURVE_SPREADS, YOY_TOLERANCE_DAYS
+from fred_pipeline.features import YOY_TOLERANCE_DAYS
+from fred_pipeline.spread_config import SpreadDef, load_spread_defs
 
 
 def _parse_date_col(df: pl.DataFrame, col: str) -> pl.DataFrame:
@@ -221,13 +221,18 @@ def compute_feature_transforms_pl(
 
 def compute_curve_spreads_frame(
     latest_rows: Iterable[dict[str, Any]],
-    spreads: Iterable[tuple[str, str, str]] = DEFAULT_CURVE_SPREADS,
+    spreads: Optional[Iterable[SpreadDef]] = None,
 ) -> pl.DataFrame:
     """Polars parity of :func:`fred_pipeline.features.compute_curve_spreads`.
 
-    Returns a DataFrame with columns ``(spread_name, observation_date,
-    long_leg, short_leg, value)``.
+    ``spreads`` defaults to ``config/spreads.yml`` (see
+    :func:`fred_pipeline.spread_config.load_spread_defs`), resolved fresh on
+    every call. Returns a DataFrame with columns ``(spread_name,
+    observation_date, long_leg, short_leg, value)``.
     """
+    if spreads is None:
+        spreads = load_spread_defs()
+
     schema = {"spread_name": pl.Utf8, "observation_date": pl.Utf8, "long_leg": pl.Utf8,
               "short_leg": pl.Utf8, "value": pl.Float64}
     rows = [
@@ -246,25 +251,31 @@ def compute_curve_spreads_frame(
     )
 
     out_frames: list[pl.DataFrame] = []
-    for name, long_leg, short_leg in spreads:
-        long_df = df.filter(pl.col("series_id") == long_leg).select(
+    for sd in spreads:
+        long_df = df.filter(pl.col("series_id") == sd.long_leg).select(
             "observation_date", pl.col("value").alias("_long")
         )
-        short_df = df.filter(pl.col("series_id") == short_leg).select(
+        short_df = df.filter(pl.col("series_id") == sd.short_leg).select(
             "observation_date", pl.col("value").alias("_short")
         )
         if long_df.is_empty() or short_df.is_empty():
             continue
         joined = long_df.join(short_df, on="observation_date", how="inner")
+        if sd.op == "ratio":
+            joined = joined.filter(pl.col("_short") != 0)
         if joined.is_empty():
             continue
+        value_expr = (
+            (pl.col("_long") / pl.col("_short")) if sd.op == "ratio"
+            else (pl.col("_long") - pl.col("_short"))
+        )
         out_frames.append(
             joined.select(
-                pl.lit(name).alias("spread_name"),
+                pl.lit(sd.name).alias("spread_name"),
                 pl.col("observation_date"),
-                pl.lit(long_leg).alias("long_leg"),
-                pl.lit(short_leg).alias("short_leg"),
-                (pl.col("_long") - pl.col("_short")).alias("value"),
+                pl.lit(sd.long_leg).alias("long_leg"),
+                pl.lit(sd.short_leg).alias("short_leg"),
+                value_expr.alias("value"),
             )
         )
 
@@ -275,7 +286,7 @@ def compute_curve_spreads_frame(
 
 def compute_curve_spreads_pl(
     latest_rows: Iterable[dict[str, Any]],
-    spreads: Iterable[tuple[str, str, str]] = DEFAULT_CURVE_SPREADS,
+    spreads: Optional[Iterable[SpreadDef]] = None,
 ) -> list[dict[str, Any]]:
     """Dict-returning spec surface — see module docstring. Prefer
     :func:`compute_curve_spreads_frame` + direct DataFrame insert for bulk loads."""

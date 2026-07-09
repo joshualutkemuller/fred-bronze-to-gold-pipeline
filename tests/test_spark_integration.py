@@ -227,3 +227,34 @@ def test_revision_stats_sql(spark):
     unrevised = by_date["2024-02-01"]
     assert unrevised["revision_count"] == 1
     assert unrevised["revision_delta"] == 0.0
+
+
+def test_curve_spread_sql_supports_ratio_op_with_zero_guard(spark):
+    """gold.fred_curve_spread supports config-driven spread ('long - short')
+    and ratio ('long / short') ops (see spread_config.load_spread_defs) —
+    a zero short leg must drop that row entirely, not divide by zero."""
+    rows = [
+        {"series_id": "A", "observation_date": "2024-01-01", "value": 10.0, "is_missing": False},
+        {"series_id": "B", "observation_date": "2024-01-01", "value": 4.0, "is_missing": False},
+        {"series_id": "A", "observation_date": "2024-01-02", "value": 10.0, "is_missing": False},
+        {"series_id": "B", "observation_date": "2024-01-02", "value": 0.0, "is_missing": False},
+    ]
+    _silver_df(spark, rows).write.format("delta").mode("overwrite").saveAsTable(
+        "latest_curve_spread_it"
+    )
+    out = spark.sql(
+        """
+        SELECT s.spread_name, a.observation_date, s.long_leg, s.short_leg,
+               CASE WHEN s.op = 'ratio' THEN a.value / b.value
+                    ELSE a.value - b.value END AS value
+        FROM (VALUES ('A_OVER_B', 'A', 'B', 'ratio')) AS s(spread_name, long_leg, short_leg, op)
+        JOIN latest_curve_spread_it a ON a.series_id = s.long_leg  AND a.is_missing = false
+        JOIN latest_curve_spread_it b ON b.series_id = s.short_leg AND b.is_missing = false
+                                      AND b.observation_date = a.observation_date
+                                      AND (s.op <> 'ratio' OR b.value <> 0)
+        """
+    ).collect()
+
+    assert len(out) == 1
+    assert out[0]["observation_date"] == "2024-01-01"
+    assert out[0]["value"] == pytest.approx(2.5)

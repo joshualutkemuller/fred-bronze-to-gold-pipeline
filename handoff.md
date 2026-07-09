@@ -295,19 +295,26 @@ series are not).
 
 ## 3. Config-driven spreads/ratios (generalize `curve_spread`)
 
-`gold.fred_curve_spread` currently hardcodes 4 Treasury curve pairs
-(`DEFAULT_CURVE_SPREADS` in `features.py`). Now that the series universe
-spans rates, prices, labor, production/housing, international, and national
-accounts, a manifest-style YAML list of `(name, long_leg, short_leg, op)`
-definitions --- spreads *and* ratios --- would let new cross-series features
-(e.g. real yields = nominal minus breakeven inflation, credit spreads =
-corporate yield minus Treasury, PCE vs. CPI divergence) be added by
-reviewers without touching Python, the same way series are added today.
+**Status: implemented** (`config/spreads.yml` +
+`fred_pipeline.spread_config.load_spread_defs`; wired into
+`features.py::compute_curve_spreads`, `gold_polars.py::
+compute_curve_spreads_frame`, and `gold.py::_curve_spread_sql` / the
+static `sql/50_gold.sql` mirror).
 
-**Prioritization:** (1) is a correctness fix to existing tested code and
-should land first; (2) is net-new and additive; (3) is a design/config
-decision that needs quant sign-off on which pairs matter before
-implementation.
+`gold.fred_curve_spread` used to hardcode 4 Treasury curve pairs
+(`DEFAULT_CURVE_SPREADS` in `features.py`). It's now driven by a reviewable
+YAML file, `config/spreads.yml`, with each entry a `(name, long_leg,
+short_leg, op)` definition — `op: spread` (long − short) or `op: ratio`
+(long / short, guarded against a zero short leg). Ships with the same 4
+Treasury pairs as before (no output change until new entries are added).
+Now that the series universe spans rates, prices, labor, production/housing,
+international, and national accounts, new cross-series features (e.g. real
+yields = nominal minus breakeven inflation, credit spreads = corporate yield
+minus Treasury, PCE vs. CPI divergence) can be added by editing that YAML —
+no Python or SQL changes needed for the Python-driven backends (local SQLite
+and Databricks/Spark). **Still needs quant sign-off on which new pairs to
+add** — the mechanism is built, but no new pairs beyond the original 4 have
+been added, since that's a domain judgment call, not an engineering one.
 
 ------------------------------------------------------------------------
 

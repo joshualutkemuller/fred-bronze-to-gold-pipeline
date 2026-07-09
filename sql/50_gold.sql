@@ -117,19 +117,26 @@ SELECT series_id, observation_date, value,
          THEN (value - mean_v) / std_v END AS zscore
 FROM ya;
 
--- Yield-curve spreads (long_leg − short_leg) over the seed universe.
+-- Cross-series spreads/ratios. The Python job (fred_pipeline.gold /
+-- spread_config.load_spread_defs) reads these from config/spreads.yml so a
+-- reviewer can add pairs without touching SQL or Python; this VALUES list
+-- must be kept in sync by hand for engineers running pure SQL / a SQL
+-- Warehouse, since a static .sql file can't read that YAML at DDL time.
+-- op: 'spread' (long-short) or 'ratio' (long/short, guarded against long/0).
 CREATE OR REPLACE TABLE gold.fred_curve_spread AS
 SELECT s.spread_name, a.observation_date, s.long_leg, s.short_leg,
-       a.value - b.value AS value
+       CASE WHEN s.op = 'ratio' THEN a.value / b.value
+            ELSE a.value - b.value END AS value
 FROM (VALUES
-        ('T10Y2Y',  'DGS10', 'DGS2'),
-        ('T10Y3M',  'DGS10', 'DGS3MO'),
-        ('T2Y3M',   'DGS2',  'DGS3MO'),
-        ('T30Y10Y', 'DGS30', 'DGS10')
-     ) AS s(spread_name, long_leg, short_leg)
+        ('T10Y2Y',  'DGS10', 'DGS2',   'spread'),
+        ('T10Y3M',  'DGS10', 'DGS3MO', 'spread'),
+        ('T2Y3M',   'DGS2',  'DGS3MO', 'spread'),
+        ('T30Y10Y', 'DGS30', 'DGS10',  'spread')
+     ) AS s(spread_name, long_leg, short_leg, op)
 JOIN gold.fred_latest_observation a ON a.series_id = s.long_leg  AND a.is_missing = false
 JOIN gold.fred_latest_observation b ON b.series_id = s.short_leg AND b.is_missing = false
-                                   AND b.observation_date = a.observation_date;
+                                   AND b.observation_date = a.observation_date
+                                   AND (s.op <> 'ratio' OR b.value <> 0);
 
 -- Revision magnitude: how much each observation moved between its first
 -- print and today. Reads raw Silver (every vintage), not gold.fred_latest_

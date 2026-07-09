@@ -54,6 +54,23 @@ def test_curve_spreads():
     assert abs(t10y2y[0]["value"] - 1.0) < 1e-9
 
 
+def test_curve_spreads_ratio_op_and_zero_guard():
+    from fred_pipeline.spread_config import SpreadDef
+
+    rows = [
+        {"series_id": "A", "observation_date": "2024-01-01", "value": 10.0, "is_missing": False},
+        {"series_id": "B", "observation_date": "2024-01-01", "value": 4.0, "is_missing": False},
+        {"series_id": "A", "observation_date": "2024-01-02", "value": 10.0, "is_missing": False},
+        {"series_id": "B", "observation_date": "2024-01-02", "value": 0.0, "is_missing": False},
+    ]
+    defs = [SpreadDef(name="A_OVER_B", long_leg="A", short_leg="B", op="ratio")]
+    out = compute_curve_spreads(rows, defs)
+    # zero short leg on 01-02 must be skipped entirely, not emitted as null/inf
+    assert len(out) == 1
+    assert out[0]["observation_date"] == "2024-01-01"
+    assert abs(out[0]["value"] - 2.5) < 1e-9
+
+
 def _vintage_silver():
     return [
         {"series_id": "G", "observation_date": "2024-01-01", "value": 100.0,

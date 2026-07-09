@@ -1,0 +1,37 @@
+# Cross-series spreads and ratios computed into gold.fred_curve_spread.
+#
+# op: "spread" (long_leg - short_leg) or "ratio" (long_leg / short_leg).
+# Add entries here to grow the feature set across the series universe --
+# no Python changes needed. Review before adding: legs must exist in the
+# manifests, and the economic meaning of a new pair/ratio should be signed
+# off by whoever owns the research use case (see handoff.md's Gold Layer
+# Feature Engineering Roadmap, item 3).
+#
+# The 4 entries below are the pipeline's original seed set (yield curve
+# spreads over the rates manifest) -- kept as-is so existing Gold output
+# doesn't change until new entries are reviewed and added.
+
+spreads:
+  - name: T10Y2Y
+    long_leg: DGS10
+    short_leg: DGS2
+    op: spread
+    description: 10-year minus 2-year Treasury yield -- classic recession-signal curve spread.
+
+  - name: T10Y3M
+    long_leg: DGS10
+    short_leg: DGS3MO
+    op: spread
+    description: 10-year minus 3-month Treasury yield -- the curve spread the NY Fed uses in its recession-probability model.
+
+  - name: T2Y3M
+    long_leg: DGS2
+    short_leg: DGS3MO
+    op: spread
+    description: 2-year minus 3-month Treasury yield -- short-end curve slope.
+
+  - name: T30Y10Y
+    long_leg: DGS30
+    short_leg: DGS10
+    op: spread
+    description: 30-year minus 10-year Treasury yield -- long-end curve slope.
