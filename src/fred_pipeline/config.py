@@ -273,6 +273,19 @@ class PipelineConfig:
                 key = None
         settings["fred_api_key"] = key or ""
 
+        # Additional source keys fall back to the same secret scope, keyed by the
+        # config field name (e.g. secrets/<scope>/eia_api_key — matching
+        # resources/source_jobs.yml). Optional: a missing secret leaves the key
+        # empty; the source's client only raises if such a series is run.
+        for field_name in ("bls_api_key", "eia_api_key"):
+            if not settings.get(field_name) and dbutils is not None:
+                try:
+                    settings[field_name] = dbutils.secrets.get(
+                        scope=scope, key=field_name
+                    )
+                except Exception:  # pragma: no cover - depends on runtime
+                    pass
+
         # Only pass recognized fields to the (frozen) dataclass.
         kwargs = {k: v for k, v in settings.items() if k in _SETTING_FIELDS}
         return cls(environment=environment, **kwargs)

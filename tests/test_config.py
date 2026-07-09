@@ -118,6 +118,56 @@ def test_secret_scope_fallback_when_no_key(tmp_path):
     assert cfg.fred_api_key == "secret-key"
 
 
+def test_source_keys_fall_back_to_secret_scope():
+    class FakeSecrets:
+        _store = {("fred", "bls_api_key"): "bls-from-secret",
+                  ("fred", "eia_api_key"): "eia-from-secret"}
+
+        def get(self, scope, key):
+            return self._store[(scope, key)]  # KeyError if absent
+
+    class FakeDbutils:
+        secrets = FakeSecrets()
+
+    cfg = PipelineConfig.resolve(
+        environment="dev", config_file="nope.yaml", dbutils=FakeDbutils()
+    )
+    # keyed by the config field name in the default 'fred' scope
+    assert cfg.bls_api_key == "bls-from-secret"
+    assert cfg.eia_api_key == "eia-from-secret"
+
+
+def test_explicit_source_key_beats_secret_scope(monkeypatch):
+    monkeypatch.setenv("EIA_API_KEY", "eia-from-env")
+
+    class FakeSecrets:
+        def get(self, scope, key):
+            raise AssertionError("secret scope should not be consulted when set")
+
+    class FakeDbutils:
+        secrets = FakeSecrets()
+
+    cfg = PipelineConfig.resolve(
+        environment="dev", config_file="nope.yaml", dbutils=FakeDbutils()
+    )
+    assert cfg.eia_api_key == "eia-from-env"
+
+
+def test_missing_source_secret_leaves_key_empty():
+    class FakeSecrets:
+        def get(self, scope, key):
+            raise Exception("no such secret")  # simulate absent secret
+
+    class FakeDbutils:
+        secrets = FakeSecrets()
+
+    cfg = PipelineConfig.resolve(
+        environment="dev", config_file="nope.yaml", dbutils=FakeDbutils()
+    )
+    # non-fatal: BLS/EIA keys stay empty; a client only raises if actually used
+    assert cfg.bls_api_key == "" and cfg.eia_api_key == ""
+
+
 def test_defaults_when_no_file_no_env():
     cfg = PipelineConfig.resolve(environment="prod", config_file="does-not-exist.yaml")
     assert cfg.fred_api_key == ""
