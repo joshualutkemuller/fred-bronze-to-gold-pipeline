@@ -72,6 +72,10 @@ class SeriesSpec:
     category: str = "uncategorized"
     units: str = ""
     active: bool = True
+    # Which upstream API this series comes from. Selects the source client in
+    # the pipeline (see fred_pipeline.sources). Defaults to "fred" so every
+    # existing manifest stays valid; a BLS series sets ``source: bls``.
+    source: str = "fred"
     load_type: LoadType = LoadType.INCREMENTAL
     expected_update_frequency: str = ""
     # Revision-sensitive by default: capture full point-in-time (ALFRED) history
@@ -109,6 +113,8 @@ class SeriesSpec:
         # Normalize enums (accept plain strings from YAML).
         self.load_type = LoadType(self.load_type)
         self.validation_profile = ValidationProfile(self.validation_profile)
+
+        self.source = str(self.source).strip().lower() or "fred"
 
         freq = str(self.frequency).strip().lower()
         if freq not in VALID_FREQUENCIES:

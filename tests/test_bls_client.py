@@ -8,8 +8,11 @@ same way FRED rows do.
 
 import pytest
 
+from fred_pipeline.audit import RunStatus
 from fred_pipeline.config import Environment, PipelineConfig
 from fred_pipeline.local_store import LocalWarehouse
+from fred_pipeline.manifest import SeriesSpec
+from fred_pipeline.pipeline import FredPipeline
 from fred_pipeline.quality import run_quality_checks
 from fred_pipeline.sources.bls import BLSAPIError, BLSClient, normalize_bls_observations
 from fred_pipeline.transform import SILVER_COLUMNS
@@ -114,4 +117,71 @@ def test_bls_rows_pass_dq_and_merge_into_warehouse(tmp_path):
     wh.merge_silver(rows)
     n = wh.query("SELECT count(*) c FROM silver_fred_observation")[0]["c"]
     assert n == 2
+    wh.close()
+
+
+# ---- orchestrator routing (the real payoff) ------------------------------
+
+def _config():
+    return PipelineConfig(environment=Environment.DEV, fred_api_key="k")
+
+
+def test_pipeline_routes_bls_series_end_to_end(tmp_path, fake_session_cls,
+                                               fake_response_cls):
+    session = fake_session_cls([fake_response_cls(_payload(MONTHLY))])
+    bls = BLSClient(session=session, sleep=lambda _s: None)
+    wh = LocalWarehouse(_config(), db_path=str(tmp_path / "f.db"))
+    pipe = FredPipeline(_config(), clients={"bls": bls}, warehouse=wh,
+                        persist_audit=False)
+
+    spec = SeriesSpec(series_id="CUUR0000SA0", title="CPI", frequency="m",
+                      source="bls", vintage_enabled=False)
+    run = pipe.run([spec], build_gold_layer=False)
+
+    assert run.status == RunStatus.SUCCEEDED
+    # the series was fetched from the BLS endpoint, not FRED
+    assert session.calls[0]["url"].endswith("/timeseries/data/CUUR0000SA0")
+    # and BLS-normalized rows landed in the warehouse (M13 annual avg dropped)
+    n = wh.query("SELECT count(*) c FROM silver_fred_observation")[0]["c"]
+    assert n == 2
+    wh.close()
+
+
+def test_pipeline_routes_by_source_in_one_run(tmp_path, observations_payload,
+                                              fake_client_cls, fake_session_cls,
+                                              fake_response_cls):
+    """A single run mixes a FRED series and a BLS series; each is dispatched to
+    its own source client."""
+    fred = fake_client_cls({"DGS10": observations_payload})
+    session = fake_session_cls([fake_response_cls(_payload(MONTHLY))])
+    bls = BLSClient(session=session, sleep=lambda _s: None)
+    wh = LocalWarehouse(_config(), db_path=str(tmp_path / "f.db"))
+    pipe = FredPipeline(_config(), client=fred, clients={"bls": bls},
+                        warehouse=wh, persist_audit=False)
+
+    specs = [
+        SeriesSpec(series_id="DGS10", title="10Y", frequency="d"),  # source=fred
+        SeriesSpec(series_id="CUUR0000SA0", title="CPI", frequency="m",
+                   source="bls", vintage_enabled=False),
+    ]
+    run = pipe.run(specs, build_gold_layer=False)
+
+    assert run.series_succeeded == 2
+    # the FRED double only ever saw the FRED series
+    assert fred.requested == ["DGS10"]
+    # the BLS series went to the BLS client's session
+    assert session.calls[0]["url"].endswith("/timeseries/data/CUUR0000SA0")
+    wh.close()
+
+
+def test_unknown_source_is_reported(tmp_path):
+    wh = LocalWarehouse(_config(), db_path=str(tmp_path / "f.db"))
+    pipe = FredPipeline(_config(), client=object(), warehouse=wh,
+                        persist_audit=False)
+    spec = SeriesSpec(series_id="X", title="X", frequency="m", source="mystery")
+    run = pipe.run([spec], build_gold_layer=False)
+    # per-series isolation: the unknown source fails just that series, with a
+    # message naming the problem, rather than sinking the run.
+    assert run.series_runs[0].status == RunStatus.FAILED
+    assert "Unknown source" in run.series_runs[0].error_message
     wh.close()

@@ -7,10 +7,11 @@ silver row schema and never inspect where a row came from. Adding a new source
 (BLS, EIA, ECB, ...) means implementing one small contract, not forking the
 pipeline.
 
-This is a proof-of-concept: FRED has been refactored onto the shared transport,
-and BLS is included as a second, differently-shaped source to demonstrate the
-abstraction holds. See `src/fred_pipeline/sources/` and the tests
-`tests/test_sources_base.py` / `tests/test_bls_client.py`.
+FRED has been refactored onto the shared transport, and BLS is wired through the
+orchestrator end-to-end as a second, differently-shaped source. See
+`src/fred_pipeline/sources/` and the tests `tests/test_sources_base.py` /
+`tests/test_bls_client.py` (the latter runs a mixed FRED+BLS batch through
+`FredPipeline` and asserts each series is dispatched to its own client).
 
 ## The layout
 
@@ -67,22 +68,42 @@ and a nested `year`/`period` response shape — yet its normalized rows pass the
 same DQ checks and MERGE into the warehouse idempotently
 (`test_bls_rows_pass_dq_and_merge_into_warehouse`).
 
-## Next steps to wire a source end-to-end
+## How a source is wired through the orchestrator
 
-The POC stops at the client boundary. To run a source through the orchestrator:
+The following are implemented — a series declaring `source: bls` flows through
+`FredPipeline` with no other changes:
 
-1. **Manifest dimension.** Add an optional `source: str = "fred"` field to
-   `SeriesSpec` (and the JSON schema), then namespace manifests per source
-   (`manifests/bls/…`). Default `"fred"` keeps every existing manifest valid.
-2. **Client selection.** Map `spec.source` → the right client in
-   `FredPipeline` (a small registry: `{"fred": FredClient, "bls": BLSClient}`).
-3. **Normalize via the client.** Have `_finish_series` call
-   `client.normalize(...)` instead of `build_silver_rows` directly, so each
-   source's response shape is handled by its own normalizer.
-4. **Table dimension (optional).** If you want per-source lineage, add a
-   `source` column to Bronze/Silver and include it in the natural key
-   (`(source, series_id, observation_date, realtime_start)`).
-5. **Deploy.** Add one Databricks job per source (or per manifest group) in
-   `databricks.yml`, each on its own schedule, all sharing the same wheel.
+1. **Manifest dimension.** `SeriesSpec` has an optional `source: str = "fred"`
+   field (also in `manifests/manifest.schema.json`). The default keeps every
+   existing manifest valid; a BLS series sets `source: bls`. See the shipped
+   demo `manifests/bls_labor.yml` (inactive by default).
+2. **Client selection.** `pipeline.SOURCE_FACTORIES` maps `source` → a client
+   factory (`{"fred": …, "bls": …}`). `FredPipeline._client_for(spec)` resolves
+   and caches the right client per series; unknown sources fail that one series
+   (per-series isolation) rather than the run. Clients can also be injected via
+   the `clients=` constructor arg (used in tests).
+3. **Normalize via the client.** `_finish_series` calls
+   `FredPipeline._normalize`, which delegates to the source client's
+   `normalize` (falling back to the FRED normalizer for lightweight test
+   doubles) and then applies `assign_revision_numbers` uniformly, so revision
+   numbering stays source-agnostic.
 
-None of these touch Bronze/Silver/Gold internals — they're additive wiring.
+### Adding another source (e.g. EIA)
+
+1. Add `sources/eia.py` with an `EIAClient(HTTPSource)` implementing
+   `get_observations` + `normalize` (override `_default_query` / `_error_detail`
+   as needed).
+2. Register it: one entry in `SOURCE_FACTORIES`.
+3. Author a manifest with `source: eia`.
+
+That's the whole change — nothing in Bronze/Silver/Gold moves.
+
+### Still optional (not needed for correctness)
+
+* **Per-source lineage column.** To physically tag rows by origin, add a
+  `source` column to Bronze/Silver and include it in the natural key
+  (`(source, series_id, observation_date, realtime_start)`). Today sources share
+  the observation tables, keyed by `series_id`; distinct series IDs across
+  sources keep rows unambiguous.
+* **Deploy.** Add one Databricks job per source (or per manifest group) in
+  `databricks.yml`, each on its own schedule, all sharing the same wheel.

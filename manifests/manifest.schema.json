@@ -35,6 +35,7 @@
         "category": { "type": "string" },
         "units": { "type": "string" },
         "active": { "type": "boolean" },
+        "source": { "type": "string" },
         "load_type": { "type": "string", "enum": ["full", "incremental"] },
         "expected_update_frequency": { "type": "string" },
         "vintage_enabled": { "type": "boolean" },
