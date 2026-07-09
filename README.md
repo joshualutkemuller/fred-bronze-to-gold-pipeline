@@ -16,8 +16,9 @@ dashboards, optimizer inputs, and **point-in-time** macro features.
 ## What it does
 
 ```
-manifests/*.yml → FRED API → Bronze (raw JSON) → Silver (normalized, MERGE)
-     → Data Quality → Gold (latest / point-in-time / daily feature matrix)
+manifests/*.yml → source API (FRED / BLS / EIA) → Bronze (raw JSON)
+     → Silver (normalized, MERGE) → Data Quality
+     → Gold (latest / point-in-time / daily feature matrix)
      → full audit trail (runs, series, DQ results)
 ```
 
@@ -175,6 +176,8 @@ environments:
 | Setting | Config key | Env var | CLI |
 |---|---|---|---|
 | FRED API key | `fred_api_key` | `FRED_API_KEY` | `--fred-api-key`* / secret scope |
+| BLS API key (optional) | `bls_api_key` | `BLS_API_KEY` | keyless works at a lower quota |
+| EIA API key | `eia_api_key` | `EIA_API_KEY` | required to activate `source: eia` series |
 | API base URL | `fred_base_url` | `FRED_BASE_URL` | |
 | Request timeout | `request_timeout_seconds` | `FRED_REQUEST_TIMEOUT_SECONDS` | |
 | Max retries | `max_retries` | `FRED_MAX_RETRIES` | |
@@ -220,6 +223,15 @@ opt out. This is the leakage-safe default for backtests: you can always collapse
 vintages to "latest revised" (the `gold.v_latest_revised` view), but you cannot
 recover vintages a run never captured. For never-revised market series (yields,
 SOFR, breakevens) it's a cheap no-op — one vintage per date.
+
+### 3. Add a series from another source
+
+Series aren't limited to FRED. A manifest entry can set `source: bls` or
+`source: eia` and it flows through the same Bronze/Silver/Gold path — each row
+is tagged with its `source` in the natural key. See the inactive demos
+`manifests/bls_labor.yml` / `manifests/eia_energy.yml`, and
+[`docs/adding_a_source.md`](docs/adding_a_source.md) for how to add a new source
+(one client module + one registry entry).
 
 ## Metadata governance (drift + lifecycle)
 

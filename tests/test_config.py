@@ -9,6 +9,7 @@ _ENV_VARS = [
     "FRED_API_KEY", "FRED_BASE_URL", "FRED_SECRET_SCOPE", "FRED_SECRET_KEY",
     "FRED_REQUEST_TIMEOUT_SECONDS", "FRED_MAX_RETRIES",
     "FRED_RATE_LIMIT_PER_MINUTE", "FRED_RAW_VOLUME_PATH", "FRED_CONFIG_FILE",
+    "BLS_API_KEY", "EIA_API_KEY",
 ]
 
 
@@ -117,12 +118,84 @@ def test_secret_scope_fallback_when_no_key(tmp_path):
     assert cfg.fred_api_key == "secret-key"
 
 
+def test_source_keys_fall_back_to_secret_scope():
+    class FakeSecrets:
+        _store = {("fred", "bls_api_key"): "bls-from-secret",
+                  ("fred", "eia_api_key"): "eia-from-secret"}
+
+        def get(self, scope, key):
+            return self._store[(scope, key)]  # KeyError if absent
+
+    class FakeDbutils:
+        secrets = FakeSecrets()
+
+    cfg = PipelineConfig.resolve(
+        environment="dev", config_file="nope.yaml", dbutils=FakeDbutils()
+    )
+    # keyed by the config field name in the default 'fred' scope
+    assert cfg.bls_api_key == "bls-from-secret"
+    assert cfg.eia_api_key == "eia-from-secret"
+
+
+def test_explicit_source_key_beats_secret_scope(monkeypatch):
+    monkeypatch.setenv("EIA_API_KEY", "eia-from-env")
+
+    class FakeSecrets:
+        def get(self, scope, key):
+            raise AssertionError("secret scope should not be consulted when set")
+
+    class FakeDbutils:
+        secrets = FakeSecrets()
+
+    cfg = PipelineConfig.resolve(
+        environment="dev", config_file="nope.yaml", dbutils=FakeDbutils()
+    )
+    assert cfg.eia_api_key == "eia-from-env"
+
+
+def test_missing_source_secret_leaves_key_empty():
+    class FakeSecrets:
+        def get(self, scope, key):
+            raise Exception("no such secret")  # simulate absent secret
+
+    class FakeDbutils:
+        secrets = FakeSecrets()
+
+    cfg = PipelineConfig.resolve(
+        environment="dev", config_file="nope.yaml", dbutils=FakeDbutils()
+    )
+    # non-fatal: BLS/EIA keys stay empty; a client only raises if actually used
+    assert cfg.bls_api_key == "" and cfg.eia_api_key == ""
+
+
 def test_defaults_when_no_file_no_env():
     cfg = PipelineConfig.resolve(environment="prod", config_file="does-not-exist.yaml")
     assert cfg.fred_api_key == ""
     assert cfg.rate_limit_per_minute == 120
     assert cfg.restate_last_n == 90
     assert cfg.catalog == "macro_prod"
+
+
+def test_source_keys_from_env_reach_clients(monkeypatch):
+    monkeypatch.setenv("BLS_API_KEY", "bls-secret")
+    monkeypatch.setenv("EIA_API_KEY", "eia-secret")
+    cfg = PipelineConfig.resolve(environment="dev", config_file="nope.yaml")
+    assert cfg.bls_api_key == "bls-secret"
+    assert cfg.eia_api_key == "eia-secret"
+
+    # and the pipeline factories feed them into the right clients
+    from fred_pipeline.pipeline import _make_bls, _make_eia
+
+    assert _make_bls(cfg).api_key == "bls-secret"
+    assert _make_eia(cfg).api_key == "eia-secret"
+
+
+def test_source_keys_default_empty():
+    cfg = PipelineConfig.resolve(environment="dev", config_file="nope.yaml")
+    assert cfg.bls_api_key == ""
+    assert cfg.eia_api_key == ""
+    # secrets stay out of repr
+    assert "bls-" not in repr(cfg) and "eia-" not in repr(cfg)
 
 
 def test_restate_last_n_from_env(monkeypatch):

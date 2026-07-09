@@ -57,6 +57,45 @@ def test_replay_rebuilds_silver_from_bronze(tmp_path):
     wh.close()
 
 
+def test_replay_routes_by_source(tmp_path, fake_session_cls, fake_response_cls):
+    """A BLS payload archived in Bronze must be re-normalized with the BLS
+    normalizer on replay, not the FRED one."""
+    from fred_pipeline.sources.bls import BLSClient
+
+    cfg = _config()
+    db = str(tmp_path / "f.db")
+    spec = SeriesSpec(series_id="CUUR0000SA0", title="CPI", frequency="m",
+                      source="bls", vintage_enabled=False)
+    bls_payload = {
+        "status": "REQUEST_SUCCEEDED", "message": [],
+        "Results": {"series": [{"seriesID": "CUUR0000SA0", "data": [
+            {"year": "2024", "period": "M12", "value": "315.6"},
+            {"year": "2024", "period": "M11", "value": "314.4"},
+        ]}]},
+    }
+    session = fake_session_cls([fake_response_cls(bls_payload)])
+    bls = BLSClient(session=session, sleep=lambda _s: None)
+
+    wh = LocalWarehouse(cfg, db_path=db)
+    FredPipeline(cfg, clients={"bls": bls}, warehouse=wh).run(
+        [spec], build_gold_layer=False
+    )
+    assert wh.query("SELECT count(*) c FROM silver_fred_observation")[0]["c"] == 2
+
+    # drop silver, replay from the archived BLS bronze payload (no client)
+    wh.conn.execute("DELETE FROM silver_fred_observation")
+    wh.conn.commit()
+    result = replay_from_bronze(cfg, [_manifest(spec)], wh, rebuild_gold=False)
+
+    assert result["bronze_payloads_replayed"] == 1
+    rows = wh.query("SELECT source, count(*) c FROM silver_fred_observation "
+                    "GROUP BY source")
+    # re-derived correctly as BLS rows (FRED normalizer would have raised on the
+    # missing 'observations' key and produced nothing)
+    assert rows == [{"source": "bls", "c": 2}]
+    wh.close()
+
+
 def test_replay_is_idempotent_and_filters_series(tmp_path):
     cfg = _config()
     db = str(tmp_path / "f.db")

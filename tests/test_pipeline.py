@@ -141,6 +141,20 @@ def test_force_full_ignores_watermark(observations_payload):
         wh.close()
 
 
+def test_missing_source_keys():
+    from fred_pipeline.pipeline import missing_source_keys
+
+    cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k")  # no eia key
+    # fred satisfied, bls keyless (never required), eia missing
+    assert missing_source_keys(cfg, ["fred", "bls"]) == {}
+    assert missing_source_keys(cfg, ["fred", "bls", "eia"]) == {"eia": "eia_api_key"}
+
+    cfg2 = PipelineConfig(environment=Environment.DEV, fred_api_key="",
+                          eia_api_key="e")
+    # fred required but empty; eia satisfied
+    assert missing_source_keys(cfg2, ["fred", "eia"]) == {"fred": "fred_api_key"}
+
+
 def test_config_table_naming():
     cfg = PipelineConfig(environment=Environment.PROD, fred_api_key="k")
     assert cfg.catalog == "macro_prod"

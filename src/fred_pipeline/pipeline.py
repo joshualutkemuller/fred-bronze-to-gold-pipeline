@@ -18,10 +18,13 @@ from typing import Any, Iterable, Optional
 from fred_pipeline.audit import EtlRun, RunStatus
 from fred_pipeline.bronze import build_bronze_row
 from fred_pipeline.config import Environment, PipelineConfig
-from fred_pipeline.fred_client import FredClient
 from fred_pipeline.manifest import LoadType, SeriesSpec, all_series, load_manifests
 from fred_pipeline.quality import run_quality_checks
-from fred_pipeline.silver import build_silver_rows
+from fred_pipeline.sources.base import SourceClient
+from fred_pipeline.sources.bls import BLSClient
+from fred_pipeline.sources.eia import EIAClient
+from fred_pipeline.sources.fred import FredClient
+from fred_pipeline.transform import assign_revision_numbers, normalize_observations
 from fred_pipeline.warehouse import SparkWarehouse, Warehouse
 
 log = logging.getLogger("fred_pipeline")
@@ -31,12 +34,73 @@ FULL_VINTAGE_START = "1776-07-04"
 FULL_VINTAGE_END = "9999-12-31"
 
 
+def _make_fred(config: PipelineConfig) -> SourceClient:
+    return FredClient(
+        api_key=config.fred_api_key,
+        base_url=config.fred_base_url,
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+        rate_limit_per_minute=config.rate_limit_per_minute,
+    )
+
+
+def _make_bls(config: PipelineConfig) -> SourceClient:
+    # BLS keyless works at a lower quota; a key is used if one is configured.
+    return BLSClient(
+        api_key=getattr(config, "bls_api_key", "") or None,
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
+def _make_eia(config: PipelineConfig) -> SourceClient:
+    # EIA requires a key; EIAClient raises if one isn't configured.
+    return EIAClient(
+        api_key=getattr(config, "eia_api_key", "") or "",
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
+# Registry of source name -> client factory. Adding a source is one entry here
+# plus its client module under fred_pipeline.sources.
+SOURCE_FACTORIES = {
+    "fred": _make_fred,
+    "bls": _make_bls,
+    "eia": _make_eia,
+}
+
+# Sources that require an API key to call, mapped to the PipelineConfig
+# attribute holding it. Sources not listed can run keyless (e.g. BLS).
+SOURCE_KEY_REQUIREMENTS = {
+    "fred": "fred_api_key",
+    "eia": "eia_api_key",
+}
+
+
+def missing_source_keys(
+    config: PipelineConfig, sources: Iterable[str]
+) -> dict[str, str]:
+    """Return ``{source: config_attr}`` for sources whose required key is unset.
+
+    Lets a caller validate that a run has the keys the *active* sources need,
+    instead of demanding a FRED key unconditionally.
+    """
+    missing: dict[str, str] = {}
+    for source in sources:
+        attr = SOURCE_KEY_REQUIREMENTS.get(source)
+        if attr and not getattr(config, attr, ""):
+            missing[source] = attr
+    return missing
+
+
 class FredPipeline:
     def __init__(
         self,
         config: PipelineConfig,
         *,
-        client: Optional[FredClient] = None,
+        client: Optional[SourceClient] = None,
+        clients: Optional[dict[str, SourceClient]] = None,
         spark: Any = None,
         warehouse: Optional[Warehouse] = None,
         persist_audit: bool = True,
@@ -44,7 +108,12 @@ class FredPipeline:
     ):
         self.config = config
         self.persist_audit = persist_audit
-        self._client = client
+        # Per-source client cache. ``client`` (back-compat) seeds the default
+        # "fred" source; ``clients`` supplies/overrides any source explicitly.
+        # Anything not provided is built lazily from SOURCE_FACTORIES.
+        self._clients: dict[str, SourceClient] = dict(clients or {})
+        if client is not None:
+            self._clients.setdefault("fred", client)
         self._notify_transport = notify_transport
         # Resolve the storage backend: explicit warehouse > Spark > None (dry run).
         if warehouse is not None:
@@ -55,16 +124,26 @@ class FredPipeline:
             self.warehouse = None
 
     @property
-    def client(self) -> FredClient:
-        if self._client is None:
-            self._client = FredClient(
-                api_key=self.config.fred_api_key,
-                base_url=self.config.fred_base_url,
-                timeout=self.config.request_timeout_seconds,
-                max_retries=self.config.max_retries,
-                rate_limit_per_minute=self.config.rate_limit_per_minute,
-            )
-        return self._client
+    def client(self) -> SourceClient:
+        """The default (FRED) source client. Kept for back-compat; per-series
+        extraction goes through :meth:`_client_for`."""
+        return self._client_for_source("fred")
+
+    def _client_for_source(self, source: str) -> SourceClient:
+        client = self._clients.get(source)
+        if client is None:
+            factory = SOURCE_FACTORIES.get(source)
+            if factory is None:
+                raise ValueError(
+                    f"Unknown source {source!r}; known sources: "
+                    f"{sorted(SOURCE_FACTORIES)}"
+                )
+            client = factory(self.config)
+            self._clients[source] = client
+        return client
+
+    def _client_for(self, spec: SeriesSpec) -> SourceClient:
+        return self._client_for_source(getattr(spec, "source", "fred") or "fred")
 
     # ---- run entrypoints ------------------------------------------------
 
@@ -190,14 +269,16 @@ class FredPipeline:
             if isinstance(outcome, Exception):
                 raise outcome
             payload = outcome
-            observations = payload.get("observations") or []
+            source = getattr(spec, "source", "fred") or "fred"
 
+            silver_rows = self._normalize(spec, payload, run_id=run.run_id)
+            # Count from normalized rows so the metric is source-agnostic (BLS
+            # nests observations under Results.series[].data, not a top-level key).
+            observations_extracted = len(silver_rows)
             bronze_row = build_bronze_row(
-                spec.series_id, "series/observations", payload, run_id=run.run_id
-            )
-            silver_rows = build_silver_rows(
-                spec.series_id, payload, run_id=run.run_id,
-                track_vintage=spec.vintage_enabled,
+                spec.series_id, self._observations_endpoint(spec), payload,
+                run_id=run.run_id, source=source,
+                observation_count=observations_extracted,
             )
             report = run_quality_checks(
                 spec.series_id, silver_rows, profile=spec.validation_profile,
@@ -217,7 +298,7 @@ class FredPipeline:
             if report.passed:
                 sr.complete(
                     RunStatus.SUCCEEDED,
-                    observations_extracted=len(observations),
+                    observations_extracted=observations_extracted,
                     rows_written_bronze=bronze_written,
                     rows_merged_silver=silver_merged,
                     dq_passed=True,
@@ -226,7 +307,7 @@ class FredPipeline:
                 msgs = "; ".join(f.message for f in report.failures)
                 sr.complete(
                     RunStatus.FAILED,
-                    observations_extracted=len(observations),
+                    observations_extracted=observations_extracted,
                     rows_written_bronze=bronze_written,
                     dq_passed=False,
                     error_message=f"Data quality failed: {msgs}",
@@ -258,9 +339,15 @@ class FredPipeline:
     def _extract(
         self, spec: SeriesSpec, *, observation_start: Optional[str] = None
     ) -> dict[str, Any]:
-        # Complete-history mode: batch all vintages under FRED's cap.
-        if spec.vintage_enabled and self.config.complete_vintage_history:
-            return self.client.get_observations_all_vintages(
+        client = self._client_for(spec)
+        # Complete-history mode: batch all vintages under FRED's cap. Only
+        # sources that support it (FRED) expose get_observations_all_vintages.
+        if (
+            spec.vintage_enabled
+            and self.config.complete_vintage_history
+            and hasattr(client, "get_observations_all_vintages")
+        ):
+            return client.get_observations_all_vintages(
                 spec.series_id, observation_start=observation_start
             )
         kwargs: dict[str, Any] = {}
@@ -269,7 +356,43 @@ class FredPipeline:
             kwargs["realtime_end"] = FULL_VINTAGE_END
         if observation_start:
             kwargs["observation_start"] = observation_start
-        return self.client.get_observations(spec.series_id, **kwargs)
+        return client.get_observations(spec.series_id, **kwargs)
+
+    def _observations_endpoint(self, spec: SeriesSpec) -> str:
+        """The upstream endpoint used for this series, for Bronze lineage.
+
+        Clients advertise it via ``observations_endpoint``; lightweight test
+        doubles that don't fall back to the FRED path.
+        """
+        client = self._client_for(spec)
+        fn = getattr(client, "observations_endpoint", None)
+        return fn(spec.series_id) if fn else "series/observations"
+
+    def _normalize(
+        self, spec: SeriesSpec, payload: dict[str, Any], *, run_id: str
+    ) -> list[dict[str, Any]]:
+        """Map a raw payload into revision-numbered silver rows.
+
+        Normalization is delegated to the spec's source client (each source
+        knows its own response shape); revision numbering is applied uniformly
+        here so it stays source-agnostic. Clients that predate the ``normalize``
+        contract (e.g. lightweight test doubles) fall back to the FRED
+        normalizer.
+        """
+        client = self._client_for(spec)
+        source = getattr(spec, "source", "fred") or "fred"
+        normalize = getattr(client, "normalize", None)
+        if normalize is not None:
+            rows = normalize(
+                spec.series_id, payload, run_id=run_id,
+                track_vintage=spec.vintage_enabled, source=source,
+            )
+        else:
+            rows = normalize_observations(
+                spec.series_id, payload, run_id=run_id,
+                track_vintage=spec.vintage_enabled, source=source,
+            )
+        return assign_revision_numbers(rows)
 
     # ---- audit persistence ----------------------------------------------
 

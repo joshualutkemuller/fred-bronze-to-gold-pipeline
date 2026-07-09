@@ -22,17 +22,29 @@ def build_bronze_row(
     payload: dict[str, Any],
     *,
     run_id: str,
+    source: str = "fred",
     request_params: Optional[dict[str, Any]] = None,
+    observation_count: Optional[int] = None,
 ) -> dict[str, Any]:
-    """Assemble a single ``bronze.fred_api_response`` row from a raw payload."""
+    """Assemble a single ``bronze.fred_api_response`` row from a raw payload.
+
+    ``source``/``endpoint`` record which upstream API produced the payload.
+    ``observation_count`` may be passed explicitly (the count of rows actually
+    normalized) so it is accurate for sources that don't expose a top-level
+    ``observations`` array; when omitted it falls back to the FRED-shaped
+    payload summary.
+    """
     summary = payload_summary(payload)
+    if observation_count is None:
+        observation_count = summary["observation_count"]
     return {
         "run_id": run_id,
+        "source": source,
         "series_id": series_id,
         "endpoint": endpoint,
         "request_params": json.dumps(request_params or {}, sort_keys=True),
         "response_payload": json.dumps(payload),
-        "observation_count": summary["observation_count"],
+        "observation_count": observation_count,
         "payload_bytes": summary["payload_bytes"],
         "ingested_at": datetime.now(timezone.utc),
     }

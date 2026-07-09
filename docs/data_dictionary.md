@@ -91,34 +91,37 @@ One row per `(run_id, series_id, check_name)` with `passed`, `severity`
 ## bronze
 
 ### `bronze.fred_api_response`
-Verbatim FRED payloads (system of record), partitioned by `series_id`.
+Verbatim upstream payloads (system of record, multi-source), partitioned by
+`series_id`.
 
 | Column | Type | Notes |
 |---|---|---|
 | run_id | STRING | Owning run |
+| source | STRING | Upstream API the payload came from (`fred`, `bls`, `eia`, …) |
 | series_id | STRING | Series |
-| endpoint | STRING | e.g. `series/observations` |
+| endpoint | STRING | The source endpoint actually called (e.g. `series/observations`, `timeseries/data/{id}`, `seriesid/{id}`) |
 | request_params | STRING | JSON of request params (**api_key never stored**) |
-| response_payload | STRING | Verbatim FRED JSON |
-| observation_count | INT | Count in payload |
+| response_payload | STRING | Verbatim upstream JSON |
+| observation_count | INT | Rows normalized from the payload (accurate across sources) |
 | payload_bytes | INT | Payload size |
 | ingested_at | TIMESTAMP | Ingestion time |
 
 ## silver
 
 ### `silver.fred_observation`
-Normalized observations. **Natural key / MERGE key:**
-`(series_id, observation_date, realtime_start)`.
+Normalized observations (multi-source). **Natural key / MERGE key:**
+`(source, series_id, observation_date, realtime_start)`.
 
 | Column | Type | Notes |
 |---|---|---|
+| source | STRING | Upstream API the row came from (`fred`, `bls`, …). Leading key component so the same `series_id` could be sourced from more than one API without colliding |
 | series_id | STRING | Series |
 | observation_date | DATE | The date the value describes |
 | realtime_start | DATE | Vintage window start (when value became known). **NULL/blank for `vintage_enabled: false` series** — vintage is not tracked, so the key is `(series_id, observation_date)` and re-runs update in place |
 | realtime_end | DATE | Vintage window end (`9999-12-31` = still current → NULL); also blank for non-vintage series |
 | value | DOUBLE | Parsed numeric value (NULL if missing) |
-| raw_value | STRING | Original FRED string (`.` preserved) |
-| is_missing | BOOLEAN | True when FRED returned `.` |
+| raw_value | STRING | Original upstream string (FRED `.` preserved as-is) |
+| is_missing | BOOLEAN | True when the value could not be parsed (e.g. FRED `.`) |
 | row_hash | STRING | sha256 change-detection hash |
 | revision_number | INT | 1…N per (series_id, observation_date) |
 | ingested_at | TIMESTAMP | Ingestion time |

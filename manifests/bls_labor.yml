@@ -1,0 +1,42 @@
+name: bls_labor
+description: >
+  Demonstration manifest for the multi-source capability: these series are
+  pulled from the BLS Public Data API (source: bls) rather than FRED, and flow
+  through the same Bronze/Silver/Gold path. Shipped inactive (active: false) so
+  default runs don't fetch them; set active: true to enable once a BLS
+  registration key is configured (keyless also works at a lower quota).
+version: 1
+
+series:
+  - series_id: CUUR0000SA0
+    title: CPI for All Urban Consumers - All Items (NSA, BLS)
+    category: inflation
+    frequency: m
+    units: Index 1982-1984=100
+    active: false
+    source: bls
+    load_type: incremental
+    expected_update_frequency: monthly
+    # BLS single-fetch returns latest values only (no ALFRED-style vintages).
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: cross_source_validation
+    priority: 2
+    tags: [inflation, cpi, bls]
+
+  - series_id: LNS14000000
+    title: Unemployment Rate (SA, BLS)
+    category: labor
+    frequency: m
+    units: Percent
+    active: false
+    source: bls
+    load_type: incremental
+    expected_update_frequency: monthly
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: cross_source_validation
+    priority: 2
+    min_value: 0
+    max_value: 100
+    tags: [labor, unemployment, bls]
