@@ -383,6 +383,9 @@ source-agnostic.
 
 # Engineering Handoff Checklist
 
+> Actionable, checkbox form with commands and per-item owners:
+> **`docs/deployment_runbook.md`** (workspace provisioning + quant/ops decisions).
+
 ## Quant
 
 -   Define series universe

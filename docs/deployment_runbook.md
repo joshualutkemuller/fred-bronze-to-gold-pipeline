@@ -1,0 +1,235 @@
+# Deployment Runbook & Decision Register
+
+Everything in this repo that is **not code** — the workspace provisioning steps
+and the human decisions — collected in one place so a team can take the pipeline
+live. The code is complete; this is the "who provisions what" and "who decides
+what" checklist.
+
+Scope: Databricks (Unity Catalog + Delta + Jobs + Secrets + Asset Bundles). For
+a laptop/CI run no provisioning is needed — see the local quickstart in the
+README (`python -m fred_pipeline run --local`).
+
+## Ownership at a glance
+
+| Area | Owner | What |
+|---|---|---|
+| Workspace provisioning | **Engineering** | Catalogs, schemas, tables, volume, bundle deploy, jobs |
+| Secrets, permissions, egress, monitoring, cost | **Platform** | Secret scope + keys, grants, network policy, alerts, cluster policy |
+| Series universe & data policy | **Quant** | Which series are active, per-series validation/vintage/restate, spreads |
+
+Track each item below with the checkboxes; nothing here requires a code change.
+
+---
+
+# Part A — Workspace provisioning (Engineering / Platform)
+
+### A1. Unity Catalog: catalogs + schemas + raw volume
+Run `sql/00_catalog_schemas.sql` **once per environment**, replacing `{{catalog}}`
+with `macro_dev`, `macro_test`, `macro_prod`. Creates the catalog, the six
+schemas (`meta`, `audit`, `bronze`, `silver`, `gold`, `sandbox`), and the
+`bronze.raw` volume used for JSON archival.
+
+- [ ] `macro_dev` created
+- [ ] `macro_test` created
+- [ ] `macro_prod` created
+
+### A2. Delta tables + views
+Run the remaining DDL **in order**, same `{{catalog}}` substitution, per
+environment (idempotent — all `CREATE ... IF NOT EXISTS`):
+
+`10_meta.sql` → `20_audit.sql` → `30_bronze.sql` → `40_silver.sql` →
+`50_gold.sql` → `60_views.sql`
+
+> These mirror `fred_pipeline` exactly. Bronze/Silver already include the
+> multi-source `source` column and the `(source, series_id, observation_date,
+> realtime_start)` Silver key — no manual change needed.
+
+- [ ] DDL applied to dev / test / prod
+
+### A3. Secret scope + API keys (Platform)
+One scope (default name `fred`) holds every source key; the field name **is** the
+secret key (matches `resources/source_jobs.yml`).
+
+```bash
+databricks secrets create-scope fred
+databricks secrets put-secret   fred api_key        # FRED  (required)
+databricks secrets put-secret   fred bls_api_key    # BLS   (optional — see Quant Q1)
+databricks secrets put-secret   fred eia_api_key    # EIA   (required only if EIA active)
+```
+
+- [ ] FRED key stored (all envs)
+- [ ] BLS / EIA keys stored **iff** those sources are activated (see Part C)
+
+### A4. Egress / network policy (Platform)
+Clusters must be allowed to reach the source APIs. Confirm outbound HTTPS to:
+
+| Source | Host | Needed when |
+|---|---|---|
+| FRED | `api.stlouisfed.org` | always |
+| BLS | `api.bls.gov` | a `source: bls` series is active |
+| EIA | `api.eia.gov` | a `source: eia` series is active |
+
+- [ ] Egress confirmed for the sources you will run
+
+### A5. Compute / cluster policy (Platform)
+The job clusters in `resources/*.yml` specify `node_type_id: Standard_DS3_v2`
+(**Azure**). **Decision:** confirm or change the node type for your cloud
+(AWS/GCP), worker count, and any org cluster policy / instance pool.
+
+- [ ] Node type + workers confirmed per cloud
+- [ ] Cluster policy / pool applied (if org-mandated)
+
+### A6. Asset Bundle deploy
+Set the bundle variables in `databricks.yml` (or `-t` target overrides):
+`workspace_host`, `service_principal` (prod `run_as`), `catalog`, `manifests_path`.
+
+```bash
+databricks bundle validate -t dev
+databricks bundle deploy   -t dev
+databricks bundle run fred_ingestion -t dev      # first manual run
+```
+Promote `-t test` then `-t prod` after acceptance (Part E).
+
+- [ ] `workspace_host` / `service_principal` set
+- [ ] Deployed to dev / test / prod
+
+### A7. Jobs & schedules
+All schedules ship **PAUSED** on purpose.
+
+- **`fred_ingestion`** (`resources/fred_pipeline.job.yml`) — runs the whole
+  `manifests/` dir; daily `0 15 12 * * ?` UTC.
+- **`bls_ingestion` / `eia_ingestion`** (`resources/source_jobs.yml`) — per-source
+  templates scoped to their manifest files, with the key injected via
+  `spark_env_vars`. Use these **only** if you adopt the one-job-per-source model
+  (then scope `fred_ingestion` to FRED-only manifests so a series isn't ingested
+  twice — harmless, just wasteful).
+
+- [ ] **Decision:** single job vs. one-job-per-source (Part B, D3)
+- [ ] Schedule(s) reviewed and unpaused when ready
+
+### A8. Grants / permissions (Platform)
+Grant read on `gold` (and `silver` for PIT) to quant/BI consumers; restrict
+`bronze`/`audit`/`meta` writes to the job principal.
+
+- [ ] Grants applied per environment
+
+### A9. Monitoring & alerts (Platform)
+- Run-failure email is wired in the job YAML (`email_notifications.on_failure`).
+- App-level notifications post a run summary to a Slack-compatible webhook:
+  set `alert_webhook_url` + `notify_on` (Part B).
+
+- [ ] Failure email recipients confirmed
+- [ ] Alert webhook set (or intentionally skipped)
+- [ ] Cost controls / budget alerts configured
+
+---
+
+# Part B — Configuration decisions (values to choose)
+
+Set via env var, the (git-ignored) `config/config.yaml`, or bundle/job params.
+Precedence: explicit arg > env var > config file > default. See the full
+env-var table in the README.
+
+| Setting | Config key | Default | Decision |
+|---|---|---|---|
+| Target catalog | `--env` | `dev` → `macro_dev` | promotion path |
+| FRED request rate | `rate_limit_per_minute` | `120/min` | keep unless FRED tier differs |
+| BLS / EIA request rate | client default | `25` / `60` per min | tune to your quota (BLS cap is **daily**) |
+| Restate window | `restate_last_n` | `90` obs | global incremental re-pull depth |
+| Complete vintage history | `complete_vintage_history` | `false` | `true` = full ALFRED backfill (heavier) |
+| Extract concurrency | `extract_workers` | `8` | threads sharing the rate limiter |
+| Alert level | `notify_on` | `failure` | `never` / `failure` / `always` |
+| Alert webhook | `alert_webhook_url` | — | Slack-compatible URL |
+| Raw archive path | `raw_volume_path` | `/Volumes/<catalog>/bronze/raw` | override only if non-default |
+| Secret scope / key | `secret_scope` / `secret_key` | `fred` / `api_key` | change only if your scope differs |
+
+---
+
+# Part C — Quant decisions (data policy)
+
+These are domain judgments the pipeline exposes but does **not** decide. Most are
+per-series manifest fields under `manifests/` (validated by
+`manifests/manifest.schema.json`).
+
+### Q1. Source activation
+- [ ] Which of the ~2,300 FRED series stay `active: true`?
+- [ ] Activate the BLS demo (`manifests/bls_labor.yml`) and/or EIA demo
+      (`manifests/eia_energy.yml`)? Each is `active: false` today. Activating EIA
+      **requires** an EIA key (A3).
+- [ ] **Verify the demo series IDs live** once keys exist (blocked in the build
+      env by egress). Quick check: `python -m fred_pipeline run --dry-run
+      --manifests manifests/eia_energy.yml` after setting `active: true`.
+
+### Q2. Per-series data policy (manifest fields)
+| Field | Decision | Notes |
+|---|---|---|
+| `vintage_enabled` | revision-sensitive series → `true` (default) | captures ALFRED point-in-time; `false` for never-revised market series |
+| `validation_profile` | `strict` / `standard` / `lenient` | `strict` fails the series on any DQ breach; `standard` warns |
+| `min_value` / `max_value` | sane bounds where known | e.g. rates in a plausible band, non-negative prices |
+| `restate_records` | per-series override of `restate_last_n` | larger for deeply-revised series (GDP, payrolls) |
+| `expected_update_frequency` | for freshness/staleness checks | e.g. monthly / weekly |
+| `priority`, `*_owner`, `downstream_use_case` | governance metadata | ownership + lineage |
+
+### Q3. Derived features
+- [ ] `config/spreads.yml`: which spread/ratio pairs beyond the original 4
+      Treasury curve pairs (e.g. real yields = nominal − breakeven, credit
+      spreads, PCE−CPI)? Mechanism is built; **pairs are a quant call.**
+
+### Q4. Sign-off
+- [ ] Approve DQ rules / validation profiles
+- [ ] Validate Gold outputs (latest, point-in-time, feature matrix, spreads,
+      revision stats) against expectations
+
+---
+
+# Part D — Go-live sequence
+
+1. **Local dry run** (no workspace): `FRED_API_KEY=… python -m fred_pipeline run
+   --dry-run` → confirms extraction + DQ against the live API.
+2. **Provision dev** (A1–A3), deploy bundle (A6), run `fred_ingestion` once.
+3. **Acceptance on dev** (Part E).
+4. **Decision: job model** (single vs. per-source, A7/D-note) and **finalize the
+   active series universe** (Part C) via manifest PRs.
+5. **Promote to test → prod** (A6 with `-t test` / `-t prod`); set prod
+   `run_as` service principal; apply grants (A8) and alerts (A9).
+6. **Unpause schedules** (A7) once a manual prod run is clean.
+
+> One-job-per-source note: if adopting `source_jobs.yml`, scope `fred_ingestion`
+> to FRED-only manifests (e.g. move BLS/EIA manifests to a subfolder and point
+> each job at its own path) so a series isn't processed by two jobs.
+
+---
+
+# Part E — Acceptance checks (per environment)
+
+Run after the first ingestion in an environment:
+
+- [ ] `audit.etl_run` has a row with status `succeeded` (or `partial` with a
+      known reason); `audit.etl_series_run` covers every active series.
+- [ ] `audit.data_quality_result` shows expected checks; no unexpected failures.
+- [ ] `silver.fred_observation` populated; spot-check `source` values and, for a
+      vintage series, multiple `realtime_start` rows per `observation_date`.
+- [ ] Gold tables built: `gold.fred_latest_observation`,
+      `gold.fred_point_in_time`, `gold.fred_macro_feature_daily`,
+      `gold.fred_feature_transforms`, `gold.fred_curve_spread`,
+      `gold.fred_revision_stats`; views `gold.v_latest_revised` /
+      `gold.v_point_in_time` resolve.
+- [ ] Metadata governance: run `reconcile` (FRED series only) and review
+      `meta.fred_series_drift` / `meta.fred_series_lifecycle`.
+- [ ] A failure alert fires (test the webhook / email path).
+
+---
+
+## Appendix — secrets & env vars quick reference
+
+**Secret scope `fred`:** `api_key` (FRED), `bls_api_key`, `eia_api_key`.
+
+**Key env vars** (12-factor overrides; full list in the README):
+`FRED_API_KEY`, `BLS_API_KEY`, `EIA_API_KEY`, `FRED_RATE_LIMIT_PER_MINUTE`,
+`FRED_RESTATE_LAST_N`, `FRED_COMPLETE_VINTAGE_HISTORY`, `FRED_EXTRACT_WORKERS`,
+`FRED_NOTIFY_ON`, `FRED_ALERT_WEBHOOK_URL`, `FRED_CONFIG_FILE`.
+
+**Not built (optional future work, not required for go-live):** per-source
+metadata reconciliation for BLS/EIA (reconcile is FRED-only and skips other
+sources); per-frequency EIA incremental windowing; multi-series batching per
+source. See `docs/adding_a_source.md`.
