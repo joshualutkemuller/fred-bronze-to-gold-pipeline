@@ -18,7 +18,7 @@ from typing import Any, Iterable, Optional
 from fred_pipeline.audit import EtlRun, RunStatus
 from fred_pipeline.bronze import build_bronze_row
 from fred_pipeline.config import Environment, PipelineConfig
-from fred_pipeline.fred_client import FredClient
+from fred_pipeline.sources.fred import FredClient
 from fred_pipeline.manifest import LoadType, SeriesSpec, all_series, load_manifests
 from fred_pipeline.quality import run_quality_checks
 from fred_pipeline.silver import build_silver_rows
