@@ -21,9 +21,12 @@ from fred_pipeline.config import Environment, PipelineConfig
 from fred_pipeline.manifest import LoadType, SeriesSpec, all_series, load_manifests
 from fred_pipeline.quality import run_quality_checks
 from fred_pipeline.sources.base import SourceClient
+from fred_pipeline.sources.bea import BEAClient
 from fred_pipeline.sources.bls import BLSClient
+from fred_pipeline.sources.census import CensusClient
 from fred_pipeline.sources.eia import EIAClient
 from fred_pipeline.sources.fred import FredClient
+from fred_pipeline.sources.sec import SECClient
 from fred_pipeline.sources.treasury import TreasuryClient
 from fred_pipeline.sources.worldbank import WorldBankClient
 from fred_pipeline.transform import assign_revision_numbers, normalize_observations
@@ -78,6 +81,33 @@ def _make_worldbank(config: PipelineConfig) -> SourceClient:
     )
 
 
+def _make_bea(config: PipelineConfig) -> SourceClient:
+    # BEA requires a key; BEAClient raises if one isn't configured.
+    return BEAClient(
+        api_key=getattr(config, "bea_api_key", "") or "",
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
+def _make_census(config: PipelineConfig) -> SourceClient:
+    # Census works keyless at a lower quota; a key is used if configured.
+    return CensusClient(
+        api_key=getattr(config, "census_api_key", "") or None,
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
+def _make_sec(config: PipelineConfig) -> SourceClient:
+    # SEC is keyless but requires a descriptive User-Agent (contact).
+    return SECClient(
+        user_agent=getattr(config, "sec_user_agent", "") or None,
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
 # Registry of source name -> client factory. Adding a source is one entry here
 # plus its client module under fred_pipeline.sources.
 SOURCE_FACTORIES = {
@@ -86,13 +116,18 @@ SOURCE_FACTORIES = {
     "eia": _make_eia,
     "treasury": _make_treasury,
     "worldbank": _make_worldbank,
+    "bea": _make_bea,
+    "census": _make_census,
+    "sec": _make_sec,
 }
 
 # Sources that require an API key to call, mapped to the PipelineConfig
-# attribute holding it. Sources not listed can run keyless (e.g. BLS).
+# attribute holding it. Sources not listed can run keyless (BLS, Census,
+# Treasury, World Bank, SEC).
 SOURCE_KEY_REQUIREMENTS = {
     "fred": "fred_api_key",
     "eia": "eia_api_key",
+    "bea": "bea_api_key",
 }
 
 

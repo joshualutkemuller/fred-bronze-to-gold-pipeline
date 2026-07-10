@@ -33,7 +33,7 @@ Use Databricks as the long-term home:
 # High-Level Architecture
 
 ``` text
-Source APIs (FRED · BLS · EIA · Treasury · World Bank)
+Source APIs (FRED · BLS · EIA · Treasury · World Bank · BEA · Census · SEC)
     ↓
 Python Ingestion Package (pluggable source clients)
     ↓
@@ -357,6 +357,16 @@ source-agnostic.
     encodes `<dataset_path>:<field>`. Demo `manifests/treasury_fiscal.yml`.
 -   **World Bank** (Indicators) — `source: worldbank`. **Keyless.** series_id
     encodes `<country>:<indicator>`. Demo `manifests/worldbank_global.yml`.
+-   **BEA** (National accounts) — `source: bea`. Key required. series_id encodes
+    `<dataset>:<table>:<line>:<freq>`. Demo `manifests/bea_national_accounts.yml`.
+-   **Census** (economic time series) — `source: census`. **Keyless** (key
+    optional). series_id encodes `<dataset_path>:<predicate=value,...>`. Demo
+    `manifests/census_indicators.yml`.
+-   **SEC** (company financials) — `source: sec`. **Keyless** (needs a
+    descriptive User-Agent). series_id encodes `<CIK>:<taxonomy>/<tag>:<unit>`;
+    filings are captured as point-in-time vintages. Demo
+    `manifests/sec_financials.yml`; generate at scale via
+    `sources.sec.build_sec_manifest`.
 
 ## How it works
 

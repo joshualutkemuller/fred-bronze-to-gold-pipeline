@@ -53,12 +53,19 @@ secret key (matches `resources/source_jobs.yml`).
 ```bash
 databricks secrets create-scope fred
 databricks secrets put-secret   fred api_key        # FRED  (required)
-databricks secrets put-secret   fred bls_api_key    # BLS   (optional — see Quant Q1)
-databricks secrets put-secret   fred eia_api_key    # EIA   (required only if EIA active)
+databricks secrets put-secret   fred bls_api_key    # BLS   (optional — keyless works)
+databricks secrets put-secret   fred eia_api_key    # EIA   (required if EIA active)
+databricks secrets put-secret   fred bea_api_key    # BEA   (required if BEA active)
+databricks secrets put-secret   fred census_api_key # Census(optional — keyless works)
 ```
 
+Treasury, World Bank, Census, and SEC are keyless. **SEC** needs a descriptive
+`SEC_USER_AGENT` (your contact) set as an env var / `spark_env_vars`, not a
+secret — SEC 403s without it.
+
 - [ ] FRED key stored (all envs)
-- [ ] BLS / EIA keys stored **iff** those sources are activated (see Part C)
+- [ ] EIA / BEA keys stored **iff** those sources are activated (see Part C)
+- [ ] `SEC_USER_AGENT` set iff SEC is activated
 
 ### A4. Egress / network policy (Platform)
 Clusters must be allowed to reach the source APIs. Confirm outbound HTTPS to:
@@ -70,6 +77,9 @@ Clusters must be allowed to reach the source APIs. Confirm outbound HTTPS to:
 | EIA | `api.eia.gov` | a `source: eia` series is active |
 | US Treasury | `api.fiscaldata.treasury.gov` | a `source: treasury` series is active |
 | World Bank | `api.worldbank.org` | a `source: worldbank` series is active |
+| BEA | `apps.bea.gov` | a `source: bea` series is active |
+| Census | `api.census.gov` | a `source: census` series is active |
+| SEC | `data.sec.gov` | a `source: sec` series is active |
 
 - [ ] Egress confirmed for the sources you will run
 
@@ -156,9 +166,12 @@ per-series manifest fields under `manifests/` (validated by
 ### Q1. Source activation
 - [ ] Which of the ~2,300 FRED series stay `active: true`?
 - [ ] Activate any of the inactive demo manifests? `bls_labor.yml`,
-      `eia_energy.yml`, `treasury_fiscal.yml`, `worldbank_global.yml` are all
-      `active: false` today. EIA **requires** a key (A3); **Treasury and World
-      Bank are keyless**; BLS is keyless-optional.
+      `eia_energy.yml`, `treasury_fiscal.yml`, `worldbank_global.yml`,
+      `bea_national_accounts.yml`, `census_indicators.yml`, `sec_financials.yml`
+      are all `active: false` today. EIA and BEA **require** a key (A3);
+      Treasury / World Bank / Census / SEC are keyless (SEC needs a User-Agent).
+      For SEC at scale, generate the manifest with
+      `fred_pipeline.sources.sec.build_sec_manifest` rather than by hand.
 - [ ] **Verify the demo series IDs live** once keys exist (blocked in the build
       env by egress). Quick check: `python -m fred_pipeline run --dry-run
       --manifests manifests/eia_energy.yml` after setting `active: true`.

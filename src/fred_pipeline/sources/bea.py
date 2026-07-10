@@ -1,0 +1,210 @@
+"""BEA (Bureau of Economic Analysis) source client.
+
+The BEA API is a single `/data` endpoint whose rows are table lines, so a
+manifest `series_id` encodes the coordinates that pin down one line series::
+
+    NIPA:T10101:1:Q
+    │    │      │ └ frequency (A / Q / M)
+    │    │      └── LineNumber within the table
+    │    └───────── TableName
+    └────────────── datasetname
+
+BEA-specific bits only: `UserID` auth (required), errors carried in a
+`BEAAPI.Error` block (often on HTTP 200), and rows nested under
+`BEAAPI.Results.Data` dated by `TimePeriod`. The rest comes from
+:class:`fred_pipeline.sources.base.HTTPSource`.
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+from typing import Any, Callable, Optional
+
+from fred_pipeline.sources.base import HTTPSource, SourceError
+from fred_pipeline.transform import _row_hash, _utc_now_iso, parse_value
+
+log = logging.getLogger("fred_pipeline.sources.bea")
+
+
+class BEAAPIError(SourceError):
+    """Raised when the BEA API returns an unrecoverable error."""
+
+
+def _parse_series_id(series_id: str) -> tuple[str, str, str, str]:
+    """Split ``dataset:table:line:frequency`` into its four parts."""
+    parts = series_id.split(":")
+    if len(parts) != 4 or not all(p.strip() for p in parts):
+        raise BEAAPIError(
+            f"BEA series_id must be '<dataset>:<table>:<line>:<freq>', "
+            f"got {series_id!r}"
+        )
+    dataset, table, line, freq = (p.strip() for p in parts)
+    return dataset, table, line, freq
+
+
+def _bea_period_to_date(period: Any) -> Optional[str]:
+    """Map a BEA ``TimePeriod`` (``2023``, ``2023Q1``, ``2023M01``) to ISO."""
+    if not period:
+        return None
+    p = str(period).strip().upper()
+    if "Q" in p:
+        year, _, q = p.partition("Q")
+        try:
+            n = int(q)
+        except ValueError:
+            return None
+        if not 1 <= n <= 4:
+            return None
+        return f"{int(year):04d}-{(n - 1) * 3 + 1:02d}-01"
+    if "M" in p:
+        year, _, m = p.partition("M")
+        try:
+            n = int(m)
+        except ValueError:
+            return None
+        if not 1 <= n <= 12:
+            return None
+        return f"{int(year):04d}-{n:02d}-01"
+    if p.isdigit() and len(p) == 4:
+        return f"{p}-01-01"
+    return None
+
+
+def _results_data(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    results = (payload.get("BEAAPI") or {}).get("Results")
+    if isinstance(results, list):
+        results = next((r for r in results if isinstance(r, dict) and "Data" in r), {})
+    if not isinstance(results, dict):
+        return []
+    return results.get("Data") or []
+
+
+def normalize_bea_observations(
+    series_id: str,
+    payload: dict[str, Any],
+    *,
+    run_id: Optional[str] = None,
+    ingested_at: Optional[str] = None,
+    source: str = "bea",
+) -> list[dict[str, Any]]:
+    """Convert a raw BEA payload into canonical silver rows for one table line.
+
+    GetData returns the latest vintage only, so ``realtime_start``/
+    ``realtime_end`` are blanked (as with BLS/EIA/Treasury/World Bank).
+    """
+    ingested_at = ingested_at or _utc_now_iso()
+    _dataset, _table, line, _freq = _parse_series_id(series_id)
+    rows: list[dict[str, Any]] = []
+    for rec in _results_data(payload):
+        if str(rec.get("LineNumber")) != line:
+            continue
+        obs_date = _bea_period_to_date(rec.get("TimePeriod"))
+        if not obs_date:
+            continue
+        raw_value = rec.get("DataValue")
+        value = parse_value(raw_value)
+        rows.append(
+            {
+                "source": source,
+                "series_id": series_id,
+                "observation_date": obs_date,
+                "realtime_start": "",
+                "realtime_end": "",
+                "value": value,
+                "raw_value": None if raw_value is None else str(raw_value),
+                "is_missing": value is None,
+                "row_hash": _row_hash(series_id, obs_date, "", raw_value),
+                "ingested_at": ingested_at,
+                "run_id": run_id,
+            }
+        )
+    return rows
+
+
+class BEAClient(HTTPSource):
+    """Retrying, rate-limited BEA API client."""
+
+    source_name = "BEA"
+    error_cls = BEAAPIError
+
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str = "https://apps.bea.gov/api",
+        *,
+        session: Any = None,
+        timeout: int = 30,
+        max_retries: int = 5,
+        rate_limit_per_minute: int = 100,
+        sleep: Callable[[float], None] = time.sleep,
+    ):
+        if not api_key:
+            raise BEAAPIError("A BEA API key (UserID) is required (got empty string)")
+        self.api_key = api_key
+        super().__init__(
+            base_url=base_url,
+            session=session,
+            timeout=timeout,
+            max_retries=max_retries,
+            rate_limit_per_minute=rate_limit_per_minute,
+            sleep=sleep,
+        )
+
+    def _default_query(self) -> dict[str, Any]:
+        return {"UserID": self.api_key, "ResultFormat": "JSON"}
+
+    def _error_detail(self, resp: Any) -> str:
+        try:
+            body = resp.json()
+            err = (body.get("BEAAPI") or {}).get("Error") if isinstance(body, dict) else None
+            if isinstance(err, dict):
+                return str(err.get("APIErrorDescription") or err)
+            return str(body)
+        except Exception:
+            return getattr(resp, "text", "<no body>")
+
+    def observations_endpoint(self, series_id: str) -> str:
+        """The endpoint hit for observations (recorded in Bronze lineage)."""
+        return "data"
+
+    # ---- SourceClient contract ------------------------------------------
+
+    def get_observations(
+        self,
+        series_id: str,
+        *,
+        observation_start: Optional[str] = None,
+        observation_end: Optional[str] = None,
+        **_ignored: Any,
+    ) -> dict[str, Any]:
+        """Fetch a NIPA-style table; the target line is selected in normalize."""
+        dataset, table, _line, freq = _parse_series_id(series_id)
+        params = {
+            "method": "GetData",
+            "datasetname": dataset,
+            "TableName": table,
+            "Frequency": freq,
+            "Year": "ALL",
+        }
+        payload = self._request("data", params)
+        beaapi = payload.get("BEAAPI") or {}
+        if isinstance(beaapi.get("Error"), dict):
+            err = beaapi["Error"]
+            raise BEAAPIError(
+                f"BEA error for {series_id!r}: "
+                f"{err.get('APIErrorDescription') or err}"
+            )
+        return payload
+
+    def normalize(
+        self,
+        series_id: str,
+        payload: dict[str, Any],
+        *,
+        run_id: Optional[str] = None,
+        track_vintage: bool = False,  # GetData returns the latest vintage only
+        source: str = "bea",
+    ) -> list[dict[str, Any]]:
+        return normalize_bea_observations(series_id, payload, run_id=run_id,
+                                          source=source)

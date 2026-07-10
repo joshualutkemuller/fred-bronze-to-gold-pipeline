@@ -48,6 +48,9 @@ _SETTING_FIELDS = (
     "fred_base_url",
     "bls_api_key",
     "eia_api_key",
+    "bea_api_key",
+    "census_api_key",
+    "sec_user_agent",
     "secret_scope",
     "secret_key",
     "request_timeout_seconds",
@@ -67,6 +70,9 @@ _ENV_OVERRIDES = {
     "fred_base_url": "FRED_BASE_URL",
     "bls_api_key": "BLS_API_KEY",
     "eia_api_key": "EIA_API_KEY",
+    "bea_api_key": "BEA_API_KEY",
+    "census_api_key": "CENSUS_API_KEY",
+    "sec_user_agent": "SEC_USER_AGENT",
     "secret_scope": "FRED_SECRET_SCOPE",
     "secret_key": "FRED_SECRET_KEY",
     "request_timeout_seconds": "FRED_REQUEST_TIMEOUT_SECONDS",
@@ -185,10 +191,14 @@ class PipelineConfig:
     environment: Environment = Environment.DEV
     fred_api_key: str = field(repr=False, default="")
     fred_base_url: str = "https://api.stlouisfed.org/fred"
-    # Optional keys for additional sources (see fred_pipeline.sources). BLS works
-    # keyless at a lower quota; EIA requires a key. Never logged.
+    # Optional keys for additional sources (see fred_pipeline.sources). BLS and
+    # Census work keyless at a lower quota; EIA and BEA require a key. SEC needs
+    # a descriptive User-Agent (contact), not a key. Keys are never logged.
     bls_api_key: str = field(repr=False, default="")
     eia_api_key: str = field(repr=False, default="")
+    bea_api_key: str = field(repr=False, default="")
+    census_api_key: str = field(repr=False, default="")
+    sec_user_agent: str = "fred-bronze-to-gold-pipeline (set SEC_USER_AGENT to your contact)"
     secret_scope: str = "fred"
     secret_key: str = "api_key"
     request_timeout_seconds: int = 30
@@ -277,7 +287,8 @@ class PipelineConfig:
         # config field name (e.g. secrets/<scope>/eia_api_key — matching
         # resources/source_jobs.yml). Optional: a missing secret leaves the key
         # empty; the source's client only raises if such a series is run.
-        for field_name in ("bls_api_key", "eia_api_key"):
+        for field_name in ("bls_api_key", "eia_api_key", "bea_api_key",
+                           "census_api_key"):
             if not settings.get(field_name) and dbutils is not None:
                 try:
                     settings[field_name] = dbutils.secrets.get(

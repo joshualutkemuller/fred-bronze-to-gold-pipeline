@@ -146,6 +146,11 @@ class HTTPSource:
         except Exception:
             return getattr(resp, "text", "<no body>")
 
+    def _request_headers(self) -> dict[str, str]:
+        """HTTP headers sent on every request (e.g. a required User-Agent).
+        Empty by default; override per source."""
+        return {}
+
     # ---- transport ------------------------------------------------------
 
     def _request(
@@ -187,9 +192,14 @@ class HTTPSource:
         )
 
     def _send(self, url: str, query: dict[str, Any], method: str) -> Any:
+        headers = self._request_headers() or None
         if method == "GET":
-            return self._session.get(url, params=query, timeout=self.timeout)
-        return self._session.post(url, json=query, timeout=self.timeout)
+            return self._session.get(
+                url, params=query, timeout=self.timeout, headers=headers
+            )
+        return self._session.post(
+            url, json=query, timeout=self.timeout, headers=headers
+        )
 
     def _backoff(self, attempt: int) -> None:
         # Exponential backoff with full jitter, capped at 30s.
