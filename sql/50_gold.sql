@@ -138,6 +138,20 @@ JOIN gold.fred_latest_observation b ON b.series_id = s.short_leg AND b.is_missin
                                    AND b.observation_date = a.observation_date
                                    AND (s.op <> 'ratio' OR b.value <> 0);
 
+-- Frequency-aware, N-leg cross-series features (config/cross_series.yml). Unlike
+-- fred_curve_spread (same-frequency, 2-leg, above), these align each leg as-of to
+-- a target frequency and support composites, so they are computed by the shared
+-- Python engine (fred_pipeline.features.compute_cross_series_features) and written
+-- by fred_pipeline.gold._build_cross_series — both backends reuse that one
+-- function. This DDL just provisions the table shape; the build overwrites it.
+CREATE TABLE IF NOT EXISTS gold.fred_cross_series_feature (
+    feature_name     STRING,
+    op               STRING,
+    observation_date DATE,
+    value            DOUBLE
+)
+USING DELTA;
+
 -- Revision magnitude: how much each observation moved between its first
 -- print and today. Reads raw Silver (every vintage), not gold.fred_latest_
 -- observation, since it exists to measure revision behavior itself.

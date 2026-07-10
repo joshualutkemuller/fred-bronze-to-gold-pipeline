@@ -251,6 +251,54 @@ def point_in_time_features_sql(config: PipelineConfig, as_of: str) -> str:
     """
 
 
+def _build_cross_series(config: PipelineConfig, spark: Any) -> None:
+    """Build ``gold.fred_cross_series_feature`` on Spark by reusing the pure-Python
+    reference (:func:`fred_pipeline.features.compute_cross_series_features`).
+
+    Cross-series features involve only the handful of leg series named in
+    ``config/cross_series.yml``, so we read just those from the (already-built)
+    latest-observation table, collect them, compute in Python — guaranteeing
+    parity with the local backend — and overwrite the table.
+    """
+    from pyspark.sql.types import (
+        DoubleType, StringType, StructField, StructType,
+    )
+
+    from fred_pipeline.cross_series_config import load_cross_series_defs
+    from fred_pipeline.features import compute_cross_series_features
+
+    gold = config.table("gold", "fred_cross_series_feature")
+    defs = load_cross_series_defs()
+    leg_ids = sorted({sid for d in defs for (sid, _w) in d.legs})
+
+    feats: list[dict[str, Any]] = []
+    if leg_ids:
+        latest = config.table("gold", "fred_latest_observation")
+        in_list = ", ".join("'" + s.replace("'", "''") + "'" for s in leg_ids)
+        df = spark.sql(
+            f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
+            f"value, is_missing FROM {latest} WHERE series_id IN ({in_list})"
+        )
+        rows = [r.asDict() for r in df.collect()]
+        feats = compute_cross_series_features(rows, defs)
+
+    # Explicit schema so the empty case still creates a well-typed table.
+    schema = StructType([
+        StructField("feature_name", StringType()),
+        StructField("op", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("value", DoubleType()),
+    ])
+    out = spark.createDataFrame(feats, schema=schema).selectExpr(
+        "feature_name", "op",
+        "CAST(observation_date AS DATE) AS observation_date",
+        "CAST(value AS DOUBLE) AS value",
+    )
+    out.write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(gold)
+
+
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
     spark = get_spark(spark)
@@ -266,4 +314,8 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     for name, sql in steps.items():
         spark.sql(sql)
         results[name] = "ok"
+    # Cross-series features are computed in Python (reused by both backends) and
+    # written after latest_observation exists.
+    _build_cross_series(config, spark)
+    results["fred_cross_series_feature"] = "ok"
     return results

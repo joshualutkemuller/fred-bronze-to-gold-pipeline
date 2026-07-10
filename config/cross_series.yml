@@ -1,0 +1,44 @@
+# Frequency-aware, N-leg cross-series features -> gold.fred_cross_series_feature.
+#
+# Each feature declares a target `frequency` (d/w/m/q/a); every leg is aligned
+# as-of to that grid (the last observation within each period) before combining:
+#   op: spread    -> leg0 - leg1        (exactly 2 legs)
+#   op: ratio     -> leg0 / leg1        (exactly 2 legs; denominator != 0)
+#   op: composite -> sum(weight_i * leg_i)   (1+ legs; weight defaults to 1.0)
+#
+# Legs may be a bare series_id (weight 1.0) or {series_id, weight}. A feature is
+# emitted for a period only when every leg has an aligned value. If a leg's
+# series isn't active/loaded, that feature simply produces no rows.
+#
+# This complements config/spreads.yml (which is same-frequency, 2-leg only).
+# Review economic meaning before adding, like the manifests and spreads config.
+
+features:
+  # Real 10y yield: nominal 10y Treasury minus 10y breakeven inflation (both
+  # daily FRED series) — same-frequency spread, shown here for reference.
+  - name: real_yield_10y
+    op: spread
+    frequency: d
+    legs: [DGS10, T10YIE]
+    description: 10-year nominal Treasury yield minus 10-year breakeven inflation.
+
+  # Cross-SOURCE, cross-FREQUENCY: daily Treasury debt ÷ quarterly BEA nominal
+  # GDP, aligned to quarterly (last debt print in the quarter over that quarter's
+  # GDP). Requires the treasury + bea demo manifests to be active.
+  - name: debt_to_gdp
+    op: ratio
+    frequency: q
+    legs:
+      - series_id: "v2/accounting/od/debt_to_penny:tot_pub_debt_out_amt"
+      - series_id: "NIPA:T10105:1:Q"
+    description: Total public debt (Treasury) over nominal GDP (BEA), quarterly.
+
+  # Weighted composite activity gauge from monthly FRED indicators, aligned to
+  # monthly. Weights are illustrative — sign off before using in research.
+  - name: macro_activity_index
+    op: composite
+    frequency: m
+    legs:
+      - {series_id: INDPRO, weight: 0.5}
+      - {series_id: PAYEMS, weight: 0.5}
+    description: Illustrative 0.5/0.5 composite of industrial production and payrolls.

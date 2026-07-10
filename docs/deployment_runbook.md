@@ -187,9 +187,11 @@ per-series manifest fields under `manifests/` (validated by
 | `priority`, `*_owner`, `downstream_use_case` | governance metadata | ownership + lineage |
 
 ### Q3. Derived features
-- [ ] `config/spreads.yml`: which spread/ratio pairs beyond the original 4
-      Treasury curve pairs (e.g. real yields = nominal − breakeven, credit
-      spreads, PCE−CPI)? Mechanism is built; **pairs are a quant call.**
+- [ ] `config/spreads.yml`: which same-frequency 2-leg spread/ratio pairs beyond
+      the original Treasury curve set (e.g. credit spreads, PCE−CPI)?
+- [ ] `config/cross_series.yml`: which **cross-frequency / cross-source /
+      composite** features (e.g. debt-to-GDP, weighted activity indices), and
+      their weights? Mechanism is built; **the feature set is a quant call.**
 
 ### Q4. Sign-off
 - [ ] Approve DQ rules / validation profiles
@@ -228,8 +230,8 @@ Run after the first ingestion in an environment:
 - [ ] Gold tables built: `gold.fred_latest_observation`,
       `gold.fred_point_in_time`, `gold.fred_macro_feature_daily`,
       `gold.fred_feature_transforms`, `gold.fred_curve_spread`,
-      `gold.fred_revision_stats`; views `gold.v_latest_revised` /
-      `gold.v_point_in_time` resolve.
+      `gold.fred_cross_series_feature`, `gold.fred_revision_stats`; views
+      `gold.v_latest_revised` / `gold.v_point_in_time` resolve.
 - [ ] Metadata governance: run `reconcile` (FRED series only) and review
       `meta.fred_series_drift` / `meta.fred_series_lifecycle`.
 - [ ] A failure alert fires (test the webhook / email path).

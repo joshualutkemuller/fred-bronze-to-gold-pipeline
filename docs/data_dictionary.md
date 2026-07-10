@@ -158,6 +158,18 @@ only emitted when both legs have a non-missing value (and, for a ratio, the
 short leg is nonzero). Columns: `spread_name`, `observation_date`,
 `long_leg`, `short_leg`, `value`.
 
+### `gold.fred_cross_series_feature`
+**Frequency-aware, N-leg** cross-series features, **defined in
+`config/cross_series.yml`** (see `fred_pipeline.cross_series_config`). Unlike
+`fred_curve_spread` (same-frequency, 2-leg), each leg is aligned **as-of** to the
+feature's target `frequency` (the last observation within each period), so legs
+of different cadence and different **sources** can be combined — e.g. daily
+Treasury debt ÷ quarterly BEA GDP. Ops: `spread` (a−b), `ratio` (a/b, guarded),
+`composite` (Σ weightᵢ·legᵢ). A period is emitted only when every leg has an
+aligned value. Both backends compute it via the one shared Python engine
+(`fred_pipeline.features.compute_cross_series_features`). Columns: `feature_name`,
+`op`, `observation_date`, `value`.
+
 ### `gold.fred_revision_stats`
 How much each observation moved between its first print and today. Reads raw
 Silver (every vintage), not latest-revision rows — it exists to measure

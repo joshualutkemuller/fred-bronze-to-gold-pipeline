@@ -124,6 +124,9 @@ CREATE TABLE IF NOT EXISTS gold_fred_feature_transforms (
 CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
     spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT, value REAL
 );
+CREATE TABLE IF NOT EXISTS gold_fred_cross_series_feature (
+    feature_name TEXT, op TEXT, observation_date TEXT, value REAL
+);
 CREATE TABLE IF NOT EXISTS gold_fred_revision_stats (
     series_id TEXT, observation_date TEXT, revision_count INTEGER,
     first_value REAL, first_realtime_start TEXT,
@@ -404,6 +407,13 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_fred_curve_spread")
         insert("gold_fred_curve_spread", build_spreads(latest))
 
+        # cross-series features (frequency-aware, N-leg): a small output, so use
+        # the pure-Python reference directly (same function the Spark path reuses).
+        from fred_pipeline.features import compute_cross_series_features
+        self.conn.execute("DELETE FROM gold_fred_cross_series_feature")
+        self._insert("gold_fred_cross_series_feature",
+                     compute_cross_series_features(latest))
+
         # revision stats read raw Silver (every vintage), not latest-revision
         # rows — they exist to measure how much observations get revised.
         self.conn.execute("DELETE FROM gold_fred_revision_stats")
@@ -413,7 +423,7 @@ class LocalWarehouse:
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
             "fred_macro_feature_daily", "fred_feature_transforms",
-            "fred_curve_spread", "fred_revision_stats",
+            "fred_curve_spread", "fred_cross_series_feature", "fred_revision_stats",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

@@ -127,6 +127,7 @@ fred-databricks-etl/
 -   gold.fred_macro_feature_daily
 -   gold.fred_feature_transforms
 -   gold.fred_curve_spread
+-   gold.fred_cross_series_feature
 -   gold.fred_revision_stats
 
 ------------------------------------------------------------------------
@@ -332,6 +333,26 @@ no Python or SQL changes needed for the Python-driven backends (local SQLite
 and Databricks/Spark). **Still needs quant sign-off on which new pairs to
 add** — the mechanism is built, but no new pairs beyond the original 4 have
 been added, since that's a domain judgment call, not an engineering one.
+
+## 4. Frequency-aware, N-leg cross-series features
+
+**Status: implemented** (`config/cross_series.yml` +
+`fred_pipeline.cross_series_config`; engine
+`fred_pipeline.features.compute_cross_series_features`, reused by both backends;
+new table `gold.fred_cross_series_feature`).
+
+`fred_curve_spread` (item 3) only combines **same-frequency, 2-leg** series on a
+shared date grid. With the multi-source universe (daily Treasury, quarterly BEA,
+annual World Bank, monthly Census…), useful features cross both **frequency** and
+**source**. This adds an as-of alignment step — each leg is downsampled to a
+target `frequency` (the last observation within each period) — plus **N-leg**
+combinations: `spread` (a−b), `ratio` (a/b), and `composite` (Σ weightᵢ·legᵢ).
+Ships three illustrative examples (real 10y yield; debt-to-GDP across
+Treasury÷BEA; a monthly activity composite). **Same governance note as item 3**:
+the mechanism is built; which features to compute (and their weights) is a quant
+sign-off. **Still open** (recommended next): a point-in-time variant that aligns
+on `realtime_start` for leak-free modeling inputs, and two governance Gold views
+(cross-source reconciliation; coverage/freshness).
 
 ------------------------------------------------------------------------
 

@@ -352,3 +352,34 @@ def compute_revision_stats_pl(silver_rows: Iterable[dict[str, Any]]) -> list[dic
     """Dict-returning spec surface — see module docstring. Prefer
     :func:`compute_revision_stats_frame` + direct DataFrame insert for bulk loads."""
     return compute_revision_stats_frame(silver_rows).to_dicts()
+
+
+def compute_cross_series_features_frame(
+    latest_rows: Iterable[dict[str, Any]],
+    defs: Optional[Iterable[Any]] = None,
+) -> pl.DataFrame:
+    """Polars-frame surface for cross-series features.
+
+    The computation is inherently small (a few features over a few legs), so this
+    delegates to the pure-Python reference
+    (:func:`fred_pipeline.features.compute_cross_series_features`) and wraps the
+    result — guaranteeing parity by construction — then returns a DataFrame for
+    the fast ``_insert_frame`` path. Columns: ``(feature_name, op,
+    observation_date, value)``.
+    """
+    from fred_pipeline.features import compute_cross_series_features
+
+    schema = {"feature_name": pl.Utf8, "op": pl.Utf8, "observation_date": pl.Utf8,
+              "value": pl.Float64}
+    rows = compute_cross_series_features(latest_rows, defs)
+    if not rows:
+        return pl.DataFrame(schema=schema)
+    return pl.DataFrame(rows, schema=schema)
+
+
+def compute_cross_series_features_pl(
+    latest_rows: Iterable[dict[str, Any]],
+    defs: Optional[Iterable[Any]] = None,
+) -> list[dict[str, Any]]:
+    """Dict-returning surface (parity with the pure-Python reference)."""
+    return compute_cross_series_features_frame(latest_rows, defs).to_dicts()

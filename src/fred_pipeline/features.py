@@ -21,6 +21,7 @@ from bisect import bisect_right
 from datetime import date, datetime, timedelta
 from typing import Any, Iterable, Optional
 
+from fred_pipeline.cross_series_config import CrossSeriesDef, load_cross_series_defs
 from fred_pipeline.spread_config import SpreadDef, load_spread_defs
 
 # How far back a "year ago" match may be before YoY is left null (daily series
@@ -161,6 +162,84 @@ def compute_curve_spreads(
                 "value": value,
             })
     return out
+
+
+# ---- cross-series features (frequency-aware, N-leg) ------------------------
+
+def _period_start(d: date, freq: str) -> str:
+    """Canonical ISO period-start date for ``d`` at target ``freq``."""
+    if freq == "w":
+        iso = d.isocalendar()
+        return date.fromisocalendar(iso[0], iso[1], 1).isoformat()
+    if freq == "m":
+        return date(d.year, d.month, 1).isoformat()
+    if freq == "q":
+        return date(d.year, ((d.month - 1) // 3) * 3 + 1, 1).isoformat()
+    if freq == "a":
+        return date(d.year, 1, 1).isoformat()
+    return d.isoformat()  # daily (or unknown) -> the date itself
+
+
+def _downsample_asof(series: list[tuple[date, float]], freq: str) -> dict[str, float]:
+    """Align a date-sorted series to ``freq``: the last observation within each
+    period, keyed by the period-start ISO date (as-of downsampling)."""
+    out: dict[str, float] = {}
+    for d, v in series:  # ascending → the latest date in each period wins
+        out[_period_start(d, freq)] = v
+    return out
+
+
+def compute_cross_series_features(
+    latest_rows: Iterable[dict[str, Any]],
+    defs: Optional[Iterable[CrossSeriesDef]] = None,
+) -> list[dict[str, Any]]:
+    """Compute frequency-aware, N-leg cross-series features per ``defs``.
+
+    ``defs`` defaults to ``config/cross_series.yml`` (see
+    :func:`fred_pipeline.cross_series_config.load_cross_series_defs`). Each leg is
+    aligned as-of to the feature's target frequency, then combined by ``op``
+    (``spread`` = a−b, ``ratio`` = a/b, ``composite`` = Σ wᵢ·legᵢ). A period is
+    emitted only when *every* leg has an aligned value (ratio also requires a
+    nonzero denominator). Returns rows
+    ``(feature_name, op, observation_date, value)``.
+    """
+    if defs is None:
+        defs = load_cross_series_defs()
+    by_series = _group_sorted(latest_rows)
+
+    out: list[dict[str, Any]] = []
+    for cd in defs:
+        aligned: Optional[list[tuple[float, dict[str, float]]]] = []
+        for sid, weight in cd.legs:
+            s = by_series.get(sid)
+            if not s:
+                aligned = None  # a missing leg → the whole feature is undefined
+                break
+            aligned.append((weight, _downsample_asof(s, cd.frequency)))
+        if not aligned:
+            continue
+
+        common = set(aligned[0][1])
+        for _w, m in aligned[1:]:
+            common &= set(m)
+
+        for period in sorted(common):
+            vals = [m[period] for _w, m in aligned]
+            if cd.op == "spread":
+                value = vals[0] - vals[1]
+            elif cd.op == "ratio":
+                if vals[1] == 0:
+                    continue
+                value = vals[0] / vals[1]
+            else:  # composite: weighted sum
+                value = sum(w * v for (w, _m), v in zip(aligned, vals))
+            out.append({
+                "feature_name": cd.name,
+                "op": cd.op,
+                "observation_date": period,
+                "value": value,
+            })
+    return sorted(out, key=lambda r: (r["feature_name"], r["observation_date"]))
 
 
 def compute_revision_stats(silver_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
