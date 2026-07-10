@@ -33,7 +33,7 @@ Use Databricks as the long-term home:
 # High-Level Architecture
 
 ``` text
-Source APIs (FRED · BLS · EIA)
+Source APIs (FRED · BLS · EIA · Treasury · World Bank)
     ↓
 Python Ingestion Package (pluggable source clients)
     ↓
@@ -353,6 +353,10 @@ source-agnostic.
     works at a lower quota). Demo manifest `manifests/bls_labor.yml` (inactive).
 -   **EIA** (Energy Information Administration) — `source: eia`. Key required.
     Demo manifest `manifests/eia_energy.yml` (inactive).
+-   **US Treasury** (Fiscal Data) — `source: treasury`. **Keyless.** series_id
+    encodes `<dataset_path>:<field>`. Demo `manifests/treasury_fiscal.yml`.
+-   **World Bank** (Indicators) — `source: worldbank`. **Keyless.** series_id
+    encodes `<country>:<indicator>`. Demo `manifests/worldbank_global.yml`.
 
 ## How it works
 

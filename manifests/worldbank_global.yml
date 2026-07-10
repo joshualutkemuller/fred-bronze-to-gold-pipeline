@@ -1,0 +1,40 @@
+name: worldbank_global
+description: >
+  Demonstration manifest for the World Bank Indicators API (source: worldbank),
+  flowing through the same Bronze → Silver → Gold path as FRED/BLS/EIA. Keyless.
+  series_id encodes '<country>:<indicator>' (ISO3 country, WDI indicator code).
+  Shipped inactive (active: false); set active: true to enable (no key required).
+version: 1
+
+series:
+  - series_id: "USA:NY.GDP.MKTP.CD"
+    title: GDP, current US$ (United States)
+    category: international
+    frequency: a
+    units: Current US Dollars
+    active: false
+    source: worldbank
+    load_type: incremental
+    expected_update_frequency: annual
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: cross_country_macro
+    priority: 3
+    min_value: 0
+    tags: [international, gdp, worldbank]
+
+  - series_id: "WLD:SP.POP.TOTL"
+    title: Population, total (World)
+    category: international
+    frequency: a
+    units: Persons
+    active: false
+    source: worldbank
+    load_type: incremental
+    expected_update_frequency: annual
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: cross_country_macro
+    priority: 3
+    min_value: 0
+    tags: [international, population, worldbank]

@@ -52,6 +52,20 @@ def _normalize_for_source(
             series_id, payload, run_id=run_id, ingested_at=ingested_at,
             source=source,
         )
+    if source == "treasury":
+        from fred_pipeline.sources.treasury import normalize_treasury_observations
+
+        return normalize_treasury_observations(
+            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            source=source,
+        )
+    if source == "worldbank":
+        from fred_pipeline.sources.worldbank import normalize_worldbank_observations
+
+        return normalize_worldbank_observations(
+            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            source=source,
+        )
     # default: FRED (and any unknown source, which stays FRED-shaped)
     return normalize_observations(
         series_id, payload, run_id=run_id, ingested_at=ingested_at,
