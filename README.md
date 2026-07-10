@@ -16,7 +16,9 @@ Census, and SEC (company financials) — see [Data sources](#data-sources).
 > [`docs/architecture.md`](./docs/architecture.md); every table/column is in
 > [`docs/data_dictionary.md`](./docs/data_dictionary.md); the data-quality
 > rules and where to review/change them are in
-> [`docs/validation.md`](./docs/validation.md).
+> [`docs/validation.md`](./docs/validation.md). A dataset-agnostic, reusable
+> build spec (usable as a prompt for standing up a *new* ETL like this one) is in
+> [`docs/etl_build_spec.md`](./docs/etl_build_spec.md).
 
 ## What it does
 
