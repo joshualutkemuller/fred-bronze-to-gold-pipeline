@@ -228,13 +228,19 @@ def daily_feature_matrix(latest_rows: Iterable[dict[str, Any]]) -> list[dict[str
     return out
 
 
-def payload_summary(payload: dict[str, Any]) -> dict[str, Any]:
-    """Extract lightweight metadata about a payload for Bronze/audit rows."""
-    obs = payload.get("observations") or []
+def payload_summary(payload: Any) -> dict[str, Any]:
+    """Extract lightweight metadata about a payload for Bronze/audit rows.
+
+    Tolerant of non-dict payloads (e.g. World Bank returns a top-level JSON
+    array): only ``payload_bytes`` is meaningful then, and the pipeline supplies
+    an accurate ``observation_count`` from the normalized rows.
+    """
+    d = payload if isinstance(payload, dict) else {}
+    obs = d.get("observations") or []
     return {
         "observation_count": len(obs),
-        "response_realtime_start": payload.get("realtime_start"),
-        "response_realtime_end": payload.get("realtime_end"),
-        "response_count": payload.get("count"),
+        "response_realtime_start": d.get("realtime_start"),
+        "response_realtime_end": d.get("realtime_end"),
+        "response_count": d.get("count"),
         "payload_bytes": len(json.dumps(payload)),
     }

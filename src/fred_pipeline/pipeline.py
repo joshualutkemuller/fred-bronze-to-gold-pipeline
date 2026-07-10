@@ -24,6 +24,8 @@ from fred_pipeline.sources.base import SourceClient
 from fred_pipeline.sources.bls import BLSClient
 from fred_pipeline.sources.eia import EIAClient
 from fred_pipeline.sources.fred import FredClient
+from fred_pipeline.sources.treasury import TreasuryClient
+from fred_pipeline.sources.worldbank import WorldBankClient
 from fred_pipeline.transform import assign_revision_numbers, normalize_observations
 from fred_pipeline.warehouse import SparkWarehouse, Warehouse
 
@@ -62,12 +64,28 @@ def _make_eia(config: PipelineConfig) -> SourceClient:
     )
 
 
+def _make_treasury(config: PipelineConfig) -> SourceClient:
+    return TreasuryClient(
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
+def _make_worldbank(config: PipelineConfig) -> SourceClient:
+    return WorldBankClient(
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
 # Registry of source name -> client factory. Adding a source is one entry here
 # plus its client module under fred_pipeline.sources.
 SOURCE_FACTORIES = {
     "fred": _make_fred,
     "bls": _make_bls,
     "eia": _make_eia,
+    "treasury": _make_treasury,
+    "worldbank": _make_worldbank,
 }
 
 # Sources that require an API key to call, mapped to the PipelineConfig

@@ -1,0 +1,41 @@
+name: treasury_fiscal
+description: >
+  Demonstration manifest for the US Treasury Fiscal Data API (source: treasury),
+  flowing through the same Bronze → Silver → Gold path as FRED/BLS/EIA. Keyless.
+  series_id encodes '<dataset_path>:<field>'. Shipped inactive (active: false);
+  set active: true to enable (no API key required).
+version: 1
+
+series:
+  - series_id: "v2/accounting/od/debt_to_penny:tot_pub_debt_out_amt"
+    title: Total Public Debt Outstanding (Debt to the Penny)
+    category: fiscal
+    frequency: d
+    units: US Dollars
+    active: false
+    source: treasury
+    load_type: incremental
+    expected_update_frequency: business_daily
+    # Reported figures are not revised as ALFRED-style vintages.
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: fiscal_monitoring
+    priority: 2
+    min_value: 0
+    tags: [fiscal, debt, treasury]
+
+  - series_id: "v2/accounting/od/debt_to_penny:debt_held_public_amt"
+    title: Debt Held by the Public (Debt to the Penny)
+    category: fiscal
+    frequency: d
+    units: US Dollars
+    active: false
+    source: treasury
+    load_type: incremental
+    expected_update_frequency: business_daily
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: fiscal_monitoring
+    priority: 3
+    min_value: 0
+    tags: [fiscal, debt, treasury]

@@ -7,22 +7,24 @@ silver row schema and never inspect where a row came from. Adding a new source
 (BLS, EIA, ECB, ...) means implementing one small contract, not forking the
 pipeline.
 
-FRED has been refactored onto the shared transport, and **BLS** and **EIA** are
-wired through the orchestrator end-to-end as second and third,
-differently-shaped sources. See `src/fred_pipeline/sources/` and the tests
-`tests/test_sources_base.py` / `tests/test_bls_client.py` /
-`tests/test_eia_client.py` (each runs its source through `FredPipeline` and
-asserts series are dispatched to the right client).
+FRED has been refactored onto the shared transport, and **BLS**, **EIA**,
+**US Treasury**, and **World Bank** are wired through the orchestrator
+end-to-end as additional, differently-shaped sources. See
+`src/fred_pipeline/sources/` and each source's `tests/test_*_client.py` (each
+runs its source through `FredPipeline` and asserts series are dispatched to the
+right client). Treasury and World Bank are keyless.
 
 ## The layout
 
 ```
 src/fred_pipeline/sources/
-  base.py   # HTTPSource (rate limit + retry/backoff + _request) and the
-            # SourceClient protocol — shared by every source
-  fred.py   # FredClient: auth, vintage-cap recovery, vintage batching, discovery
-  bls.py    # BLSClient: HTTP 200-on-failure, nested year/period payload
-  eia.py    # EIAClient: v2 seriesid route, error-field body, period strings
+  base.py       # HTTPSource (rate limit + retry/backoff + _request) and the
+                # SourceClient protocol — shared by every source
+  fred.py       # FredClient: auth, vintage-cap recovery, vintage batching, discovery
+  bls.py        # BLSClient: HTTP 200-on-failure, nested year/period payload
+  eia.py        # EIAClient: v2 seriesid route, error-field body, period strings
+  treasury.py   # TreasuryClient: keyless Fiscal Data, dataset:field series ids, paging
+  worldbank.py  # WorldBankClient: keyless, top-level [meta,data] array, 200-on-error
 ```
 
 `fred_pipeline.fred_client` remains as a thin back-compat shim re-exporting
@@ -84,7 +86,8 @@ The following are implemented — a series declaring `source: bls` flows through
    existing manifest valid; a BLS series sets `source: bls`. See the shipped
    demo `manifests/bls_labor.yml` (inactive by default).
 2. **Client selection.** `pipeline.SOURCE_FACTORIES` maps `source` → a client
-   factory (`{"fred": …, "bls": …, "eia": …}`). `FredPipeline._client_for(spec)`
+   factory (`{"fred", "bls", "eia", "treasury", "worldbank"}`).
+   `FredPipeline._client_for(spec)`
    resolves and caches the right client per series; unknown sources fail that
    one series (per-series isolation) rather than the run. Clients can also be
    injected via the `clients=` constructor arg (used in tests).

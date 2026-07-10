@@ -229,12 +229,13 @@ SOFR, breakevens) it's a cheap no-op — one vintage per date.
 
 ### 3. Add a series from another source
 
-Series aren't limited to FRED. A manifest entry can set `source: bls` or
-`source: eia` and it flows through the same Bronze/Silver/Gold path — each row
-is tagged with its `source` in the natural key. See the inactive demos
-`manifests/bls_labor.yml` / `manifests/eia_energy.yml`, and
-[`docs/adding_a_source.md`](docs/adding_a_source.md) for how to add a new source
-(one client module + one registry entry).
+Series aren't limited to FRED. A manifest entry can set `source:` to `bls`,
+`eia`, `treasury`, or `worldbank` (Treasury and World Bank are keyless) and it
+flows through the same Bronze/Silver/Gold path — each row is tagged with its
+`source` in the natural key. See the inactive demos under `manifests/`
+(`bls_labor.yml`, `eia_energy.yml`, `treasury_fiscal.yml`,
+`worldbank_global.yml`), and [`docs/adding_a_source.md`](docs/adding_a_source.md)
+for how to add a new source (one client module + one registry entry).
 
 ## Metadata governance (drift + lifecycle)
 

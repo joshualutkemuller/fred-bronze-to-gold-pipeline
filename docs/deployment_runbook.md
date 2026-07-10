@@ -68,6 +68,8 @@ Clusters must be allowed to reach the source APIs. Confirm outbound HTTPS to:
 | FRED | `api.stlouisfed.org` | always |
 | BLS | `api.bls.gov` | a `source: bls` series is active |
 | EIA | `api.eia.gov` | a `source: eia` series is active |
+| US Treasury | `api.fiscaldata.treasury.gov` | a `source: treasury` series is active |
+| World Bank | `api.worldbank.org` | a `source: worldbank` series is active |
 
 - [ ] Egress confirmed for the sources you will run
 
@@ -153,9 +155,10 @@ per-series manifest fields under `manifests/` (validated by
 
 ### Q1. Source activation
 - [ ] Which of the ~2,300 FRED series stay `active: true`?
-- [ ] Activate the BLS demo (`manifests/bls_labor.yml`) and/or EIA demo
-      (`manifests/eia_energy.yml`)? Each is `active: false` today. Activating EIA
-      **requires** an EIA key (A3).
+- [ ] Activate any of the inactive demo manifests? `bls_labor.yml`,
+      `eia_energy.yml`, `treasury_fiscal.yml`, `worldbank_global.yml` are all
+      `active: false` today. EIA **requires** a key (A3); **Treasury and World
+      Bank are keyless**; BLS is keyless-optional.
 - [ ] **Verify the demo series IDs live** once keys exist (blocked in the build
       env by egress). Quick check: `python -m fred_pipeline run --dry-run
       --manifests manifests/eia_energy.yml` after setting `active: true`.
