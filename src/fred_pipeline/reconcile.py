@@ -182,6 +182,10 @@ def reconcile(
     if series_ids:
         wanted = set(series_ids)
         specs = [s for s in specs if s.series_id in wanted]
+    # Reconciliation diffs against FRED's /series catalog, so it only applies to
+    # FRED-sourced series; a BLS/EIA id isn't in FRED and would be spuriously
+    # reported as not_found. (No cross-source metadata reconciler exists yet.)
+    specs = [s for s in specs if getattr(s, "source", "fred") == "fred"]
     report = ReconcileReport(series_checked=len(specs))
     for spec in specs:
         try:

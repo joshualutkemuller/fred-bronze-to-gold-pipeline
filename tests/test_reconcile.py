@@ -125,6 +125,20 @@ def test_reconcile_collects_drift_and_not_found():
     assert {"frequency_mismatch", "not_found"} <= kinds
 
 
+def test_reconcile_skips_non_fred_sources():
+    man = _manifest(
+        _spec("DGS10", frequency="d", units="Percent"),
+        _spec("CUUR0000SA0", frequency="m", source="bls"),
+    )
+    # The client only knows FRED metadata; reconciling the BLS series against
+    # FRED would spuriously flag it not_found. It must be skipped instead.
+    client = FakeMetaClient({"DGS10": _meta()})
+    report = reconcile([man], client, today=date(2024, 6, 1))
+
+    assert report.series_checked == 1      # only the FRED series is reconciled
+    assert report.not_found == []          # BLS series skipped, not flagged
+
+
 def test_persist_report_writes_meta_tables(tmp_path):
     cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k")
     man = _manifest(_spec("DGS10", frequency="d", units="Percent"))

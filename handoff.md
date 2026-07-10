@@ -33,9 +33,9 @@ Use Databricks as the long-term home:
 # High-Level Architecture
 
 ``` text
-FRED API
+Source APIs (FRED · BLS · EIA)
     ↓
-Python Ingestion Package
+Python Ingestion Package (pluggable source clients)
     ↓
 Unity Catalog Volume / Raw Archive
     ↓
@@ -84,6 +84,7 @@ fred-databricks-etl/
 # Core Design Principles
 
 -   Manifest-driven ingestion
+-   Pluggable multi-source ingestion (FRED, BLS, EIA, ...)
 -   Metadata-driven orchestration
 -   Delta MERGE for idempotent loads
 -   Raw payload retention
@@ -102,6 +103,8 @@ fred-databricks-etl/
 -   meta.fred_series
 -   meta.fred_manifest
 -   meta.fred_series_manifest_map
+-   meta.fred_series_lifecycle   (FRED metadata reconciliation)
+-   meta.fred_series_drift       (manifest-vs-source drift)
 
 ## Audit
 
@@ -111,17 +114,20 @@ fred-databricks-etl/
 
 ## Bronze
 
--   bronze.fred_api_response
+-   bronze.fred_api_response   (multi-source: carries a `source` column + the endpoint actually called)
 
 ## Silver
 
--   silver.fred_observation
+-   silver.fred_observation   (natural / MERGE key: source, series_id, observation_date, realtime_start)
 
 ## Gold
 
 -   gold.fred_latest_observation
 -   gold.fred_point_in_time
 -   gold.fred_macro_feature_daily
+-   gold.fred_feature_transforms
+-   gold.fred_curve_spread
+-   gold.fred_revision_stats
 
 ------------------------------------------------------------------------
 
@@ -130,7 +136,7 @@ fred-databricks-etl/
 1.  Validate Manifest
 2.  Initialize Run
 3.  Read Manifest
-4.  Extract FRED Data
+4.  Extract Source Data (FRED / BLS / EIA, per series `source`)
 5.  Write Bronze
 6.  Transform to Silver
 7.  Run Data Quality
@@ -150,6 +156,7 @@ Each manifest should define:
 -   frequency
 -   units
 -   active
+-   source            (upstream API: fred (default) / bls / eia)
 -   load_type
 -   expected_update_frequency
 -   vintage_enabled
@@ -163,17 +170,26 @@ Each manifest should define:
 
 # Point-in-Time Support
 
-Persist:
+Persisted per Silver observation (see `silver.fred_observation` /
+`transform.SILVER_COLUMNS`):
 
+-   source
+-   series_id
 -   observation_date
 -   realtime_start
 -   realtime_end
 -   value
--   first_seen_at
--   latest_seen_at
--   revision_number
+-   revision_number   (1..N per (series_id, observation_date), by realtime_start)
+-   is_missing
+-   ingested_at
 
-Maintain two analytical views:
+Vintage history is captured as the set of `realtime_start` rows per
+observation_date rather than separate `first_seen_at` / `latest_seen_at`
+columns: the earliest `realtime_start` is the first print and the latest is the
+current revision. `ingested_at` records when each row was loaded.
+
+Maintain two analytical views (implemented as `gold.v_latest_revised` /
+`gold.v_point_in_time`):
 
 -   latest_revised
 -   point_in_time
@@ -182,7 +198,8 @@ Maintain two analytical views:
 
 # Security
 
--   Store API keys in Databricks Secret Scopes
+-   Store API keys in Databricks Secret Scopes (fred_api_key, plus optional
+    bls_api_key / eia_api_key in the same scope)
 -   Never hardcode credentials
 -   Parameterize catalog/schema names
 -   Support Dev/Test/Prod deployments
@@ -318,7 +335,56 @@ been added, since that's a domain judgment call, not an engineering one.
 
 ------------------------------------------------------------------------
 
+# Multi-Source Ingestion
+
+**Status: implemented** (`src/fred_pipeline/sources/`,
+`pipeline.SOURCE_FACTORIES`; full guide in `docs/adding_a_source.md`).
+
+The pipeline began FRED-only, but the FRED-specific surface is small and
+isolated, so it was generalized to ingest additional public APIs through the
+*same* Bronze → Silver → DQ → Gold → audit path. A manifest series declares its
+upstream API with a `source:` field (default `fred`); everything downstream is
+source-agnostic.
+
+## Implemented sources
+
+-   **FRED** — refactored onto a shared HTTP transport; behavior unchanged.
+-   **BLS** (Bureau of Labor Statistics) — `source: bls`. Key optional (keyless
+    works at a lower quota). Demo manifest `manifests/bls_labor.yml` (inactive).
+-   **EIA** (Energy Information Administration) — `source: eia`. Key required.
+    Demo manifest `manifests/eia_energy.yml` (inactive).
+
+## How it works
+
+-   `sources/base.py::HTTPSource` holds the shared rate limiter, retry/backoff,
+    and request engine. The `SourceClient` protocol (`get_observations` +
+    `normalize`) is the entire surface the orchestrator depends on, so a new
+    source is **one client module plus one `SOURCE_FACTORIES` entry** — nothing
+    in Bronze/Silver/Gold moves.
+-   **`source` is part of the Silver natural key**:
+    `(source, series_id, observation_date, realtime_start)`. Bronze also records
+    `source` and the endpoint actually called, and the Bronze→Silver replay
+    re-derives each payload with the correct per-source normalizer.
+-   **Keys/secrets**: `bls_api_key` / `eia_api_key` config settings, `BLS_API_KEY`
+    / `EIA_API_KEY` env vars, or the same Databricks secret scope as FRED
+    (`secrets/<scope>/bls_api_key`, `.../eia_api_key`). The CLI and notebook
+    entrypoints require only the keys the *active* sources need.
+-   **Deployment**: run everything in one job, or one job per source
+    (`resources/source_jobs.yml` — paused `bls_ingestion` / `eia_ingestion`
+    templates scoped to their manifest files).
+
+## Still requires (not engineering)
+
+-   Quant sign-off on which non-FRED series to activate.
+-   A live check of the demo series IDs once API keys are configured (blocked in
+    the build environment by egress policy; IDs are structurally verified).
+
+------------------------------------------------------------------------
+
 # Engineering Handoff Checklist
+
+> Actionable, checkbox form with commands and per-item owners:
+> **`docs/deployment_runbook.md`** (workspace provisioning + quant/ops decisions).
 
 ## Quant
 
@@ -332,8 +398,8 @@ been added, since that's a domain judgment call, not an engineering one.
 -   Create Unity Catalog objects
 -   Configure Delta tables
 -   Configure workflows
--   Configure Asset Bundles
--   Configure secret scopes
+-   Configure Asset Bundles (incl. per-source jobs in resources/source_jobs.yml)
+-   Configure secret scopes (fred_api_key + optional bls_api_key / eia_api_key)
 
 ## Platform
 

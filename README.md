@@ -116,6 +116,9 @@ Databricks — so local results match production semantics.
 
 ## Deploy to Databricks
 
+> Full go-live checklist (provisioning steps + the quant/ops decisions, with
+> owners): [`docs/deployment_runbook.md`](docs/deployment_runbook.md).
+
 ```bash
 # One-time per environment: create catalog/schemas/tables and the secret scope
 #   (run each sql/*.sql file with {{catalog}} replaced by macro_dev/test/prod)
