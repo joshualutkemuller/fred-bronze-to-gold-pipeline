@@ -66,6 +66,27 @@ def _normalize_for_source(
             series_id, payload, run_id=run_id, ingested_at=ingested_at,
             source=source,
         )
+    if source == "bea":
+        from fred_pipeline.sources.bea import normalize_bea_observations
+
+        return normalize_bea_observations(
+            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            source=source,
+        )
+    if source == "census":
+        from fred_pipeline.sources.census import normalize_census_observations
+
+        return normalize_census_observations(
+            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            source=source,
+        )
+    if source == "sec":
+        from fred_pipeline.sources.sec import normalize_sec_observations
+
+        return normalize_sec_observations(
+            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            track_vintage=track_vintage, source=source,
+        )
     # default: FRED (and any unknown source, which stays FRED-shaped)
     return normalize_observations(
         series_id, payload, run_id=run_id, ingested_at=ingested_at,

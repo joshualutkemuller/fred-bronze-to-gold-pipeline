@@ -1,0 +1,42 @@
+name: sec_financials
+description: >
+  Demonstration manifest for SEC EDGAR company financials (source: sec), flowing
+  through the same Bronze → Silver → Gold path. Keyless, but set a descriptive
+  SEC_USER_AGENT (contact). series_id encodes '<CIK>:<taxonomy>/<tag>:<unit>'.
+  Uses instant (balance-sheet) concepts, which have no quarterly/YTD duration
+  ambiguity; each filing's 'filed' date becomes a vintage (vintage_enabled: true).
+  Shipped inactive (active: false). At scale, generate these with
+  fred_pipeline.sources.sec.build_sec_manifest rather than by hand.
+version: 1
+
+series:
+  - series_id: "CIK0000320193:us-gaap/Assets:USD"
+    title: Apple Inc. — Total Assets
+    category: company_financials
+    frequency: q
+    units: US Dollars
+    active: false
+    source: sec
+    load_type: incremental
+    expected_update_frequency: quarterly
+    vintage_enabled: true
+    validation_profile: standard
+    downstream_use_case: fundamentals
+    priority: 3
+    min_value: 0
+    tags: [sec, fundamentals, balance_sheet]
+
+  - series_id: "CIK0000320193:us-gaap/StockholdersEquity:USD"
+    title: Apple Inc. — Stockholders Equity
+    category: company_financials
+    frequency: q
+    units: US Dollars
+    active: false
+    source: sec
+    load_type: incremental
+    expected_update_frequency: quarterly
+    vintage_enabled: true
+    validation_profile: standard
+    downstream_use_case: fundamentals
+    priority: 3
+    tags: [sec, fundamentals, balance_sheet]

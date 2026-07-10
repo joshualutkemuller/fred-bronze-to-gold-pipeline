@@ -1,0 +1,39 @@
+name: bea_national_accounts
+description: >
+  Demonstration manifest for the BEA API (source: bea), flowing through the same
+  Bronze → Silver → Gold path as the other sources. Requires a free BEA key
+  (UserID). series_id encodes '<dataset>:<table>:<line>:<frequency>'. Shipped
+  inactive (active: false); set active: true once a key is configured.
+version: 1
+
+series:
+  - series_id: "NIPA:T10101:1:Q"
+    title: Real GDP, Percent Change from Preceding Period (SAAR)
+    category: growth
+    frequency: q
+    units: Percent
+    active: false
+    source: bea
+    load_type: incremental
+    expected_update_frequency: quarterly
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: national_accounts
+    priority: 2
+    tags: [growth, gdp, bea]
+
+  - series_id: "NIPA:T10105:1:Q"
+    title: Gross Domestic Product (Current Dollars, Level)
+    category: growth
+    frequency: q
+    units: Billions of Dollars
+    active: false
+    source: bea
+    load_type: incremental
+    expected_update_frequency: quarterly
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: national_accounts
+    priority: 2
+    min_value: 0
+    tags: [growth, gdp, bea]

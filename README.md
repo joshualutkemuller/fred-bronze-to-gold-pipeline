@@ -181,6 +181,9 @@ environments:
 | FRED API key | `fred_api_key` | `FRED_API_KEY` | `--fred-api-key`* / secret scope |
 | BLS API key (optional) | `bls_api_key` | `BLS_API_KEY` | keyless works at a lower quota |
 | EIA API key | `eia_api_key` | `EIA_API_KEY` | required to activate `source: eia` series |
+| BEA API key | `bea_api_key` | `BEA_API_KEY` | required to activate `source: bea` series |
+| Census API key (optional) | `census_api_key` | `CENSUS_API_KEY` | keyless works at a lower quota |
+| SEC User-Agent | `sec_user_agent` | `SEC_USER_AGENT` | set to your contact; SEC 403s without a descriptive UA |
 | API base URL | `fred_base_url` | `FRED_BASE_URL` | |
 | Request timeout | `request_timeout_seconds` | `FRED_REQUEST_TIMEOUT_SECONDS` | |
 | Max retries | `max_retries` | `FRED_MAX_RETRIES` | |
@@ -230,12 +233,16 @@ SOFR, breakevens) it's a cheap no-op — one vintage per date.
 ### 3. Add a series from another source
 
 Series aren't limited to FRED. A manifest entry can set `source:` to `bls`,
-`eia`, `treasury`, or `worldbank` (Treasury and World Bank are keyless) and it
-flows through the same Bronze/Silver/Gold path — each row is tagged with its
-`source` in the natural key. See the inactive demos under `manifests/`
-(`bls_labor.yml`, `eia_energy.yml`, `treasury_fiscal.yml`,
-`worldbank_global.yml`), and [`docs/adding_a_source.md`](docs/adding_a_source.md)
-for how to add a new source (one client module + one registry entry).
+`eia`, `treasury`, `worldbank`, `bea`, `census`, or `sec` and it flows through
+the same Bronze/Silver/Gold path — each row is tagged with its `source` in the
+natural key. Treasury, World Bank, Census, and SEC are keyless (SEC needs a
+descriptive User-Agent); EIA and BEA require a key. **SEC** brings company
+financials (fundamentals from EDGAR XBRL) in as point-in-time series. See the
+inactive demos under `manifests/` (`*_labor.yml`, `eia_energy.yml`,
+`treasury_fiscal.yml`, `worldbank_global.yml`, `bea_national_accounts.yml`,
+`census_indicators.yml`, `sec_financials.yml`), and
+[`docs/adding_a_source.md`](docs/adding_a_source.md) for how to add a new source
+(one client module + one registry entry).
 
 ## Metadata governance (drift + lifecycle)
 

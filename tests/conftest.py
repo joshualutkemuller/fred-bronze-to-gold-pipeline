@@ -69,8 +69,10 @@ class FakeSession:
         self._responses = list(responses)
         self.calls: list[dict[str, Any]] = []
 
-    def get(self, url: str, params: dict[str, Any] | None = None, timeout: int | None = None):
-        self.calls.append({"url": url, "params": params, "timeout": timeout})
+    def get(self, url: str, params: dict[str, Any] | None = None,
+            timeout: int | None = None, headers: dict[str, Any] | None = None):
+        self.calls.append({"url": url, "params": params, "timeout": timeout,
+                           "headers": headers})
         if not self._responses:
             raise AssertionError("FakeSession ran out of queued responses")
         return self._responses.pop(0)

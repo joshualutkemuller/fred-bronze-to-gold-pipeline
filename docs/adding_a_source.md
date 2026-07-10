@@ -8,11 +8,21 @@ silver row schema and never inspect where a row came from. Adding a new source
 pipeline.
 
 FRED has been refactored onto the shared transport, and **BLS**, **EIA**,
-**US Treasury**, and **World Bank** are wired through the orchestrator
-end-to-end as additional, differently-shaped sources. See
-`src/fred_pipeline/sources/` and each source's `tests/test_*_client.py` (each
-runs its source through `FredPipeline` and asserts series are dispatched to the
-right client). Treasury and World Bank are keyless.
+**US Treasury**, **World Bank**, **BEA**, **Census**, and **SEC** (company
+financials) are wired through the orchestrator end-to-end as additional,
+differently-shaped sources. See `src/fred_pipeline/sources/` and each source's
+`tests/test_*_client.py` (each runs its source through `FredPipeline` and
+asserts series are dispatched to the right client). Treasury, World Bank,
+Census, and SEC are keyless (SEC needs a descriptive User-Agent); EIA and BEA
+require a key.
+
+SEC is the one that exercises the point-in-time machinery: each filing's `filed`
+date becomes `realtime_start`, so restatements/amendments land as genuine
+vintages. Its `build_sec_manifest` helper generates the (company × concept) grid
+programmatically — the seed of a manifest generator for the ~1,000-company
+universe. Standardizing heterogeneous XBRL tags into canonical statements (and
+disambiguating quarterly-vs-YTD duration facts) is the documented follow-on; the
+demo uses instant balance-sheet concepts, which have no duration ambiguity.
 
 ## The layout
 
@@ -25,6 +35,9 @@ src/fred_pipeline/sources/
   eia.py        # EIAClient: v2 seriesid route, error-field body, period strings
   treasury.py   # TreasuryClient: keyless Fiscal Data, dataset:field series ids, paging
   worldbank.py  # WorldBankClient: keyless, top-level [meta,data] array, 200-on-error
+  bea.py        # BEAClient: UserID auth, table:line series ids, Error-block on 200
+  census.py     # CensusClient: key-optional, 2-D array payload, predicate series ids
+  sec.py        # SECClient: keyless + User-Agent header, XBRL vintages (filed date)
 ```
 
 `fred_pipeline.fred_client` remains as a thin back-compat shim re-exporting
@@ -86,8 +99,8 @@ The following are implemented — a series declaring `source: bls` flows through
    existing manifest valid; a BLS series sets `source: bls`. See the shipped
    demo `manifests/bls_labor.yml` (inactive by default).
 2. **Client selection.** `pipeline.SOURCE_FACTORIES` maps `source` → a client
-   factory (`{"fred", "bls", "eia", "treasury", "worldbank"}`).
-   `FredPipeline._client_for(spec)`
+   factory (`{"fred", "bls", "eia", "treasury", "worldbank", "bea", "census",
+   "sec"}`). `FredPipeline._client_for(spec)`
    resolves and caches the right client per series; unknown sources fail that
    one series (per-series isolation) rather than the run. Clients can also be
    injected via the `clients=` constructor arg (used in tests).
