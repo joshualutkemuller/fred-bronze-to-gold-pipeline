@@ -1,9 +1,14 @@
 # fred-bronze-to-gold-pipeline
 
-A production-grade, **manifest-driven** FRED (Federal Reserve Economic Data)
+A production-grade, **manifest-driven**, **multi-source** economic-data
 ingestion pipeline that lands data in a **Bronze → Silver → Gold** medallion
 architecture on **Databricks + Delta Lake**. Built for quant research,
 dashboards, optimizer inputs, and **point-in-time** macro features.
+
+Started FRED-only; the source layer is now pluggable, so a series declares its
+upstream API (`source:` in the manifest) and flows through the same path.
+**Eight sources are wired**: FRED, BLS, EIA, US Treasury, World Bank, BEA,
+Census, and SEC (company financials) — see [Data sources](#data-sources).
 
 > 📄 The original product spec / engineering handoff lives in
 > [`handoff.md`](./handoff.md). This README is the practical guide to the
@@ -16,16 +21,20 @@ dashboards, optimizer inputs, and **point-in-time** macro features.
 ## What it does
 
 ```
-manifests/*.yml → source API (FRED / BLS / EIA) → Bronze (raw JSON)
+manifests/*.yml → source API (FRED / BLS / EIA / Treasury / World Bank /
+                              BEA / Census / SEC) → Bronze (raw JSON)
      → Silver (normalized, MERGE) → Data Quality
      → Gold (latest / point-in-time / daily feature matrix)
      → full audit trail (runs, series, DQ results)
 ```
 
-* **Manifest-driven** — the series universe and per-series policy (load type,
-  validation profile, vintage tracking, ownership) live in reviewable YAML.
+* **Manifest-driven** — the series universe and per-series policy (source, load
+  type, validation profile, vintage tracking, ownership) live in reviewable YAML.
+* **Multi-source** — a pluggable `SourceClient` layer; adding a source is one
+  client module + one registry entry. Bronze/Silver/Gold are source-agnostic.
 * **Idempotent** — Silver is a Delta `MERGE` on
-  `(series_id, observation_date, realtime_start)`; re-runs never duplicate.
+  `(source, series_id, observation_date, realtime_start)`; re-runs never
+  duplicate, and each row is tagged with its origin.
 * **Point-in-time** — vintage-enabled series retain every revision, enabling
   leak-free backtests ("what was known on date X").
 * **Auditable** — every run, series-run, and data-quality check is persisted.
@@ -39,15 +48,17 @@ manifests/*.yml → source API (FRED / BLS / EIA) → Bronze (raw JSON)
 ```
 fred-bronze-to-gold-pipeline/
 ├── config/               # config.example.yaml template (real config.yaml git-ignored)
-├── manifests/            # YAML series universe + JSON schema
+├── manifests/            # YAML series universe (per-domain + per-source) + JSON schema
 ├── src/fred_pipeline/    # the Python package (pure core + Spark I/O)
+│   └── sources/          # pluggable source clients (base + fred/bls/eia/…/sec)
 ├── sql/                  # Unity Catalog DDL (00..60, parameterized by {{catalog}})
-├── resources/            # Databricks Asset Bundle job definition
+├── resources/            # Databricks Asset Bundle jobs (main + per-source templates)
 ├── databricks.yml        # Asset Bundle (dev/test/prod targets)
 ├── notebooks/            # Databricks job entrypoint
 ├── .github/workflows/    # CI: unit matrix + Spark/Delta integration job
 ├── tests/                # pytest suite (Spark tests auto-skip if PySpark absent)
-└── docs/                 # architecture + data dictionary
+└── docs/                 # architecture, data dictionary, validation,
+                          #   adding_a_source, deployment_runbook, incremental_loading
 ```
 
 ## Quickstart (local)
@@ -144,8 +155,9 @@ arguments, or a Databricks secret scope. Precedence (highest wins):
 explicit CLI/arg  >  environment variable  >  config file  >  built-in default
 ```
 
-The FRED API key additionally falls back to a Databricks secret scope when not
-set by any of the above.
+API keys additionally fall back to a Databricks secret scope when not set by any
+of the above — `fred_api_key` from `secrets/<scope>/api_key`, and the other
+source keys from `secrets/<scope>/<field>` (e.g. `secrets/fred/eia_api_key`).
 
 ### Config file
 
@@ -197,11 +209,37 @@ environments:
 *The API key is passed programmatically (`PipelineConfig.resolve(fred_api_key=…)`);
 on the CLI, use the config file, `FRED_API_KEY`, or a Databricks secret scope.
 
+## Data sources
+
+A series' `source:` selects its upstream API and its client; every source lands
+in the same tables, tagged by `source` in the natural key. FRED is active by
+default; the other seven ship as **inactive demo manifests** (`active: false`)
+so a default run doesn't hit them until you opt in.
+
+| Source | `source:` | API key | Status | Demo manifest |
+|---|---|---|---|---|
+| FRED | `fred` | required | **active** (~2,300 series) | the domain manifests |
+| BLS | `bls` | optional (keyless) | demo | `bls_labor.yml` |
+| EIA | `eia` | **required** | demo | `eia_energy.yml` |
+| US Treasury | `treasury` | none | demo | `treasury_fiscal.yml` |
+| World Bank | `worldbank` | none | demo | `worldbank_global.yml` |
+| BEA | `bea` | **required** | demo | `bea_national_accounts.yml` |
+| Census | `census` | optional (keyless) | demo | `census_indicators.yml` |
+| SEC (company financials) | `sec` | none (User-Agent) | demo | `sec_financials.yml` |
+
+SEC is the one that exercises the point-in-time machinery — each filing's `filed`
+date becomes a vintage. To add a source, see
+[`docs/adding_a_source.md`](docs/adding_a_source.md); to take the demos to
+production (keys, egress, activation), see the decision register in
+[`docs/deployment_runbook.md`](docs/deployment_runbook.md).
+
 ## The series universe
 
-The four shipped manifests wire the **27 "Suggested Initial Series"** from the
-handoff (rates, inflation, labor, growth). This is a deliberate, reviewed seed
-set — not all of FRED (which has ~800k series). Grow it two ways:
+The FRED universe spans **~2,300 series** across the domain manifests (rates,
+inflation, labor, growth, money/banking, prices, production/housing,
+international, national accounts). It grew from the handoff's 27-series seed via
+**API-driven discovery** (below). It is a deliberate, reviewed set — not all of
+FRED (~800k series). Grow it three ways:
 
 ### 1. Add a series by hand
 
@@ -230,7 +268,7 @@ vintages to "latest revised" (the `gold.v_latest_revised` view), but you cannot
 recover vintages a run never captured. For never-revised market series (yields,
 SOFR, breakevens) it's a cheap no-op — one vintage per date.
 
-### 3. Add a series from another source
+### 2. Add a series from another source
 
 Series aren't limited to FRED. A manifest entry can set `source:` to `bls`,
 `eia`, `treasury`, `worldbank`, `bea`, `census`, or `sec` and it flows through
@@ -304,7 +342,7 @@ series. The effective strategy per series is recorded in
 > `restate_records` to each series' revision behavior, or schedule a periodic
 > full refresh for the deeply-revised ones.
 
-### 2. Discover series from the FRED API
+### 3. Discover series from the FRED API
 
 Generate a whole manifest from a FRED **category**, **release**, or **search**
 instead of hand-listing ids. The generator maps FRED metadata → validated specs
@@ -332,17 +370,36 @@ Find category/release ids on the FRED website (the id is in the page URL) or via
 the API. Review the generated YAML, set `vintage_enabled` / `validation_profile`
 where it matters, and commit it like any other manifest.
 
+## Open decisions (before non-FRED go-live)
+
+The code is complete; what's left is provisioning + domain calls, tracked as a
+checkboxed decision register in
+[`docs/deployment_runbook.md`](docs/deployment_runbook.md). In short:
+
+- **Which sources/series to activate** — the seven non-FRED demos are inactive;
+  turn on what you want (and, for SEC at scale, generate the manifest with
+  `fred_pipeline.sources.sec.build_sec_manifest`).
+- **Keys & secrets** — provision EIA/BEA keys and (optional) BLS/Census keys in
+  the secret scope; set `SEC_USER_AGENT`.
+- **Egress** — allow the source hosts the active sources need.
+- **Per-series data policy** — `vintage_enabled`, `validation_profile`, value
+  bounds, `restate_records`; plus any new `config/spreads.yml` pairs.
+- **Verify demo IDs live** — the demo series IDs (and Census predicate codes)
+  were built to the documented API shapes but not verified against the live APIs.
+- **Known follow-ons** — SEC statement standardization (canonical tags + duration
+  disambiguation); per-source metadata reconciliation (reconcile is FRED-only).
+
 ## Status
 
-Implemented and tested (117 unit tests + a Spark/Delta integration suite in CI).
-Ships the four seed manifests from the handoff (rates, inflation, labor, growth
-— 27 series); **API-driven discovery** to generate more from FRED
-categories/releases/search; **metadata governance** (drift + lifecycle
-reconciliation vs. live FRED); **incremental loads** (full-on-first-run, then
-restate last N); **replay-from-Bronze** rebuild; **run notifications**; richer
-**data quality** (freshness + value bounds); **quant Gold features** (MoM/YoY/
-diff/z-score, curve spreads, as-of-date point-in-time snapshots); a pluggable
-storage backend (**Databricks/Delta or local SQLite**); layered configuration
-(**YAML file / env vars / args / secret scope**); Unity Catalog DDL; the audit
-framework; a **GitHub Actions CI**; and the Databricks Asset Bundle. Designed to
-scale to hundreds of series while staying governed, auditable, and reusable.
+Implemented and tested (**246 unit tests + a Spark/Delta integration suite in
+CI**, green on the latest commit). Highlights: **eight pluggable sources**
+(FRED active; BLS/EIA/Treasury/World Bank/BEA/Census/SEC as inactive demos) with
+`source` in the natural key and source-aware Bronze lineage + replay;
+**API-driven FRED discovery**; **metadata governance** (drift + lifecycle vs.
+live FRED); **incremental loads** (full-on-first-run, then restate last N);
+**replay-from-Bronze** rebuild; **run notifications**; richer **data quality**
+(freshness + value bounds); **quant Gold features** (MoM/YoY/diff/z-score, curve
+spreads, as-of-date point-in-time snapshots); a pluggable storage backend
+(**Databricks/Delta or local SQLite**); layered configuration (**YAML file / env
+vars / args / secret scope**); Unity Catalog DDL; the audit framework; a
+**GitHub Actions CI**; and the Databricks Asset Bundle (main + per-source jobs).
