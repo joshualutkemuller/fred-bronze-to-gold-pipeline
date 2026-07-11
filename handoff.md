@@ -128,6 +128,7 @@ fred-databricks-etl/
 -   gold.fred_feature_transforms
 -   gold.fred_curve_spread
 -   gold.fred_cross_series_feature
+-   gold.fred_source_reconciliation
 -   gold.fred_revision_stats
 
 ------------------------------------------------------------------------
@@ -350,9 +351,26 @@ combinations: `spread` (a−b), `ratio` (a/b), and `composite` (Σ weightᵢ·le
 Ships three illustrative examples (real 10y yield; debt-to-GDP across
 Treasury÷BEA; a monthly activity composite). **Same governance note as item 3**:
 the mechanism is built; which features to compute (and their weights) is a quant
-sign-off. **Still open** (recommended next): a point-in-time variant that aligns
-on `realtime_start` for leak-free modeling inputs, and two governance Gold views
-(cross-source reconciliation; coverage/freshness).
+sign-off.
+
+## 5. Governance Gold objects (coverage + cross-source reconciliation)
+
+**Status: implemented.** Two governance views/tables over the multi-source data:
+
+-   **`gold.v_source_coverage`** (pure view; `sql/60_views.sql` +
+    `local_store.py`) — per `(source, series_id)`: latest observation, count,
+    days-since, and an `is_stale` verdict from the manifest cadence. Operational
+    visibility across the 8 sources.
+-   **`gold.fred_source_reconciliation`** (config-driven table;
+    `config/reconciliations.yml` + `fred_pipeline.reconciliation_config`; engine
+    `fred_pipeline.features.compute_source_reconciliation`, reused by both
+    backends) — same-concept series from different sources (FRED `UNRATE` vs BLS
+    `LNS14000000`; FRED vs BEA GDP) aligned and compared with a `diverged` flag.
+    A pure view can't do this (series ids differ by source with no join key), so
+    the concept pairs are declared in YAML.
+
+**Still open** (recommended next): a point-in-time variant of the cross-series
+engine that aligns on `realtime_start` for leak-free modeling inputs.
 
 ------------------------------------------------------------------------
 

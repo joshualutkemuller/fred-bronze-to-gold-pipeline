@@ -1,0 +1,26 @@
+# Cross-source reconciliation pairs -> gold.fred_source_reconciliation.
+#
+# Declare concepts measured by more than one source; the pipeline aligns each
+# pair as-of the target frequency and reports both values, their difference, and
+# a `diverged` flag when |percent difference| exceeds tolerance_pct. Governance /
+# data-lineage QA, not a research feature.
+#
+# Emits rows only when both series are active/loaded. Series ids differ by source
+# (there is no automatic join), which is exactly why the pairing is declared here.
+
+reconciliations:
+  # FRED and BLS both publish the SA unemployment rate — should be ~identical.
+  - name: unrate_fred_vs_bls
+    frequency: m
+    series_a: UNRATE          # FRED
+    series_b: LNS14000000     # BLS
+    tolerance_pct: 0.5
+    description: FRED UNRATE vs BLS LNS14000000 (both SA unemployment rate).
+
+  # FRED nominal GDP vs the BEA NIPA nominal GDP level.
+  - name: gdp_fred_vs_bea
+    frequency: q
+    series_a: GDP                       # FRED
+    series_b: "NIPA:T10105:1:Q"         # BEA
+    tolerance_pct: 1.0
+    description: FRED nominal GDP vs BEA nominal GDP level (T10105 line 1).

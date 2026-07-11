@@ -22,6 +22,10 @@ from datetime import date, datetime, timedelta
 from typing import Any, Iterable, Optional
 
 from fred_pipeline.cross_series_config import CrossSeriesDef, load_cross_series_defs
+from fred_pipeline.reconciliation_config import (
+    ReconciliationDef,
+    load_reconciliation_defs,
+)
 from fred_pipeline.spread_config import SpreadDef, load_spread_defs
 
 # How far back a "year ago" match may be before YoY is left null (daily series
@@ -240,6 +244,49 @@ def compute_cross_series_features(
                 "value": value,
             })
     return sorted(out, key=lambda r: (r["feature_name"], r["observation_date"]))
+
+
+def compute_source_reconciliation(
+    latest_rows: Iterable[dict[str, Any]],
+    defs: Optional[Iterable[ReconciliationDef]] = None,
+) -> list[dict[str, Any]]:
+    """Compare same-concept series from different sources per ``defs``.
+
+    ``defs`` defaults to ``config/reconciliations.yml``. Each pair is aligned
+    as-of the target frequency, then for every common period the two values,
+    their difference, percent difference (vs. ``series_b``), and a ``diverged``
+    flag (``|pct| > tolerance_pct``) are emitted. Rows appear only when both
+    series are loaded.
+    """
+    if defs is None:
+        defs = load_reconciliation_defs()
+    by_series = _group_sorted(latest_rows)
+
+    out: list[dict[str, Any]] = []
+    for rc in defs:
+        a = by_series.get(rc.series_a)
+        b = by_series.get(rc.series_b)
+        if not a or not b:
+            continue
+        am = _downsample_asof(a, rc.frequency)
+        bm = _downsample_asof(b, rc.frequency)
+        for period in sorted(set(am) & set(bm)):
+            va, vb = am[period], bm[period]
+            abs_diff = va - vb
+            pct_diff = (abs_diff / vb) if vb != 0 else None
+            diverged = pct_diff is not None and abs(pct_diff) * 100.0 > rc.tolerance_pct
+            out.append({
+                "name": rc.name,
+                "observation_date": period,
+                "series_a": rc.series_a,
+                "value_a": va,
+                "series_b": rc.series_b,
+                "value_b": vb,
+                "abs_diff": abs_diff,
+                "pct_diff": pct_diff,
+                "diverged": diverged,
+            })
+    return sorted(out, key=lambda r: (r["name"], r["observation_date"]))
 
 
 def compute_revision_stats(silver_rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:

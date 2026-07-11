@@ -299,6 +299,57 @@ def _build_cross_series(config: PipelineConfig, spark: Any) -> None:
     ).saveAsTable(gold)
 
 
+def _build_source_reconciliation(config: PipelineConfig, spark: Any) -> None:
+    """Build ``gold.fred_source_reconciliation`` on Spark by reusing the pure-Python
+    reference (:func:`fred_pipeline.features.compute_source_reconciliation`) — same
+    collect-legs-and-compute pattern as :func:`_build_cross_series`, so both
+    backends stay in parity."""
+    from pyspark.sql.types import (
+        BooleanType, DoubleType, StringType, StructField, StructType,
+    )
+
+    from fred_pipeline.features import compute_source_reconciliation
+    from fred_pipeline.reconciliation_config import load_reconciliation_defs
+
+    gold = config.table("gold", "fred_source_reconciliation")
+    defs = load_reconciliation_defs()
+    series = sorted({s for d in defs for s in (d.series_a, d.series_b)})
+
+    rows_out: list[dict[str, Any]] = []
+    if series:
+        latest = config.table("gold", "fred_latest_observation")
+        in_list = ", ".join("'" + s.replace("'", "''") + "'" for s in series)
+        df = spark.sql(
+            f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
+            f"value, is_missing FROM {latest} WHERE series_id IN ({in_list})"
+        )
+        rows = [r.asDict() for r in df.collect()]
+        rows_out = compute_source_reconciliation(rows, defs)
+
+    schema = StructType([
+        StructField("name", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("series_a", StringType()),
+        StructField("value_a", DoubleType()),
+        StructField("series_b", StringType()),
+        StructField("value_b", DoubleType()),
+        StructField("abs_diff", DoubleType()),
+        StructField("pct_diff", DoubleType()),
+        StructField("diverged", BooleanType()),
+    ])
+    out = spark.createDataFrame(rows_out, schema=schema).selectExpr(
+        "name", "CAST(observation_date AS DATE) AS observation_date",
+        "series_a", "CAST(value_a AS DOUBLE) AS value_a",
+        "series_b", "CAST(value_b AS DOUBLE) AS value_b",
+        "CAST(abs_diff AS DOUBLE) AS abs_diff",
+        "CAST(pct_diff AS DOUBLE) AS pct_diff",
+        "diverged",
+    )
+    out.write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(gold)
+
+
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
     spark = get_spark(spark)
@@ -314,8 +365,10 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     for name, sql in steps.items():
         spark.sql(sql)
         results[name] = "ok"
-    # Cross-series features are computed in Python (reused by both backends) and
-    # written after latest_observation exists.
+    # Cross-series features + source reconciliation are computed in Python (reused
+    # by both backends) and written after latest_observation exists.
     _build_cross_series(config, spark)
     results["fred_cross_series_feature"] = "ok"
+    _build_source_reconciliation(config, spark)
+    results["fred_source_reconciliation"] = "ok"
     return results

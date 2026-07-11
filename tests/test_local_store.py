@@ -71,6 +71,7 @@ def test_local_backend_gold_views_exist_and_match_tables(
     assert views == {
         "gold_v_latest_revised", "gold_v_point_in_time",
         "gold_v_series_latest_value", "gold_v_series_revision_summary",
+        "gold_v_source_coverage",
     }
 
     latest_table = wh.query("SELECT * FROM gold_fred_latest_observation")

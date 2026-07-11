@@ -230,8 +230,11 @@ Run after the first ingestion in an environment:
 - [ ] Gold tables built: `gold.fred_latest_observation`,
       `gold.fred_point_in_time`, `gold.fred_macro_feature_daily`,
       `gold.fred_feature_transforms`, `gold.fred_curve_spread`,
-      `gold.fred_cross_series_feature`, `gold.fred_revision_stats`; views
-      `gold.v_latest_revised` / `gold.v_point_in_time` resolve.
+      `gold.fred_cross_series_feature`, `gold.fred_source_reconciliation`,
+      `gold.fred_revision_stats`; views `gold.v_latest_revised` /
+      `gold.v_point_in_time` / `gold.v_source_coverage` resolve.
+- [ ] Coverage view sanity: `SELECT source, count(*), sum(is_stale) FROM
+      gold.v_source_coverage GROUP BY source` — no unexpected stale series.
 - [ ] Metadata governance: run `reconcile` (FRED series only) and review
       `meta.fred_series_drift` / `meta.fred_series_lifecycle`.
 - [ ] A failure alert fires (test the webhook / email path).
