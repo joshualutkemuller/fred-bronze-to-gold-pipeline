@@ -158,6 +158,28 @@ only emitted when both legs have a non-missing value (and, for a ratio, the
 short leg is nonzero). Columns: `spread_name`, `observation_date`,
 `long_leg`, `short_leg`, `value`.
 
+### `gold.fred_cross_series_feature`
+**Frequency-aware, N-leg** cross-series features, **defined in
+`config/cross_series.yml`** (see `fred_pipeline.cross_series_config`). Unlike
+`fred_curve_spread` (same-frequency, 2-leg), each leg is aligned **as-of** to the
+feature's target `frequency` (the last observation within each period), so legs
+of different cadence and different **sources** can be combined — e.g. daily
+Treasury debt ÷ quarterly BEA GDP. Ops: `spread` (a−b), `ratio` (a/b, guarded),
+`composite` (Σ weightᵢ·legᵢ). A period is emitted only when every leg has an
+aligned value. Both backends compute it via the one shared Python engine
+(`fred_pipeline.features.compute_cross_series_features`). Columns: `feature_name`,
+`op`, `observation_date`, `value`.
+
+### `gold.fred_source_reconciliation`
+Cross-source data-lineage QA: same-concept series from **different sources**
+(e.g. FRED `UNRATE` vs BLS `LNS14000000`; FRED `GDP` vs a BEA NIPA line) compared
+after as-of alignment, **defined in `config/reconciliations.yml`** (see
+`fred_pipeline.reconciliation_config`). Series ids differ by source, so the
+pairing is declared, not inferred. Both backends compute it via
+`fred_pipeline.features.compute_source_reconciliation`. Columns: `name`,
+`observation_date`, `series_a`, `value_a`, `series_b`, `value_b`, `abs_diff`,
+`pct_diff`, `diverged` (`|pct_diff| > tolerance_pct`).
+
 ### `gold.fred_revision_stats`
 How much each observation moved between its first print and today. Reads raw
 Silver (every vintage), not latest-revision rows — it exists to measure
@@ -184,3 +206,7 @@ REPLACE VIEW`, so these must be kept in sync manually between the two).
 * `v_series_latest_value` — most recent non-missing value per series.
 * `v_series_revision_summary` — per-series rollup of `fred_revision_stats`
   (avg/max revision count, avg/max absolute revision %).
+* `v_source_coverage` — multi-source coverage & freshness dashboard: per
+  `(source, series_id)` the latest observation date, observation count, days
+  since last, and an `is_stale` verdict from the manifest cadence
+  (`meta.fred_series.frequency` vs. `FREQUENCY_MAX_AGE_DAYS`).

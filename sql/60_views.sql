@@ -58,3 +58,35 @@ SELECT series_id,
     MAX(ABS(revision_pct))         AS max_abs_revision_pct
 FROM gold.fred_revision_stats
 GROUP BY series_id;
+
+-- Multi-source coverage & freshness dashboard: latest observation, count, and a
+-- staleness verdict per (source, series_id), using the manifest cadence from
+-- meta.fred_series. Mirrors gold_v_source_coverage in local_store.py.
+CREATE OR REPLACE VIEW gold.v_source_coverage AS
+WITH per_series AS (
+    SELECT source, series_id,
+           MAX(observation_date)            AS latest_observation_date,
+           COUNT(DISTINCT observation_date) AS observation_count
+    FROM silver.fred_observation
+    GROUP BY source, series_id
+),
+aged AS (
+    SELECT p.source, p.series_id, m.category, m.frequency,
+           p.latest_observation_date, p.observation_count,
+           DATEDIFF(current_date(), p.latest_observation_date) AS days_since_last
+    FROM per_series p
+    LEFT JOIN meta.fred_series m ON m.series_id = p.series_id
+)
+SELECT source, series_id, category, frequency, latest_observation_date,
+       observation_count, days_since_last,
+       CASE
+         WHEN frequency IN ('d','daily')       AND days_since_last > 10  THEN true
+         WHEN frequency IN ('w','weekly')      AND days_since_last > 21  THEN true
+         WHEN frequency IN ('bw','biweekly')   AND days_since_last > 30  THEN true
+         WHEN frequency IN ('m','monthly')     AND days_since_last > 75  THEN true
+         WHEN frequency IN ('q','quarterly')   AND days_since_last > 200 THEN true
+         WHEN frequency IN ('sa','semiannual') AND days_since_last > 380 THEN true
+         WHEN frequency IN ('a','annual')      AND days_since_last > 550 THEN true
+         ELSE false
+       END AS is_stale
+FROM aged;

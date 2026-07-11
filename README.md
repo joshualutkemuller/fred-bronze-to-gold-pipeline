@@ -401,7 +401,11 @@ CI**, green on the latest commit). Highlights: **eight pluggable sources**
 live FRED); **incremental loads** (full-on-first-run, then restate last N);
 **replay-from-Bronze** rebuild; **run notifications**; richer **data quality**
 (freshness + value bounds); **quant Gold features** (MoM/YoY/diff/z-score, curve
-spreads, as-of-date point-in-time snapshots); a pluggable storage backend
+spreads, **frequency-aware N-leg cross-series features** — `config/cross_series.yml`,
+as-of alignment for cross-source/cross-frequency spreads/ratios/composites,
+as-of-date point-in-time snapshots); **governance Gold** (multi-source
+coverage/freshness view + config-driven cross-source reconciliation with a
+divergence flag); a pluggable storage backend
 (**Databricks/Delta or local SQLite**); layered configuration (**YAML file / env
 vars / args / secret scope**); Unity Catalog DDL; the audit framework; a
 **GitHub Actions CI**; and the Databricks Asset Bundle (main + per-source jobs).

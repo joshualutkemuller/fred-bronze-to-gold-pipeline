@@ -124,6 +124,13 @@ CREATE TABLE IF NOT EXISTS gold_fred_feature_transforms (
 CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
     spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT, value REAL
 );
+CREATE TABLE IF NOT EXISTS gold_fred_cross_series_feature (
+    feature_name TEXT, op TEXT, observation_date TEXT, value REAL
+);
+CREATE TABLE IF NOT EXISTS gold_fred_source_reconciliation (
+    name TEXT, observation_date TEXT, series_a TEXT, value_a REAL,
+    series_b TEXT, value_b REAL, abs_diff REAL, pct_diff REAL, diverged INTEGER
+);
 CREATE TABLE IF NOT EXISTS gold_fred_revision_stats (
     series_id TEXT, observation_date TEXT, revision_count INTEGER,
     first_value REAL, first_realtime_start TEXT,
@@ -200,6 +207,39 @@ SELECT series_id,
     MAX(ABS(revision_pct)) AS max_abs_revision_pct
 FROM gold_fred_revision_stats
 GROUP BY series_id;
+
+-- Multi-source coverage & freshness dashboard: latest observation, count, and a
+-- staleness verdict per (source, series_id), using the manifest cadence from
+-- meta. Mirrors gold.v_source_coverage in sql/60_views.sql.
+CREATE VIEW IF NOT EXISTS gold_v_source_coverage AS
+WITH per_series AS (
+    SELECT source, series_id,
+           MAX(observation_date)            AS latest_observation_date,
+           COUNT(DISTINCT observation_date) AS observation_count
+    FROM silver_fred_observation
+    GROUP BY source, series_id
+),
+aged AS (
+    SELECT p.source, p.series_id, m.category, m.frequency,
+           p.latest_observation_date, p.observation_count,
+           CAST(julianday('now') - julianday(p.latest_observation_date) AS INTEGER)
+               AS days_since_last
+    FROM per_series p
+    LEFT JOIN meta_fred_series m ON m.series_id = p.series_id
+)
+SELECT source, series_id, category, frequency, latest_observation_date,
+       observation_count, days_since_last,
+       CASE
+         WHEN frequency IN ('d','daily')       AND days_since_last > 10  THEN 1
+         WHEN frequency IN ('w','weekly')      AND days_since_last > 21  THEN 1
+         WHEN frequency IN ('bw','biweekly')   AND days_since_last > 30  THEN 1
+         WHEN frequency IN ('m','monthly')     AND days_since_last > 75  THEN 1
+         WHEN frequency IN ('q','quarterly')   AND days_since_last > 200 THEN 1
+         WHEN frequency IN ('sa','semiannual') AND days_since_last > 380 THEN 1
+         WHEN frequency IN ('a','annual')      AND days_since_last > 550 THEN 1
+         ELSE 0
+       END AS is_stale
+FROM aged;
 """
 
 
@@ -404,6 +444,19 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_fred_curve_spread")
         insert("gold_fred_curve_spread", build_spreads(latest))
 
+        # cross-series features (frequency-aware, N-leg): a small output, so use
+        # the pure-Python reference directly (same function the Spark path reuses).
+        from fred_pipeline.features import (
+            compute_cross_series_features,
+            compute_source_reconciliation,
+        )
+        self.conn.execute("DELETE FROM gold_fred_cross_series_feature")
+        self._insert("gold_fred_cross_series_feature",
+                     compute_cross_series_features(latest))
+        self.conn.execute("DELETE FROM gold_fred_source_reconciliation")
+        self._insert("gold_fred_source_reconciliation",
+                     compute_source_reconciliation(latest))
+
         # revision stats read raw Silver (every vintage), not latest-revision
         # rows — they exist to measure how much observations get revised.
         self.conn.execute("DELETE FROM gold_fred_revision_stats")
@@ -413,7 +466,8 @@ class LocalWarehouse:
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
             "fred_macro_feature_daily", "fred_feature_transforms",
-            "fred_curve_spread", "fred_revision_stats",
+            "fred_curve_spread", "fred_cross_series_feature",
+            "fred_source_reconciliation", "fred_revision_stats",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
