@@ -128,6 +128,7 @@ fred-databricks-etl/
 -   gold.fred_feature_transforms
 -   gold.fred_curve_spread
 -   gold.fred_cross_series_feature
+-   gold.fred_cross_series_feature_pit
 -   gold.fred_source_reconciliation
 -   gold.fred_revision_stats
 
@@ -369,8 +370,20 @@ sign-off.
     A pure view can't do this (series ids differ by source with no join key), so
     the concept pairs are declared in YAML.
 
-**Still open** (recommended next): a point-in-time variant of the cross-series
-engine that aligns on `realtime_start` for leak-free modeling inputs.
+## 6. Point-in-time cross-series features (leak-free)
+
+**Status: implemented** (`fred_pipeline.features.compute_cross_series_features_pit`;
+new table `gold.fred_cross_series_feature_pit`).
+
+The cross-series features (item 4) use *latest-revised* values — fine for
+dashboards, but they inject later revisions into historical points (look-ahead
+bias). This adds a **`realtime_start`-aligned** variant: each leg contributes the
+value that was actually known (as-first-reported by default, or as-of any date),
+so the feature series is leak-free for backtests. Reuses the same alignment/
+combine logic (both backends share the one Python engine), reads raw Silver for
+vintages. Identical to latest-revised for non-vintage series. **Open follow-on**
+(gated on the SEC standardization layer): company-fundamentals Gold (ratios,
+cross-company percentiles, restatement analytics).
 
 ------------------------------------------------------------------------
 

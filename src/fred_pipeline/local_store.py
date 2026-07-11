@@ -127,6 +127,9 @@ CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
 CREATE TABLE IF NOT EXISTS gold_fred_cross_series_feature (
     feature_name TEXT, op TEXT, observation_date TEXT, value REAL
 );
+CREATE TABLE IF NOT EXISTS gold_fred_cross_series_feature_pit (
+    feature_name TEXT, op TEXT, observation_date TEXT, value REAL, basis TEXT
+);
 CREATE TABLE IF NOT EXISTS gold_fred_source_reconciliation (
     name TEXT, observation_date TEXT, series_a TEXT, value_a REAL,
     series_b TEXT, value_b REAL, abs_diff REAL, pct_diff REAL, diverged INTEGER
@@ -448,11 +451,17 @@ class LocalWarehouse:
         # the pure-Python reference directly (same function the Spark path reuses).
         from fred_pipeline.features import (
             compute_cross_series_features,
+            compute_cross_series_features_pit,
             compute_source_reconciliation,
         )
         self.conn.execute("DELETE FROM gold_fred_cross_series_feature")
         self._insert("gold_fred_cross_series_feature",
                      compute_cross_series_features(latest))
+        # Point-in-time (as-first-reported) variant: leak-free, reads raw Silver
+        # (all vintages), not latest-revision rows.
+        self.conn.execute("DELETE FROM gold_fred_cross_series_feature_pit")
+        self._insert("gold_fred_cross_series_feature_pit",
+                     compute_cross_series_features_pit(silver))
         self.conn.execute("DELETE FROM gold_fred_source_reconciliation")
         self._insert("gold_fred_source_reconciliation",
                      compute_source_reconciliation(latest))
@@ -467,7 +476,8 @@ class LocalWarehouse:
             "fred_point_in_time", "fred_latest_observation",
             "fred_macro_feature_daily", "fred_feature_transforms",
             "fred_curve_spread", "fred_cross_series_feature",
-            "fred_source_reconciliation", "fred_revision_stats",
+            "fred_cross_series_feature_pit", "fred_source_reconciliation",
+            "fred_revision_stats",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

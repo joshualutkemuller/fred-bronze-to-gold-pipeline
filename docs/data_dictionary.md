@@ -170,6 +170,17 @@ aligned value. Both backends compute it via the one shared Python engine
 (`fred_pipeline.features.compute_cross_series_features`). Columns: `feature_name`,
 `op`, `observation_date`, `value`.
 
+### `gold.fred_cross_series_feature_pit`
+**Point-in-time (`realtime_start`-aligned)** version of the above: each leg
+contributes the value that was **actually known** (as-first-reported — the
+earliest vintage per observation) rather than latest-revised, so the feature
+series is **leak-free for backtests**. Reads raw Silver (all vintages) via
+`fred_pipeline.features.compute_cross_series_features_pit`; the function also
+accepts an `as_of` date to reconstruct the series as it stood on any past date.
+For non-vintage series this equals the latest-revised feature. Columns:
+`feature_name`, `op`, `observation_date`, `value`, `basis` (`first_report` or the
+as-of date).
+
 ### `gold.fred_source_reconciliation`
 Cross-source data-lineage QA: same-concept series from **different sources**
 (e.g. FRED `UNRATE` vs BLS `LNS14000000`; FRED `GDP` vs a BEA NIPA line) compared

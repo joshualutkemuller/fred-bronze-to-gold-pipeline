@@ -403,7 +403,8 @@ live FRED); **incremental loads** (full-on-first-run, then restate last N);
 (freshness + value bounds); **quant Gold features** (MoM/YoY/diff/z-score, curve
 spreads, **frequency-aware N-leg cross-series features** — `config/cross_series.yml`,
 as-of alignment for cross-source/cross-frequency spreads/ratios/composites,
-as-of-date point-in-time snapshots); **governance Gold** (multi-source
+plus a **point-in-time (`realtime_start`-aligned) leak-free variant** for
+backtests, as-of-date point-in-time snapshots); **governance Gold** (multi-source
 coverage/freshness view + config-driven cross-source reconciliation with a
 divergence flag); a pluggable storage backend
 (**Databricks/Delta or local SQLite**); layered configuration (**YAML file / env

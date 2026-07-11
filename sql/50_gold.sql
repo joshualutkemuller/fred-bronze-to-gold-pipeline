@@ -152,6 +152,21 @@ CREATE TABLE IF NOT EXISTS gold.fred_cross_series_feature (
 )
 USING DELTA;
 
+-- Point-in-time (realtime_start-aligned) variant of the cross-series features:
+-- each leg uses the value that was actually known (as-first-reported) rather than
+-- latest-revised, so the feature series is leak-free for backtests. Reads Silver
+-- (all vintages). Computed by the shared Python engine
+-- (fred_pipeline.features.compute_cross_series_features_pit) and written by
+-- fred_pipeline.gold._build_cross_series_pit. DDL provisions the shape only.
+CREATE TABLE IF NOT EXISTS gold.fred_cross_series_feature_pit (
+    feature_name     STRING,
+    op               STRING,
+    observation_date DATE,
+    value            DOUBLE,
+    basis            STRING
+)
+USING DELTA;
+
 -- Cross-source reconciliation (config/reconciliations.yml): same-concept series
 -- from different sources, aligned and compared with a divergence flag. Computed
 -- by the shared Python engine (fred_pipeline.features.compute_source_reconciliation)
