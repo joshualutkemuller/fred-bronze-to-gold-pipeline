@@ -130,6 +130,8 @@ fred-databricks-etl/
 -   gold.fred_cross_series_feature
 -   gold.fred_cross_series_feature_pit
 -   gold.fred_source_reconciliation
+-   gold.fred_company_fundamentals
+-   gold.fred_company_ratios
 -   gold.fred_revision_stats
 
 ------------------------------------------------------------------------
@@ -381,9 +383,25 @@ bias). This adds a **`realtime_start`-aligned** variant: each leg contributes th
 value that was actually known (as-first-reported by default, or as-of any date),
 so the feature series is leak-free for backtests. Reuses the same alignment/
 combine logic (both backends share the one Python engine), reads raw Silver for
-vintages. Identical to latest-revised for non-vintage series. **Open follow-on**
-(gated on the SEC standardization layer): company-fundamentals Gold (ratios,
-cross-company percentiles, restatement analytics).
+vintages. Identical to latest-revised for non-vintage series.
+
+## 7. SEC statement standardization + company financials
+
+**Status: implemented** (`config/sec_concepts.yml` + `config/sec_ratios.yml` +
+`fred_pipeline.sec_standardization`; tables `gold.fred_company_fundamentals` /
+`gold.fred_company_ratios`; view `gold.v_company_ratio_ranks`).
+
+The SEC source lands one raw XBRL concept per series; companies use different
+tags for the same line item. This standardizes raw tags → canonical concepts via
+a priority-ordered mapping, then computes derived ratios, then ranks companies
+cross-sectionally. **Restatement analytics come free** from
+`gold.fred_revision_stats` (SEC filings carry `filed`-date vintages, which already
+flow through it). Both backends share the one Python engine (SQL can't do the
+priority tag-coalescing cleanly). **Known limitation** (documented in the config):
+income-statement (duration) concepts aren't yet quarterly-vs-YTD disambiguated,
+so balance-sheet ratios (leverage, current ratio) are clean while ROE/margins are
+only as clean as the duration figure fed in. That duration disambiguation is the
+remaining refinement.
 
 ------------------------------------------------------------------------
 

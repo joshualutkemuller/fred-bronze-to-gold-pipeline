@@ -134,6 +134,12 @@ CREATE TABLE IF NOT EXISTS gold_fred_source_reconciliation (
     name TEXT, observation_date TEXT, series_a TEXT, value_a REAL,
     series_b TEXT, value_b REAL, abs_diff REAL, pct_diff REAL, diverged INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_fred_company_fundamentals (
+    cik TEXT, concept TEXT, statement TEXT, observation_date TEXT, value REAL
+);
+CREATE TABLE IF NOT EXISTS gold_fred_company_ratios (
+    cik TEXT, ratio_name TEXT, observation_date TEXT, value REAL
+);
 CREATE TABLE IF NOT EXISTS gold_fred_revision_stats (
     series_id TEXT, observation_date TEXT, revision_count INTEGER,
     first_value REAL, first_realtime_start TEXT,
@@ -243,6 +249,18 @@ SELECT source, series_id, category, frequency, latest_observation_date,
          ELSE 0
        END AS is_stale
 FROM aged;
+
+-- Cross-company ranks/percentiles of each SEC-derived ratio within each period.
+-- Mirrors gold.v_company_ratio_ranks in sql/60_views.sql.
+CREATE VIEW IF NOT EXISTS gold_v_company_ratio_ranks AS
+SELECT cik, ratio_name, observation_date, value,
+       PERCENT_RANK() OVER (
+           PARTITION BY ratio_name, observation_date ORDER BY value
+       ) AS pct_rank,
+       ROW_NUMBER() OVER (
+           PARTITION BY ratio_name, observation_date ORDER BY value DESC
+       ) AS rank_desc
+FROM gold_fred_company_ratios;
 """
 
 
@@ -466,6 +484,18 @@ class LocalWarehouse:
         self._insert("gold_fred_source_reconciliation",
                      compute_source_reconciliation(latest))
 
+        # SEC company financials: standardize raw XBRL tags into canonical line
+        # items, then derived ratios (reads raw Silver for source='sec' rows).
+        from fred_pipeline.sec_standardization import (
+            compute_sec_ratios,
+            standardize_sec_statements,
+        )
+        fundamentals = standardize_sec_statements(silver)
+        self.conn.execute("DELETE FROM gold_fred_company_fundamentals")
+        self._insert("gold_fred_company_fundamentals", fundamentals)
+        self.conn.execute("DELETE FROM gold_fred_company_ratios")
+        self._insert("gold_fred_company_ratios", compute_sec_ratios(fundamentals))
+
         # revision stats read raw Silver (every vintage), not latest-revision
         # rows — they exist to measure how much observations get revised.
         self.conn.execute("DELETE FROM gold_fred_revision_stats")
@@ -477,6 +507,7 @@ class LocalWarehouse:
             "fred_macro_feature_daily", "fred_feature_transforms",
             "fred_curve_spread", "fred_cross_series_feature",
             "fred_cross_series_feature_pit", "fred_source_reconciliation",
+            "fred_company_fundamentals", "fred_company_ratios",
             "fred_revision_stats",
         )}
 

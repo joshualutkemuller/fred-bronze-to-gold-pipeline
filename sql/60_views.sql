@@ -90,3 +90,16 @@ SELECT source, series_id, category, frequency, latest_observation_date,
          ELSE false
        END AS is_stale
 FROM aged;
+
+-- Cross-company ranks/percentiles of each SEC-derived ratio within each period
+-- (pct_rank 0..1 ascending; rank_desc = 1 is the largest). Mirrors
+-- gold_v_company_ratio_ranks in local_store.py.
+CREATE OR REPLACE VIEW gold.v_company_ratio_ranks AS
+SELECT cik, ratio_name, observation_date, value,
+       PERCENT_RANK() OVER (
+           PARTITION BY ratio_name, observation_date ORDER BY value
+       ) AS pct_rank,
+       ROW_NUMBER() OVER (
+           PARTITION BY ratio_name, observation_date ORDER BY value DESC
+       ) AS rank_desc
+FROM gold.fred_company_ratios;

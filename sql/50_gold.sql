@@ -185,6 +185,28 @@ CREATE TABLE IF NOT EXISTS gold.fred_source_reconciliation (
 )
 USING DELTA;
 
+-- SEC company financials: canonical line items standardized from raw XBRL tags
+-- (config/sec_concepts.yml) and derived ratios (config/sec_ratios.yml). Computed
+-- by the shared Python engine (fred_pipeline.sec_standardization) and written by
+-- fred_pipeline.gold._build_company_financials — the standardization (priority
+-- tag coalescing) is impractical in SQL. DDL provisions the shape only.
+CREATE TABLE IF NOT EXISTS gold.fred_company_fundamentals (
+    cik              STRING,
+    concept          STRING,
+    statement        STRING,
+    observation_date DATE,
+    value            DOUBLE
+)
+USING DELTA;
+
+CREATE TABLE IF NOT EXISTS gold.fred_company_ratios (
+    cik              STRING,
+    ratio_name       STRING,
+    observation_date DATE,
+    value            DOUBLE
+)
+USING DELTA;
+
 -- Revision magnitude: how much each observation moved between its first
 -- print and today. Reads raw Silver (every vintage), not gold.fred_latest_
 -- observation, since it exists to measure revision behavior itself.

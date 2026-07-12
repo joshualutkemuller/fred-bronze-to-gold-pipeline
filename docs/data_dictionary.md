@@ -191,6 +191,23 @@ pairing is declared, not inferred. Both backends compute it via
 `observation_date`, `series_a`, `value_a`, `series_b`, `value_b`, `abs_diff`,
 `pct_diff`, `diverged` (`|pct_diff| > tolerance_pct`).
 
+### `gold.fred_company_fundamentals`
+SEC company financials, **standardized**: raw XBRL tags mapped to canonical line
+items (`config/sec_concepts.yml`, priority-ordered candidate tags) so companies
+using different tags for the same concept line up. Per `(cik, concept, period)`
+the value comes from the highest-priority tag reported, latest-filed vintage.
+Built by `fred_pipeline.sec_standardization.standardize_sec_statements`. Columns:
+`cik`, `concept`, `statement`, `observation_date`, `value`. (Restatement history
+for these is already in `gold.fred_revision_stats`, since SEC filings carry
+vintages.)
+
+### `gold.fred_company_ratios`
+Derived company ratios (`config/sec_ratios.yml`): `numerator / denominator`
+concept per `(cik, period)` — e.g. `debt_to_equity`, `current_ratio`,
+`return_on_equity`. Columns: `cik`, `ratio_name`, `observation_date`, `value`.
+Ratios mixing income (duration) and balance-sheet (instant) concepts inherit the
+unresolved quarterly-vs-YTD ambiguity — see the config note.
+
 ### `gold.fred_revision_stats`
 How much each observation moved between its first print and today. Reads raw
 Silver (every vintage), not latest-revision rows — it exists to measure
@@ -221,3 +238,6 @@ REPLACE VIEW`, so these must be kept in sync manually between the two).
   `(source, series_id)` the latest observation date, observation count, days
   since last, and an `is_stale` verdict from the manifest cadence
   (`meta.fred_series.frequency` vs. `FREQUENCY_MAX_AGE_DAYS`).
+* `v_company_ratio_ranks` — cross-company ranks/percentiles of each SEC-derived
+  ratio within each period (`pct_rank` 0..1 ascending; `rank_desc` = 1 is the
+  largest), over `fred_company_ratios`.

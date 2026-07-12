@@ -1,0 +1,36 @@
+# Derived company ratios <- standardized concepts (config/sec_concepts.yml).
+#
+# Each ratio is numerator_concept / denominator_concept, computed per
+# (company, period) where both concepts exist for the same observation_date and
+# the denominator is nonzero. Feeds gold.fred_company_ratios.
+#
+# Balance-sheet-only ratios (current_ratio, leverage) are clean. Ratios mixing an
+# income (duration) concept with a balance-sheet (instant) concept — ROE, margins
+# — are only as clean as the duration figure (quarterly-vs-YTD not yet
+# disambiguated); review before relying on them.
+
+ratios:
+  - name: current_ratio
+    numerator: current_assets
+    denominator: current_liabilities
+    description: Short-term liquidity — current assets over current liabilities.
+
+  - name: debt_to_equity
+    numerator: liabilities
+    denominator: stockholders_equity
+    description: Leverage — total liabilities over shareholders' equity.
+
+  - name: long_term_debt_to_equity
+    numerator: long_term_debt
+    denominator: stockholders_equity
+    description: Long-term leverage.
+
+  - name: return_on_equity
+    numerator: net_income
+    denominator: stockholders_equity
+    description: ROE (income/instant mix — see note in config/sec_ratios.yml).
+
+  - name: net_margin
+    numerator: net_income
+    denominator: revenue
+    description: Net profit margin.

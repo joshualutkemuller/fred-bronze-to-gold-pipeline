@@ -1,0 +1,43 @@
+# Canonical financial-statement line items <- candidate XBRL tags (SEC EDGAR).
+#
+# Different companies report the same economic concept under different us-gaap
+# tags. Each concept lists its candidate tags in PRIORITY order; the standardizer
+# picks the highest-priority tag a company actually reports for each period.
+# Feeds gold.fred_company_fundamentals (and, via config/sec_ratios.yml, ratios).
+#
+# Balance-sheet (instant) concepts are the clean case — no quarterly/YTD duration
+# ambiguity. Income-statement (duration) concepts are included but flagged; a
+# ratio mixing an instant and a duration concept (e.g. ROE) is only as clean as
+# the duration figure you feed it (quarterly vs YTD is not yet disambiguated).
+
+concepts:
+  # --- balance sheet (instant) ---
+  - name: assets
+    statement: balance_sheet
+    tags: [Assets]
+  - name: current_assets
+    statement: balance_sheet
+    tags: [AssetsCurrent]
+  - name: liabilities
+    statement: balance_sheet
+    tags: [Liabilities]
+  - name: current_liabilities
+    statement: balance_sheet
+    tags: [LiabilitiesCurrent]
+  - name: stockholders_equity
+    statement: balance_sheet
+    tags: [StockholdersEquity, StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest]
+  - name: cash
+    statement: balance_sheet
+    tags: [CashAndCashEquivalentsAtCarryingValue, CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents]
+  - name: long_term_debt
+    statement: balance_sheet
+    tags: [LongTermDebtNoncurrent, LongTermDebt]
+
+  # --- income statement (duration; see note above) ---
+  - name: revenue
+    statement: income
+    tags: [RevenueFromContractWithCustomerExcludingAssessedTax, Revenues, SalesRevenueNet]
+  - name: net_income
+    statement: income
+    tags: [NetIncomeLoss, ProfitLoss]

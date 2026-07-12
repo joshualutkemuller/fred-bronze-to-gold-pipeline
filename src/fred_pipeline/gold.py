@@ -347,6 +347,60 @@ def _build_cross_series_pit(config: PipelineConfig, spark: Any) -> None:
     ).saveAsTable(gold)
 
 
+def _build_company_financials(config: PipelineConfig, spark: Any) -> None:
+    """Build ``gold.fred_company_fundamentals`` + ``gold.fred_company_ratios`` by
+    reusing the pure-Python standardizer (:mod:`fred_pipeline.sec_standardization`).
+
+    Reads the ``source='sec'`` slice of Silver (bounded by the active SEC series),
+    standardizes raw XBRL tags into canonical concepts, computes ratios, and
+    overwrites both tables. Priority tag-coalescing is impractical in SQL, so —
+    like the other cross-cutting Gold tables — both backends share the one
+    Python engine."""
+    from pyspark.sql.types import DoubleType, StringType, StructField, StructType
+
+    from fred_pipeline.sec_standardization import (
+        compute_sec_ratios, standardize_sec_statements,
+    )
+
+    silver = config.table("silver", "fred_observation")
+    df = spark.sql(
+        f"SELECT source, series_id, "
+        f"CAST(observation_date AS STRING) AS observation_date, "
+        f"CAST(realtime_start AS STRING) AS realtime_start, value, is_missing "
+        f"FROM {silver} WHERE source = 'sec'"
+    )
+    rows = [r.asDict() for r in df.collect()]
+    fundamentals = standardize_sec_statements(rows)
+    ratios = compute_sec_ratios(fundamentals)
+
+    fund_schema = StructType([
+        StructField("cik", StringType()), StructField("concept", StringType()),
+        StructField("statement", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("value", DoubleType()),
+    ])
+    spark.createDataFrame(fundamentals, schema=fund_schema).selectExpr(
+        "cik", "concept", "statement",
+        "CAST(observation_date AS DATE) AS observation_date",
+        "CAST(value AS DOUBLE) AS value",
+    ).write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(config.table("gold", "fred_company_fundamentals"))
+
+    ratio_schema = StructType([
+        StructField("cik", StringType()), StructField("ratio_name", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("value", DoubleType()),
+    ])
+    spark.createDataFrame(ratios, schema=ratio_schema).selectExpr(
+        "cik", "ratio_name",
+        "CAST(observation_date AS DATE) AS observation_date",
+        "CAST(value AS DOUBLE) AS value",
+    ).write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(config.table("gold", "fred_company_ratios"))
+
+
 def _build_source_reconciliation(config: PipelineConfig, spark: Any) -> None:
     """Build ``gold.fred_source_reconciliation`` on Spark by reusing the pure-Python
     reference (:func:`fred_pipeline.features.compute_source_reconciliation`) — same
@@ -421,4 +475,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     results["fred_cross_series_feature_pit"] = "ok"
     _build_source_reconciliation(config, spark)
     results["fred_source_reconciliation"] = "ok"
+    _build_company_financials(config, spark)
+    results["fred_company_fundamentals"] = "ok"
+    results["fred_company_ratios"] = "ok"
     return results

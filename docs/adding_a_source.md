@@ -20,9 +20,12 @@ SEC is the one that exercises the point-in-time machinery: each filing's `filed`
 date becomes `realtime_start`, so restatements/amendments land as genuine
 vintages. Its `build_sec_manifest` helper generates the (company × concept) grid
 programmatically — the seed of a manifest generator for the ~1,000-company
-universe. Standardizing heterogeneous XBRL tags into canonical statements (and
-disambiguating quarterly-vs-YTD duration facts) is the documented follow-on; the
-demo uses instant balance-sheet concepts, which have no duration ambiguity.
+universe. Standardizing heterogeneous XBRL tags into canonical statements + ratios
+is implemented in `fred_pipeline.sec_standardization`
+(`gold.fred_company_fundamentals` / `fred_company_ratios` /
+`v_company_ratio_ranks`); disambiguating quarterly-vs-YTD income-statement
+duration facts is the remaining refinement. The demo uses instant balance-sheet
+concepts, which have no duration ambiguity.
 
 ## The layout
 
