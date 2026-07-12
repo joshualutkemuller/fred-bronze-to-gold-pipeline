@@ -397,11 +397,18 @@ a priority-ordered mapping, then computes derived ratios, then ranks companies
 cross-sectionally. **Restatement analytics come free** from
 `gold.fred_revision_stats` (SEC filings carry `filed`-date vintages, which already
 flow through it). Both backends share the one Python engine (SQL can't do the
-priority tag-coalescing cleanly). **Known limitation** (documented in the config):
-income-statement (duration) concepts aren't yet quarterly-vs-YTD disambiguated,
-so balance-sheet ratios (leverage, current ratio) are clean while ROE/margins are
-only as clean as the duration figure fed in. That duration disambiguation is the
-remaining refinement.
+priority tag-coalescing cleanly).
+
+**Duration disambiguation: implemented.** Income-statement facts carry a
+duration; a single 10-Q reports both the quarterly (~3-month) and YTD (~9-month)
+figure for the same period end, which collided on the natural key. The SEC
+normalizer now keeps only facts matching a target duration — `SEC_PERIOD`
+(default `quarterly`, or `annual`) — so income concepts land as a consistent
+series and ratios like net margin use matching durations. Instant balance-sheet
+facts are always kept; Bronze replay resolves `SEC_PERIOD` identically.
+**Remaining edge** (documented): a 10-K reports the FY (12-month) figure, not Q4,
+so quarterly mode is missing Q4 each year; recovering it needs YTD de-cumulation
+(`Q4 = FY − 9-month YTD`) — a bounded future enhancement.
 
 ------------------------------------------------------------------------
 

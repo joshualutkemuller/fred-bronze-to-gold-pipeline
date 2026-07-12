@@ -138,3 +138,52 @@ def test_pipeline_routes_sec_end_to_end(tmp_path, fake_session_cls, fake_respons
 
 def test_sec_client_satisfies_source_protocol():
     assert isinstance(SECClient(session=object()), SourceClient)
+
+
+# ---- duration disambiguation (income-statement concepts) -----------------
+
+_NI_SID = "CIK0000320193:us-gaap/NetIncomeLoss:USD"
+
+# For period end 2023-09-30, one 10-Q reports BOTH the quarterly (~92d) and the
+# 9-month YTD (~273d) value; a 10-K reports the annual (~365d) value.
+_NI_ENTRIES = [
+    {"start": "2023-07-01", "end": "2023-09-30", "val": 23000, "form": "10-Q",
+     "filed": "2023-11-03"},                                    # quarterly
+    {"start": "2023-01-01", "end": "2023-09-30", "val": 74000, "form": "10-Q",
+     "filed": "2023-11-03"},                                    # 9-month YTD
+    {"start": "2022-10-01", "end": "2023-09-30", "val": 97000, "form": "10-K",
+     "filed": "2023-11-03"},                                    # annual
+]
+
+
+def _ni_payload():
+    return {"units": {"USD": _NI_ENTRIES}}
+
+
+def test_duration_filter_keeps_quarterly_only():
+    rows = normalize_sec_observations(_NI_SID, _ni_payload(), period="quarterly")
+    # only the ~3-month fact survives (no natural-key collision)
+    assert [r["value"] for r in rows] == [23000.0]
+
+
+def test_duration_filter_annual_mode():
+    rows = normalize_sec_observations(_NI_SID, _ni_payload(), period="annual")
+    assert [r["value"] for r in rows] == [97000.0]
+
+
+def test_instant_facts_always_kept_regardless_of_period():
+    # Assets entries have no `start` (instant) -> kept under any period target
+    rows_q = normalize_sec_observations(SID, _payload(ENTRIES), period="quarterly")
+    rows_a = normalize_sec_observations(SID, _payload(ENTRIES), period="annual")
+    assert len(rows_q) == len(rows_a) == 3
+
+
+def test_client_period_from_env(monkeypatch):
+    from fred_pipeline.sources.sec import resolve_sec_period
+
+    monkeypatch.setenv("SEC_PERIOD", "annual")
+    assert resolve_sec_period() == "annual"
+    monkeypatch.setenv("SEC_PERIOD", "bogus")
+    assert resolve_sec_period() == "quarterly"   # unknown falls back
+    monkeypatch.delenv("SEC_PERIOD", raising=False)
+    assert resolve_sec_period() == "quarterly"

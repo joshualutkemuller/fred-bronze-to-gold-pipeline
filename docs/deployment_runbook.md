@@ -61,7 +61,8 @@ databricks secrets put-secret   fred census_api_key # Census(optional — keyles
 
 Treasury, World Bank, Census, and SEC are keyless. **SEC** needs a descriptive
 `SEC_USER_AGENT` (your contact) set as an env var / `spark_env_vars`, not a
-secret — SEC 403s without it.
+secret — SEC 403s without it. Optionally set `SEC_PERIOD` (`quarterly` default /
+`annual`) to choose the income-statement duration.
 
 - [ ] FRED key stored (all envs)
 - [ ] EIA / BEA keys stored **iff** those sources are activated (see Part C)

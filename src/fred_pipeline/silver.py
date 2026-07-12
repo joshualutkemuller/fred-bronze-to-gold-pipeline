@@ -81,11 +81,16 @@ def _normalize_for_source(
             source=source,
         )
     if source == "sec":
-        from fred_pipeline.sources.sec import normalize_sec_observations
+        from fred_pipeline.sources.sec import (
+            normalize_sec_observations,
+            resolve_sec_period,
+        )
 
+        # Replay honors the same SEC_PERIOD as ingestion (Bronze keeps every
+        # duration verbatim, so the period filter must be re-applied here).
         return normalize_sec_observations(
             series_id, payload, run_id=run_id, ingested_at=ingested_at,
-            track_vintage=track_vintage, source=source,
+            track_vintage=track_vintage, source=source, period=resolve_sec_period(),
         )
     # default: FRED (and any unknown source, which stays FRED-shaped)
     return normalize_observations(

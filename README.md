@@ -198,6 +198,7 @@ environments:
 | BEA API key | `bea_api_key` | `BEA_API_KEY` | required to activate `source: bea` series |
 | Census API key (optional) | `census_api_key` | `CENSUS_API_KEY` | keyless works at a lower quota |
 | SEC User-Agent | `sec_user_agent` | `SEC_USER_AGENT` | set to your contact; SEC 403s without a descriptive UA |
+| SEC income duration | — | `SEC_PERIOD` | `quarterly` (default) or `annual` — target duration for income-statement facts |
 | API base URL | `fred_base_url` | `FRED_BASE_URL` | |
 | Request timeout | `request_timeout_seconds` | `FRED_REQUEST_TIMEOUT_SECONDS` | |
 | Max retries | `max_retries` | `FRED_MAX_RETRIES` | |

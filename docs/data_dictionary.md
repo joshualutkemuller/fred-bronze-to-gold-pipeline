@@ -205,8 +205,10 @@ vintages.)
 Derived company ratios (`config/sec_ratios.yml`): `numerator / denominator`
 concept per `(cik, period)` — e.g. `debt_to_equity`, `current_ratio`,
 `return_on_equity`. Columns: `cik`, `ratio_name`, `observation_date`, `value`.
-Ratios mixing income (duration) and balance-sheet (instant) concepts inherit the
-unresolved quarterly-vs-YTD ambiguity — see the config note.
+Income-statement concepts are duration-disambiguated at ingestion (`SEC_PERIOD`,
+default `quarterly`), so income and balance-sheet concepts combine on a
+consistent basis. (Quarterly mode omits Q4, which a 10-K reports only as the FY
+figure; recovering it via YTD de-cumulation is a documented future enhancement.)
 
 ### `gold.fred_revision_stats`
 How much each observation moved between its first print and today. Reads raw
