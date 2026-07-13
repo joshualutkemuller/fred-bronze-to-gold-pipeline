@@ -497,3 +497,198 @@ def test_local_build_gold_populates_terminal_views(tmp_path, monkeypatch):
                     "FROM gold_dim_date")[0]
     assert days["lo"] == "2024-01-01" and days["hi"] == "2024-04-01"
     wh.close()
+
+
+# ---- Phase 4: rates complex ----------------------------------------------------
+
+from fred_pipeline.rates_complex_config import (  # noqa: E402
+    BenchmarkBoardConfig,
+    BenchmarkRateDef,
+    CreditConfig,
+    CreditInstrumentDef,
+    FundingConfig,
+    FundingMetricDef,
+    FundingSpreadDef,
+    RatesComplexConfigError,
+    StressComponent,
+    load_benchmark_board,
+    load_credit_config,
+    load_funding_config,
+)
+from fred_pipeline.terminal_views import (  # noqa: E402
+    compute_benchmark_rate_board,
+    compute_credit_spread_daily,
+    compute_funding_features,
+)
+
+
+def test_rates_complex_loaders_missing_files_are_empty(tmp_path):
+    assert load_benchmark_board(str(tmp_path / "n.yml")).rates == ()
+    cfg = load_funding_config(str(tmp_path / "n.yml"))
+    assert cfg.metrics == () and cfg.spreads == ()
+    assert load_credit_config(str(tmp_path / "n.yml")).instruments == ()
+
+
+def test_rates_complex_repo_configs_parse():
+    board = load_benchmark_board("config/benchmark_rates.yml")
+    assert any(r.series_id == "SOFR" and r.benchmark == "EFFR" for r in board.rates)
+    funding = load_funding_config("config/funding.yml")
+    assert {s.name for s in funding.spreads} >= {"SOFR_EFFR", "SOFR_IORB"}
+    assert all(
+        c.spread in {s.name for s in funding.spreads}
+        for c in funding.stress_components
+    )
+    credit = load_credit_config("config/credit.yml")
+    assert any(c.instrument == "HY_OAS" for c in credit.instruments)
+    assert credit.stress_percentile == pytest.approx(0.90)
+
+
+def test_rates_complex_loaders_reject_malformed(tmp_path):
+    p = tmp_path / "bad.yml"
+    p.write_text("rates:\n  - {series_id: X, label: L, category: C, bogus: 1}\n")
+    with pytest.raises(RatesComplexConfigError):
+        load_benchmark_board(str(p))
+    p.write_text(
+        "metrics:\n  - {name: A, series_id: X, metric_type: nope}\n"
+    )
+    with pytest.raises(RatesComplexConfigError):
+        load_funding_config(str(p))
+    p.write_text(  # stress component referencing an unconfigured spread
+        "metrics:\n  - {name: A, series_id: X, metric_type: rate}\n"
+        "spreads:\n  - {name: S, long_leg: X, short_leg: Y}\n"
+        "stress:\n  components:\n    - {spread: NOPE}\n"
+    )
+    with pytest.raises(RatesComplexConfigError):
+        load_funding_config(str(p))
+    p.write_text("instruments:\n  - {instrument: I, series_id: X}\n"
+                 "stress_percentile: 1.5\n")
+    with pytest.raises(RatesComplexConfigError):
+        load_credit_config(str(p))
+
+
+def _board():
+    return BenchmarkBoardConfig(rates=(
+        BenchmarkRateDef("SOFR", "SOFR", "secured_overnight", benchmark="EFFR"),
+        BenchmarkRateDef("EFFR", "EFFR", "policy"),
+        BenchmarkRateDef("IORB", "IORB", "policy"),  # not ingested -> no row
+    ), trend_window=2)
+
+
+def test_benchmark_rate_board_columns():
+    rows = []
+    for i, (d, sofr, effr) in enumerate([
+        ("2024-01-02", 5.31, 5.33), ("2024-01-03", 5.32, 5.33),
+        ("2024-01-04", 5.34, 5.33), ("2024-01-05", 5.38, 5.33),
+    ]):
+        rows += [_row("SOFR", d, sofr), _row("EFFR", d, effr)]
+    out = compute_benchmark_rate_board(rows, _board())
+    by_id = {r["series_id"]: r for r in out}
+    assert set(by_id) == {"SOFR", "EFFR"}   # IORB absent -> no row
+    sofr = by_id["SOFR"]
+    assert sofr["latest_value"] == pytest.approx(5.38)
+    assert sofr["change_bps"] == pytest.approx(4.0)
+    # trend: latest (5.38) vs 2 obs ago (5.32) -> rising -> tightening
+    assert sofr["trend"] == "rising" and sofr["regime"] == "tightening"
+    assert sofr["spread_to_benchmark_bps"] == pytest.approx(5.0)
+    assert sofr["staleness_days"] == 0
+    effr = by_id["EFFR"]
+    # flat within the 1bp dead-band -> stable, no benchmark spread
+    assert effr["trend"] == "flat" and effr["regime"] == "stable"
+    assert effr["spread_to_benchmark_bps"] is None
+    assert effr["benchmark_series"] is None
+
+
+def test_benchmark_rate_board_short_history_has_no_trend():
+    rows = [_row("SOFR", "2024-01-02", 5.31), _row("SOFR", "2024-01-03", 5.32)]
+    (r,) = compute_benchmark_rate_board(rows, _board())
+    assert r["trend"] is None and r["regime"] is None
+    assert r["prior_value"] == pytest.approx(5.31)
+
+
+def _funding_cfg():
+    return FundingConfig(
+        metrics=(
+            FundingMetricDef("SOFR", "SOFR", "rate"),
+            FundingMetricDef("EFFR", "EFFR", "rate"),
+            FundingMetricDef("RESERVES", "WRESBAL", "balance"),
+        ),
+        spreads=(FundingSpreadDef("SOFR_EFFR", "SOFR", "EFFR"),),
+        stress_components=(StressComponent("SOFR_EFFR", 1.0),),
+    )
+
+
+def test_funding_tape_and_stress():
+    rows = []
+    # SOFR prints daily; EFFR too; reserves weekly. Last day SOFR spikes.
+    for d, sofr, effr in [
+        ("2024-01-02", 5.31, 5.33), ("2024-01-03", 5.31, 5.33),
+        ("2024-01-04", 5.32, 5.33), ("2024-01-05", 5.45, 5.33),
+    ]:
+        rows += [_row("SOFR", d, sofr), _row("EFFR", d, effr)]
+    rows.append(_row("WRESBAL", "2024-01-03", 3500.0))
+    out = compute_funding_features(rows, _funding_cfg())
+    tape = out["tape"]
+    types = {(r["metric_name"], r["metric_type"]) for r in tape}
+    assert ("SOFR", "rate") in types and ("RESERVES", "balance") in types
+    assert ("SOFR_EFFR", "spread") in types
+    spread_rows = [r for r in tape if r["metric_name"] == "SOFR_EFFR"]
+    assert [r["value"] for r in spread_rows] == pytest.approx(
+        [-0.02, -0.02, -0.01, 0.12])
+    # stress: one row per date where the (only) component prints
+    stress = out["stress"]
+    assert [s["observation_date"] for s in stress] == [
+        "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05"]
+    # first obs has no z (expanding std 0) -> neutral 50 / "normal"
+    assert stress[0]["stress_score"] == pytest.approx(50.0)
+    assert stress[0]["stress_bucket"] == "normal"
+    # the spike maps to the top bucket, clamped at 100
+    assert stress[-1]["stress_score"] > 80.0
+    assert stress[-1]["stress_bucket"] == "stressed"
+    assert all(s["n_components"] == 1 for s in stress)
+
+
+def test_funding_stress_requires_all_components():
+    cfg = FundingConfig(
+        metrics=(),
+        spreads=(
+            FundingSpreadDef("SOFR_EFFR", "SOFR", "EFFR"),
+            FundingSpreadDef("SOFR_IORB", "SOFR", "IORB"),
+        ),
+        stress_components=(
+            StressComponent("SOFR_EFFR"), StressComponent("SOFR_IORB"),
+        ),
+    )
+    rows = [_row("SOFR", "2024-01-02", 5.31), _row("EFFR", "2024-01-02", 5.33)]
+    out = compute_funding_features(rows, cfg)  # IORB absent
+    assert [r["metric_name"] for r in out["tape"]] == ["SOFR_EFFR"]
+    assert out["stress"] == []   # gauge needs every component
+
+
+def test_credit_spread_daily_stress_and_recession():
+    cfg = CreditConfig(
+        instruments=(CreditInstrumentDef("HY_OAS", "BAMLH0A0HYM2", "headline"),),
+        stress_percentile=0.75,
+    )
+    rows = [
+        _row("BAMLH0A0HYM2", "2020-02-01", 3.5),
+        _row("BAMLH0A0HYM2", "2020-03-01", 4.0),
+        _row("BAMLH0A0HYM2", "2020-03-20", 8.7),
+        _row("BAMLH0A0HYM2", "2020-04-10", 7.5),
+        _row("USREC", "2020-03-01", 1.0),
+    ]
+    out = compute_credit_spread_daily(rows, cfg)
+    assert [r["oas_bps"] for r in out] == pytest.approx([350.0, 400.0, 870.0, 750.0])
+    assert out[2]["change_bps"] == pytest.approx(470.0)
+    # first obs has no percentile -> unknown, not a stress episode verdict
+    assert out[0]["is_stress_episode"] is None
+    assert out[2]["is_stress_episode"] is True     # highest so far (pct 1.0)
+    assert out[3]["is_stress_episode"] is False    # pct 2/3 < 0.75
+    assert out[0]["is_recession"] is None          # before first USREC print
+    assert out[2]["is_recession"] is True
+
+
+def test_credit_spread_daily_absent_series_emit_nothing():
+    cfg = CreditConfig(
+        instruments=(CreditInstrumentDef("IG_OAS", "BAMLC0A0CM"),))
+    assert compute_credit_spread_daily(
+        [_row("DGS10", "2024-01-02", 4.0)], cfg) == []

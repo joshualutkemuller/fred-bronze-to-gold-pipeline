@@ -404,3 +404,80 @@ CREATE TABLE IF NOT EXISTS gold.spread_inversion_episode (
     recession_overlap  BOOLEAN
 )
 USING DELTA;
+
+-- ============================================================================
+-- Phase 4 rates complex (docs/market_terminal_gold_views.md §4.5–4.7):
+-- BMRK benchmark board, FUND funding tape + stress gauge, CRDT credit
+-- spreads. Computed by fred_pipeline.terminal_views (configs:
+-- config/benchmark_rates.yml / funding.yml / credit.yml) and written by
+-- fred_pipeline.gold._build_terminal_views; DDL provisions shapes only.
+-- ============================================================================
+
+-- One row per configured rate at its latest observation: change in bps,
+-- trend verdict (latest vs. trend_window obs ago, ±1bp dead-band), expanding
+-- z-score/percentile, spread to the configured benchmark, and a regime tag
+-- (rising→tightening, falling→easing, flat→stable).
+CREATE TABLE IF NOT EXISTS gold.benchmark_rate_board (
+    series_id               STRING,
+    rate_label              STRING,
+    rate_category           STRING,
+    benchmark_series        STRING,
+    as_of_date              DATE,
+    latest_date             DATE,
+    latest_value            DOUBLE,
+    prior_value             DOUBLE,
+    change_bps              DOUBLE,
+    trend                   STRING,
+    spread_to_benchmark_bps DOUBLE,
+    zscore                  DOUBLE,
+    percentile              DOUBLE,
+    regime                  STRING,
+    staleness_days          INT
+)
+USING DELTA;
+
+-- The funding tape: corridor rates, balance-sheet lines, and funding spreads
+-- (metric_type rate|balance|spread), each with expanding (PIT-safe)
+-- z-score/percentile.
+CREATE TABLE IF NOT EXISTS gold.funding_tape_daily (
+    metric_name      STRING,
+    metric_type      STRING,
+    observation_date DATE,
+    value            DOUBLE,
+    zscore           DOUBLE,
+    percentile       DOUBLE
+)
+USING DELTA;
+
+-- The 0–100 funding stress gauge: weighted mean of the component spreads'
+-- expanding z-scores (config/funding.yml stress.components), mapped
+-- stress_score = clamp(50 + 20 × composite_z, 0, 100) and bucketed
+-- calm (<40) / normal (<60) / elevated (<80) / stressed (≥80). Emitted only
+-- on dates where every component spread has a value.
+CREATE TABLE IF NOT EXISTS gold.funding_stress_daily (
+    observation_date DATE,
+    composite_z      DOUBLE,
+    stress_score     DOUBLE,
+    stress_bucket    STRING,
+    n_components     INT
+)
+USING DELTA;
+
+-- ICE BofA OAS history per configured instrument (percent + bps), change vs.
+-- prior print, expanding z-score/percentile, stress-episode flag (expanding
+-- percentile ≥ stress_percentile), and the NBER recession overlay (NULL
+-- until USREC is ingested).
+CREATE TABLE IF NOT EXISTS gold.credit_spread_daily (
+    instrument        STRING,
+    series_id         STRING,
+    category          STRING,
+    observation_date  DATE,
+    oas_pct           DOUBLE,
+    oas_bps           DOUBLE,
+    change_bps        DOUBLE,
+    zscore            DOUBLE,
+    percentile        DOUBLE,
+    is_stress_episode BOOLEAN,
+    is_recession      BOOLEAN
+)
+USING DELTA;

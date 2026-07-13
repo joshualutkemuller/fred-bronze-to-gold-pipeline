@@ -14,7 +14,13 @@ surfaces for Power BI (plan: ``docs/market_terminal_gold_views.md``):
     (point-in-time safe) z-score/percentile, inversion flags/runs, recession;
   * **spread_inversion_episode** — one row per *unique inversion episode* per
     spread: opens on the first negative observation, closes when the spread
-    turns non-negative again (with trough, duration, and recession overlap).
+    turns non-negative again (with trough, duration, and recession overlap);
+  * **benchmark_rate_board** — the BMRK rate board: latest/prior/change,
+    trend, spread-to-benchmark, z-score/percentile, regime tag per rate;
+  * **funding_tape_daily / funding_stress_daily** — the FUND tape (corridor
+    rates, balances, spreads with expanding stats) and the 0–100 stress gauge;
+  * **credit_spread_daily** — the CRDT OAS history with expanding stats and
+    percentile-based stress-episode flags.
 
 Kept pure (dict-in → dict-out, no Spark, no SQLite) so the Local and
 Databricks backends share the same tested logic — the same pattern as
@@ -31,6 +37,14 @@ from typing import Any, Iterable, Optional
 
 from fred_pipeline.catalog_config import CatalogEntry, load_series_catalog
 from fred_pipeline.curve_config import TenorDef, load_curve_defs
+from fred_pipeline.rates_complex_config import (
+    BenchmarkBoardConfig,
+    CreditConfig,
+    FundingConfig,
+    load_benchmark_board,
+    load_credit_config,
+    load_funding_config,
+)
 from fred_pipeline.features import (
     _expanding_mean_std,
     _group_sorted,
@@ -475,7 +489,7 @@ def compute_spread_inversion_episodes(
             v, d = r["value"], str(r["observation_date"])[:10]
             if v < 0:
                 rec = _recession_at(flags, _parse(d))
-                if episode is None:
+                if episode is None:  # first negative print opens the episode
                     number += 1
                     episode = {
                         "spread_name": name,
@@ -509,3 +523,237 @@ def compute_spread_inversion_episodes(
         if episode is not None:
             _close(None)  # still inverted at the end of history
     return out
+
+
+# ---- BMRK benchmark rate board ------------------------------------------------
+
+# A move smaller than this (in the rate's native percent units) counts as flat
+# for the trend verdict: 1bp.
+TREND_EPSILON = 0.01
+
+
+def compute_benchmark_rate_board(
+    latest_rows: Iterable[dict[str, Any]],
+    board: Optional[BenchmarkBoardConfig] = None,
+) -> list[dict[str, Any]]:
+    """``gold.benchmark_rate_board``: one row per configured rate
+    (``config/benchmark_rates.yml``) at its latest observation — latest/prior,
+    change in bps, a trend verdict (latest vs. ``trend_window`` observations
+    ago, ±1bp dead-band), expanding (PIT-safe) z-score/percentile, the spread
+    to the configured benchmark (benchmark's last value on-or-before the
+    rate's date), a regime tag from the trend (rising→tightening,
+    falling→easing, flat→stable), and staleness vs. the board's as-of date.
+    Rates whose series aren't ingested emit no row."""
+    if board is None:
+        board = load_benchmark_board()
+    if not board.rates:
+        return []
+    wanted = {rd.series_id for rd in board.rates} | {
+        rd.benchmark for rd in board.rates if rd.benchmark
+    }
+    by_series = _group_sorted(
+        r for r in latest_rows if r.get("series_id") in wanted
+    )
+    as_of = max((s[-1][0] for s in by_series.values()), default=None)
+    if as_of is None:
+        return []
+
+    out: list[dict[str, Any]] = []
+    for rd in board.rates:
+        series = by_series.get(rd.series_id)
+        if not series:
+            continue
+        dates = [d for d, _v in series]
+        values = [v for _d, v in series]
+        i = len(series) - 1
+        latest_d, latest_v = series[i]
+        prior_v = values[i - 1] if i > 0 else None
+
+        back = i - board.trend_window
+        trend = None
+        if back >= 0:
+            delta = latest_v - values[back]
+            if abs(delta) <= TREND_EPSILON:
+                trend = "flat"
+            else:
+                trend = "rising" if delta > 0 else "falling"
+        regime = {"rising": "tightening", "falling": "easing", "flat": "stable"}.get(trend)
+
+        spread_bps = None
+        if rd.benchmark:
+            bench = by_series.get(rd.benchmark)
+            if bench:
+                bdates = [d for d, _v in bench]
+                pos = bisect_right(bdates, latest_d) - 1
+                if pos >= 0:
+                    spread_bps = (latest_v - bench[pos][1]) * 100.0
+
+        means, stds = _expanding_mean_std(values)
+        out.append({
+            "series_id": rd.series_id,
+            "rate_label": rd.label,
+            "rate_category": rd.category,
+            "benchmark_series": rd.benchmark or None,
+            "as_of_date": as_of.isoformat(),
+            "latest_date": latest_d.isoformat(),
+            "latest_value": latest_v,
+            "prior_value": prior_v,
+            "change_bps": ((latest_v - prior_v) * 100.0) if prior_v is not None else None,
+            "trend": trend,
+            "spread_to_benchmark_bps": spread_bps,
+            "zscore": ((latest_v - means[i]) / stds[i]) if stds[i] else None,
+            "percentile": _expanding_percentile(values)[i],
+            "regime": regime,
+            "staleness_days": (as_of - latest_d).days,
+        })
+    return out
+
+
+# ---- FUND funding tape + stress gauge -------------------------------------------
+
+# Gauge mapping: stress_score = clamp(50 + STRESS_Z_SCALE * composite_z, 0, 100).
+STRESS_Z_SCALE = 20.0
+STRESS_BUCKETS = ((40.0, "calm"), (60.0, "normal"), (80.0, "elevated"))
+
+
+def _stress_bucket(score: float) -> str:
+    for bound, label in STRESS_BUCKETS:
+        if score < bound:
+            return label
+    return "stressed"
+
+
+def compute_funding_features(
+    latest_rows: Iterable[dict[str, Any]],
+    cfg: Optional[FundingConfig] = None,
+) -> dict[str, list[dict[str, Any]]]:
+    """The FUND surfaces from ``config/funding.yml``.
+
+    Returns ``tape`` (one row per metric × date: corridor rates and balances
+    as configured, plus each funding spread on the dates both legs print, all
+    with expanding PIT-safe z-score/percentile) and ``stress`` (one row per
+    date where **every** stress component spread has a value:
+    ``composite_z`` = weighted mean of the component spreads' expanding
+    z-scores, mapped to the 0–100 ``stress_score`` and bucketed calm/normal/
+    elevated/stressed). Metrics whose series aren't ingested emit no rows."""
+    if cfg is None:
+        cfg = load_funding_config()
+    if not cfg.metrics and not cfg.spreads:
+        return {"tape": [], "stress": []}
+    wanted = {m.series_id for m in cfg.metrics} | {
+        s for sp in cfg.spreads for s in (sp.long_leg, sp.short_leg)
+    }
+    by_series = _group_sorted(
+        r for r in latest_rows if r.get("series_id") in wanted
+    )
+
+    tape: list[dict[str, Any]] = []
+    # spread name -> {date_iso: zscore} for the gauge
+    spread_z: dict[str, dict[str, Optional[float]]] = {}
+
+    def _emit(name: str, metric_type: str, series: list[tuple[date, float]]) -> None:
+        values = [v for _d, v in series]
+        means, stds = _expanding_mean_std(values)
+        pcts = _expanding_percentile(values)
+        zmap: dict[str, Optional[float]] = {}
+        for i, (d, v) in enumerate(series):
+            z = ((v - means[i]) / stds[i]) if stds[i] else None
+            zmap[d.isoformat()] = z
+            tape.append({
+                "metric_name": name,
+                "metric_type": metric_type,
+                "observation_date": d.isoformat(),
+                "value": v,
+                "zscore": z,
+                "percentile": pcts[i],
+            })
+        if metric_type == "spread":
+            spread_z[name] = zmap
+
+    for m in cfg.metrics:
+        series = by_series.get(m.series_id)
+        if series:
+            _emit(m.name, m.metric_type, series)
+    for sp in cfg.spreads:
+        long_s, short_s = by_series.get(sp.long_leg), by_series.get(sp.short_leg)
+        if not long_s or not short_s:
+            continue
+        short_map = {d: v for d, v in short_s}
+        series = [(d, v - short_map[d]) for d, v in long_s if d in short_map]
+        if series:
+            _emit(sp.name, "spread", series)
+
+    stress: list[dict[str, Any]] = []
+    if cfg.stress_components and all(
+        c.spread in spread_z for c in cfg.stress_components
+    ):
+        common = set.intersection(
+            *(set(spread_z[c.spread]) for c in cfg.stress_components)
+        )
+        total_w = sum(c.weight for c in cfg.stress_components)
+        for d in sorted(common):
+            # An early observation with no z yet (expanding std = 0) is
+            # neutral, not missing — it contributes 0 to the composite.
+            composite = sum(
+                c.weight * (spread_z[c.spread][d] or 0.0)
+                for c in cfg.stress_components
+            ) / total_w
+            score = min(100.0, max(0.0, 50.0 + STRESS_Z_SCALE * composite))
+            stress.append({
+                "observation_date": d,
+                "composite_z": composite,
+                "stress_score": score,
+                "stress_bucket": _stress_bucket(score),
+                "n_components": len(cfg.stress_components),
+            })
+    return {"tape": tape, "stress": stress}
+
+
+# ---- CRDT credit spreads ---------------------------------------------------------
+
+def compute_credit_spread_daily(
+    latest_rows: Iterable[dict[str, Any]],
+    cfg: Optional[CreditConfig] = None,
+) -> list[dict[str, Any]]:
+    """``gold.credit_spread_daily``: OAS history per configured instrument
+    (``config/credit.yml``; FRED publishes ICE BofA OAS in percent —
+    ``oas_bps`` is ×100) with change vs. prior print, expanding (PIT-safe)
+    z-score/percentile, a stress-episode flag (expanding percentile at/above
+    ``stress_percentile``), and the NBER recession overlay (``None`` until
+    USREC is ingested). Instruments whose series aren't ingested emit no rows."""
+    if cfg is None:
+        cfg = load_credit_config()
+    if not cfg.instruments:
+        return []
+    by_series = _group_sorted(
+        r for r in latest_rows
+        if r.get("series_id") in {c.series_id for c in cfg.instruments}
+    )
+    flags = _recession_flags(latest_rows)
+
+    out: list[dict[str, Any]] = []
+    for cd in cfg.instruments:
+        series = by_series.get(cd.series_id)
+        if not series:
+            continue
+        values = [v for _d, v in series]
+        means, stds = _expanding_mean_std(values)
+        pcts = _expanding_percentile(values)
+        for i, (d, v) in enumerate(series):
+            pct = pcts[i]
+            out.append({
+                "instrument": cd.instrument,
+                "series_id": cd.series_id,
+                "category": cd.category,
+                "observation_date": d.isoformat(),
+                "oas_pct": v,
+                "oas_bps": v * 100.0,
+                "change_bps": ((v - values[i - 1]) * 100.0) if i > 0 else None,
+                "zscore": ((v - means[i]) / stds[i]) if stds[i] else None,
+                "percentile": pct,
+                "is_stress_episode": (
+                    (pct >= cfg.stress_percentile) if pct is not None else None
+                ),
+                "is_recession": _recession_at(flags, d),
+            })
+    return sorted(out, key=lambda r: (r["instrument"], r["observation_date"]))

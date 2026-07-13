@@ -1,0 +1,21 @@
+# Credit spreads (gold.credit_spread_daily, terminal module CRDT).
+# ICE BofA option-adjusted spreads on FRED, values in percent (oas_bps = ×100).
+# All series ship inactive in manifests/ice_credit.yml (verify-first) — absent
+# series emit no rows until activated. An observation is flagged a stress
+# episode when its expanding percentile is at/above stress_percentile.
+
+stress_percentile: 0.90
+
+instruments:
+  # --- headline ---
+  - {instrument: IG_OAS,  series_id: BAMLC0A0CM,   category: headline}
+  - {instrument: HY_OAS,  series_id: BAMLH0A0HYM2, category: headline}
+  # --- IG rating curve ---
+  - {instrument: AAA_OAS, series_id: BAMLC0A1CAAA, category: rating_ig}
+  - {instrument: AA_OAS,  series_id: BAMLC0A2CAA,  category: rating_ig}
+  - {instrument: A_OAS,   series_id: BAMLC0A3CA,   category: rating_ig}
+  - {instrument: BBB_OAS, series_id: BAMLC0A4CBBB, category: rating_ig}
+  # --- HY rating curve ---
+  - {instrument: BB_OAS,  series_id: BAMLH0A1HYBB, category: rating_hy}
+  - {instrument: B_OAS,   series_id: BAMLH0A2HYB,  category: rating_hy}
+  - {instrument: CCC_OAS, series_id: BAMLH0A3HYC,  category: rating_hy}

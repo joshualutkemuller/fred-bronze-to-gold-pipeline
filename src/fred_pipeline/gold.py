@@ -482,11 +482,17 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
     from fred_pipeline.catalog_config import load_series_catalog
     from fred_pipeline.curve_config import load_curve_defs
     from fred_pipeline.spread_config import load_spread_defs
+    from fred_pipeline.rates_complex_config import (
+        load_benchmark_board, load_credit_config, load_funding_config,
+    )
     from fred_pipeline.terminal_views import (
         RECESSION_SERIES,
         build_dim_date,
         build_dim_series,
+        compute_benchmark_rate_board,
+        compute_credit_spread_daily,
         compute_curve_spread_daily,
+        compute_funding_features,
         compute_macro_dashboard,
         compute_spread_inversion_episodes,
         compute_treasury_curve,
@@ -670,6 +676,89 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
          "CAST(trough_date AS DATE) AS trough_date", "is_ongoing",
          "recession_overlap"])
 
+    # Phase 4 rates complex: BMRK benchmark board, FUND funding tape + stress
+    # gauge, CRDT credit spreads (configs under config/).
+    board = load_benchmark_board()
+    board_ids = sorted(
+        {rd.series_id for rd in board.rates}
+        | {rd.benchmark for rd in board.rates if rd.benchmark}
+    )
+    board_rows = compute_benchmark_rate_board(
+        _collect_latest(config, spark, board_ids), board
+    )
+    _write("benchmark_rate_board", board_rows, StructType([
+        StructField("series_id", StringType()),
+        StructField("rate_label", StringType()),
+        StructField("rate_category", StringType()),
+        StructField("benchmark_series", StringType()),
+        StructField("as_of_date", StringType()),
+        StructField("latest_date", StringType()),
+        StructField("latest_value", DoubleType()),
+        StructField("prior_value", DoubleType()),
+        StructField("change_bps", DoubleType()),
+        StructField("trend", StringType()),
+        StructField("spread_to_benchmark_bps", DoubleType()),
+        StructField("zscore", DoubleType()),
+        StructField("percentile", DoubleType()),
+        StructField("regime", StringType()),
+        StructField("staleness_days", IntegerType()),
+    ]), ["series_id", "rate_label", "rate_category", "benchmark_series",
+         "CAST(as_of_date AS DATE) AS as_of_date",
+         "CAST(latest_date AS DATE) AS latest_date", "latest_value",
+         "prior_value", "change_bps", "trend", "spread_to_benchmark_bps",
+         "zscore", "percentile", "regime", "staleness_days"])
+
+    funding_cfg = load_funding_config()
+    funding_ids = sorted(
+        {m.series_id for m in funding_cfg.metrics}
+        | {s for sp in funding_cfg.spreads for s in (sp.long_leg, sp.short_leg)}
+    )
+    funding = compute_funding_features(
+        _collect_latest(config, spark, funding_ids), funding_cfg
+    )
+    _write("funding_tape_daily", funding["tape"], StructType([
+        StructField("metric_name", StringType()),
+        StructField("metric_type", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("value", DoubleType()),
+        StructField("zscore", DoubleType()),
+        StructField("percentile", DoubleType()),
+    ]), ["metric_name", "metric_type",
+         "CAST(observation_date AS DATE) AS observation_date", "value",
+         "zscore", "percentile"])
+    _write("funding_stress_daily", funding["stress"], StructType([
+        StructField("observation_date", StringType()),
+        StructField("composite_z", DoubleType()),
+        StructField("stress_score", DoubleType()),
+        StructField("stress_bucket", StringType()),
+        StructField("n_components", IntegerType()),
+    ]), ["CAST(observation_date AS DATE) AS observation_date", "composite_z",
+         "stress_score", "stress_bucket", "n_components"])
+
+    credit_cfg = load_credit_config()
+    credit_ids = sorted(
+        {cd.series_id for cd in credit_cfg.instruments} | {RECESSION_SERIES}
+    )
+    credit_rows = compute_credit_spread_daily(
+        _collect_latest(config, spark, credit_ids), credit_cfg
+    )
+    _write("credit_spread_daily", credit_rows, StructType([
+        StructField("instrument", StringType()),
+        StructField("series_id", StringType()),
+        StructField("category", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("oas_pct", DoubleType()),
+        StructField("oas_bps", DoubleType()),
+        StructField("change_bps", DoubleType()),
+        StructField("zscore", DoubleType()),
+        StructField("percentile", DoubleType()),
+        StructField("is_stress_episode", BooleanType()),
+        StructField("is_recession", BooleanType()),
+    ]), ["instrument", "series_id", "category",
+         "CAST(observation_date AS DATE) AS observation_date", "oas_pct",
+         "oas_bps", "change_bps", "zscore", "percentile",
+         "is_stress_episode", "is_recession"])
+
 
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
@@ -704,6 +793,8 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "macro_category_summary",
         "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
         "spread_inversion_episode",
+        "benchmark_rate_board", "funding_tape_daily", "funding_stress_daily",
+        "credit_spread_daily",
     ):
         results[name] = "ok"
     return results

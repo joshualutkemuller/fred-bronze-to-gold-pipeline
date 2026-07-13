@@ -1,0 +1,38 @@
+# Funding tape + stress gauge (gold.funding_tape_daily /
+# gold.funding_stress_daily, terminal module FUND).
+#
+# metrics: corridor rates and balance-sheet lines shown on the tape (each gets
+#   expanding z-score/percentile). Balances (WALCL/WRESBAL/WTREGEN) are already
+#   ingested; the corridor rates ship inactive in manifests/fed_funding.yml
+#   (verify-first) — absent series emit no rows until activated.
+# spreads: long − short in percent (tape rows with metric_type: spread).
+# stress.components: weighted spread z-scores blended into the 0–100 gauge:
+#   stress_score = clamp(50 + 20 × Σwᵢzᵢ/Σwᵢ, 0, 100), emitted only on dates
+#   where EVERY component spread has a value.
+#   Buckets: <40 calm · 40–60 normal · 60–80 elevated · ≥80 stressed.
+
+metrics:
+  # --- corridor rates ---
+  - {name: SOFR,        series_id: SOFR,        metric_type: rate}
+  - {name: EFFR,        series_id: EFFR,        metric_type: rate}
+  - {name: IORB,        series_id: IORB,        metric_type: rate}
+  - {name: OBFR,        series_id: OBFR,        metric_type: rate}
+  - {name: BGCR,        series_id: BGCR,        metric_type: rate}
+  - {name: TGCR,        series_id: TGCR,        metric_type: rate}
+  # --- balances ---
+  - {name: FED_ASSETS,  series_id: WALCL,       metric_type: balance}
+  - {name: RESERVES,    series_id: WRESBAL,     metric_type: balance}
+  - {name: TGA,         series_id: WTREGEN,     metric_type: balance}
+  - {name: ON_RRP,      series_id: RRPONTSYD,   metric_type: balance}
+
+spreads:
+  - {name: SOFR_EFFR, long_leg: SOFR, short_leg: EFFR}
+  - {name: SOFR_IORB, long_leg: SOFR, short_leg: IORB}
+  - {name: EFFR_IORB, long_leg: EFFR, short_leg: IORB}
+  - {name: SOFR_TGCR, long_leg: SOFR, short_leg: TGCR}
+
+stress:
+  components:
+    - {spread: SOFR_EFFR, weight: 1.0}
+    - {spread: SOFR_IORB, weight: 1.0}
+    - {spread: SOFR_TGCR, weight: 0.5}
