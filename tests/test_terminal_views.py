@@ -692,3 +692,230 @@ def test_credit_spread_daily_absent_series_emit_nothing():
         instruments=(CreditInstrumentDef("IG_OAS", "BAMLC0A0CM"),))
     assert compute_credit_spread_daily(
         [_row("DGS10", "2024-01-02", 4.0)], cfg) == []
+
+
+# ---- Phase 2: Inflation Explorer -------------------------------------------------
+
+from fred_pipeline.inflation_config import (  # noqa: E402
+    InflationConfigError,
+    InflationItemDef,
+    load_inflation_items,
+)
+from fred_pipeline.terminal_views import compute_inflation_explorer  # noqa: E402
+
+
+def test_inflation_items_loader_missing_and_repo_file(tmp_path):
+    assert load_inflation_items(str(tmp_path / "nope.yml")) == []
+    items = load_inflation_items("config/inflation_items.yml")
+    assert any(i.series_id == "CPIAUCSL" and i.level == 0 for i in items)
+    # every parent resolves; exactly one root per (basket, sa_nsa) tree
+    ids = {i.series_id for i in items}
+    assert all(i.parent in ids for i in items if i.parent)
+    roots = [(i.basket, i.sa_nsa) for i in items if i.level == 0]
+    assert len(roots) == len(set(roots))
+    # the 8 SA major groups carry weights and the waterfall flag
+    wf = [i for i in items if i.waterfall and i.sa_nsa == "SA"]
+    assert len(wf) == 8 and all(i.weight for i in wf)
+
+
+@pytest.mark.parametrize("body", [
+    # level-0 with a parent
+    ("items:\n  - {series_id: A, label: L, basket: CPI, sa_nsa: SA,"
+     " level: 0, parent: B}\n"
+     "  - {series_id: B, label: L2, basket: CPI, sa_nsa: SA, level: 0}\n"),
+    # unknown parent
+    ("items:\n  - {series_id: A, label: L, basket: CPI, sa_nsa: SA,"
+     " level: 1, parent: NOPE}\n"),
+    # two roots in one tree
+    ("items:\n  - {series_id: A, label: L, basket: CPI, sa_nsa: SA, level: 0}\n"
+     "  - {series_id: B, label: L2, basket: CPI, sa_nsa: SA, level: 0}\n"),
+    # waterfall without weight
+    ("items:\n  - {series_id: A, label: L, basket: CPI, sa_nsa: SA,"
+     " level: 0, waterfall: true}\n"),
+    # bad basket
+    ("items:\n  - {series_id: A, label: L, basket: RPI, sa_nsa: SA, level: 0}\n"),
+])
+def test_inflation_items_loader_rejects_malformed(tmp_path, body):
+    p = tmp_path / "items.yml"
+    p.write_text(body)
+    with pytest.raises(InflationConfigError):
+        load_inflation_items(str(p))
+
+
+def _cpi_tree():
+    return [
+        InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA", level=0),
+        InflationItemDef("FOOD", "Food", "CPI", "SA", parent="CPIAUCSL",
+                         level=1, weight=20.0, waterfall=True),
+        InflationItemDef("ENERGY", "Energy", "CPI", "SA", parent="CPIAUCSL",
+                         level=1, weight=10.0, waterfall=True),
+    ]
+
+
+def test_inflation_explorer_math():
+    # 14 months of a smooth 0.5%/mo headline, then a 1.0% jump in the last month.
+    vals = [100.0 * 1.005 ** i for i in range(13)] + [100.0 * 1.005 ** 12 * 1.01]
+    rows = _monthly("CPIAUCSL", 2023, vals)
+    out = compute_inflation_explorer(
+        rows, [InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA")])
+    last = out["explorer"][-1]
+    assert last["observation_date"] == "2024-02-01"
+    assert last["mom_pct"] == pytest.approx(0.01)
+    # YoY: months 2..13 grew 0.5%*11 then 1.0%: (1.005^11 * 1.01) - 1
+    assert last["yoy_pct"] == pytest.approx(1.005 ** 11 * 1.01 - 1)
+    # acceleration: 1.0% this month vs 0.5% last month
+    assert last["mom_accel"] == pytest.approx(0.005)
+    # 3m annualized: (1.005^2 * 1.01)^4 - 1
+    assert last["three_month_annualized"] == pytest.approx(
+        (1.005 ** 2 * 1.01) ** 4 - 1)
+    # steady months have ~zero acceleration
+    mid = out["explorer"][6]
+    assert mid["mom_accel"] == pytest.approx(0.0, abs=1e-9)
+    # no weight configured -> no contribution
+    assert last["contribution_pp"] is None
+
+
+def test_inflation_contribution_waterfall():
+    rows = (
+        _monthly("CPIAUCSL", 2024, [100.0, 100.5])   # +0.5% headline
+        + _monthly("FOOD", 2024, [100.0, 102.0])     # +2.0% * 20 -> 0.40pp
+        + _monthly("ENERGY", 2024, [100.0, 99.0])    # -1.0% * 10 -> -0.10pp
+    )
+    out = compute_inflation_explorer(rows, _cpi_tree())
+    feb = [r for r in out["contribution"]
+           if r["observation_date"] == "2024-02-01"]
+    assert len(feb) == 3
+    head = next(r for r in feb if r["is_headline_total"])
+    assert head["contribution_pp"] == pytest.approx(0.5)  # headline MoM in pp
+    assert head["rank_in_month"] is None
+    food = next(r for r in feb if r["series_id"] == "FOOD")
+    energy = next(r for r in feb if r["series_id"] == "ENERGY")
+    assert food["contribution_pp"] == pytest.approx(0.40)
+    assert energy["contribution_pp"] == pytest.approx(-0.10)
+    assert food["rank_in_month"] == 1 and energy["rank_in_month"] == 2
+    # January: headline has no MoM (first obs) -> no waterfall rows at all
+    assert not [r for r in out["contribution"]
+                if r["observation_date"] == "2024-01-01"]
+    # explorer rows carry the same contribution for waterfall items
+    food_row = [r for r in out["explorer"] if r["series_id"] == "FOOD"][-1]
+    assert food_row["contribution_pp"] == pytest.approx(0.40)
+    assert food_row["weight"] == pytest.approx(20.0)
+
+
+def test_inflation_explorer_gap_yields_nulls_not_wrong_months():
+    # Jan, Feb, then a gap, then May: May's MoM must be null (no April),
+    # not Feb-vs-May masquerading as month-over-month.
+    rows = [
+        _row("CPIAUCSL", "2024-01-01", 100.0),
+        _row("CPIAUCSL", "2024-02-01", 100.5),
+        _row("CPIAUCSL", "2024-05-01", 101.5),
+    ]
+    out = compute_inflation_explorer(
+        rows, [InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA")])
+    may = out["explorer"][-1]
+    assert may["mom_pct"] is None and may["mom_accel"] is None
+    assert may["three_month_annualized"] == pytest.approx(
+        (101.5 / 100.5) ** 4 - 1)  # Feb IS exactly 3 months back
+
+
+def test_inflation_explorer_absent_series_and_empty_config():
+    out = compute_inflation_explorer(
+        _monthly("CPIAUCSL", 2024, [100.0, 100.5]), [])
+    assert out == {"explorer": [], "contribution": []}
+    out = compute_inflation_explorer(
+        [], [InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA")])
+    assert out == {"explorer": [], "contribution": []}
+
+
+# ---- rolling-window stats companions ----------------------------------------------
+
+from fred_pipeline.terminal_views import (  # noqa: E402
+    ROLLING_WINDOWS,
+    _rolling_window_rows,
+    compute_credit_spread_rolling,
+    compute_curve_spread_rolling,
+    compute_treasury_curve_rolling,
+)
+from datetime import date as _date, timedelta as _timedelta  # noqa: E402
+
+
+def _daily_series(values, start="2024-01-01"):
+    d0 = _date.fromisoformat(start)
+    return [(d0 + _timedelta(days=i), float(v)) for i, v in enumerate(values)]
+
+
+def test_rolling_window_rows_math():
+    # 10 obs, windows 1 and 5.
+    series = _daily_series([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    rows = _rolling_window_rows(series, windows=(1, 5))
+    w1 = [r for r in rows if r["window"] == 1]
+    w5 = [r for r in rows if r["window"] == 5]
+    # window 1: starts at the 2nd obs; daily change; zscore always None (std 0)
+    assert len(w1) == 9
+    assert w1[0]["change"] == pytest.approx(1.0)
+    assert w1[0]["pct_change"] == pytest.approx(1.0)  # 2 vs 1
+    assert all(r["zscore"] is None for r in w1)
+    # window 5: first row at the 6th obs (index 5): v=6, base=v[0]=1
+    assert len(w5) == 5
+    first = w5[0]
+    assert first["observation_date"] == "2024-01-06"
+    assert first["change"] == pytest.approx(5.0)
+    assert first["pct_change"] == pytest.approx(5.0)
+    # rolling mean of [2..6] = 4, pop std = sqrt(2) -> z = (6-4)/sqrt(2)
+    assert first["zscore"] == pytest.approx(2.0 / 2.0 ** 0.5)
+
+
+def test_rolling_window_rows_flat_and_zero_base():
+    # flat series: change 0, zscore None (std 0)
+    rows = _rolling_window_rows(_daily_series([5, 5, 5, 5, 5, 5]), windows=(5,))
+    (r,) = rows
+    assert r["change"] == pytest.approx(0.0) and r["zscore"] is None
+    # zero base: pct_change None, change still defined
+    rows = _rolling_window_rows(_daily_series([0.0, 1.0]), windows=(1,))
+    assert rows[0]["pct_change"] is None
+    assert rows[0]["change"] == pytest.approx(1.0)
+
+
+def test_rolling_window_no_partial_windows():
+    rows = _rolling_window_rows(_daily_series([1, 2, 3]), windows=ROLLING_WINDOWS)
+    assert {r["window"] for r in rows} == {1}  # only w=1 fully populated
+
+
+def test_curve_spread_rolling_keys():
+    spreads = [SpreadDef("T10Y2Y", "DGS10", "DGS2")]
+    rows = []
+    for i in range(7):
+        d = f"2024-01-{i + 1:02d}"
+        rows += [_row("DGS10", d, 4.0 + 0.01 * i), _row("DGS2", d, 3.8)]
+    out = compute_curve_spread_rolling(rows, spreads, windows=(1, 5))
+    assert {r["spread_name"] for r in out} == {"T10Y2Y"}
+    w5 = [r for r in out if r["window"] == 5]
+    assert len(w5) == 2
+    assert w5[0]["change"] == pytest.approx(0.05)  # 5 * 1bp/day in pp
+
+
+def test_credit_spread_rolling_in_bps():
+    cfg = CreditConfig(
+        instruments=(CreditInstrumentDef("HY_OAS", "BAMLH0A0HYM2"),))
+    rows = [_row("BAMLH0A0HYM2", f"2024-01-{i + 1:02d}", 3.5 + 0.1 * i)
+            for i in range(3)]
+    out = compute_credit_spread_rolling(rows, cfg, windows=(1,))
+    assert [r["oas_bps"] for r in out] == pytest.approx([360.0, 370.0])
+    assert all(r["change_bps"] == pytest.approx(10.0) for r in out)
+    assert out[0]["instrument"] == "HY_OAS"
+
+
+def test_treasury_curve_rolling_per_tenor():
+    tenors = [TenorDef("2Y", 24, "DGS2"), TenorDef("10Y", 120, "DGS10")]
+    rows = []
+    for i in range(3):
+        d = f"2024-01-{i + 1:02d}"
+        rows += [_row("DGS2", d, 4.0 - 0.05 * i), _row("DGS10", d, 4.2)]
+    out = compute_treasury_curve_rolling(rows, tenors, windows=(1,))
+    by_tenor = {}
+    for r in out:
+        by_tenor.setdefault(r["tenor_label"], []).append(r)
+    assert set(by_tenor) == {"2Y", "10Y"}
+    assert all(r["change"] == pytest.approx(-0.05) for r in by_tenor["2Y"])
+    assert all(r["change"] == pytest.approx(0.0) for r in by_tenor["10Y"])
+    assert by_tenor["2Y"][0]["tenor_months"] == 24

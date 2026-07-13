@@ -481,3 +481,103 @@ CREATE TABLE IF NOT EXISTS gold.credit_spread_daily (
     is_recession      BOOLEAN
 )
 USING DELTA;
+
+-- ============================================================================
+-- Phase 2 Inflation Explorer (docs/market_terminal_gold_views.md §4.2):
+-- the CPI/PCE item trees from config/inflation_items.yml. Computed by
+-- fred_pipeline.terminal_views.compute_inflation_explorer and written by
+-- fred_pipeline.gold._build_terminal_views; DDL provisions shapes only.
+-- ============================================================================
+
+-- One row per item × month: index level, MoM/YoY (fractions), ΔMoM/ΔYoY
+-- acceleration, trailing-3-month annualized rate, the item's relative-
+-- importance weight (percent of the headline basket), and weight × MoM
+-- contribution in headline percentage points. Month arithmetic is
+-- calendar-based, so publication gaps yield NULLs, never wrong-month math.
+CREATE TABLE IF NOT EXISTS gold.inflation_explorer (
+    series_id              STRING,
+    item_label             STRING,
+    parent_item            STRING,
+    hierarchy_level        INT,
+    basket                 STRING,
+    sa_nsa                 STRING,
+    observation_date       DATE,
+    index_value            DOUBLE,
+    mom_pct                DOUBLE,
+    yoy_pct                DOUBLE,
+    mom_accel              DOUBLE,
+    yoy_accel              DOUBLE,
+    three_month_annualized DOUBLE,
+    weight                 DOUBLE,
+    contribution_pp        DOUBLE
+)
+USING DELTA;
+
+-- The contribution waterfall: per tree (basket × sa_nsa) and month where the
+-- headline printed, one row per waterfall item ranked by contribution
+-- (rank 1 = largest), plus an is_headline_total row carrying the headline's
+-- own MoM in percentage points — the bar the item contributions stack
+-- against in Power BI's waterfall visual.
+CREATE TABLE IF NOT EXISTS gold.inflation_contribution (
+    observation_date  DATE,
+    basket            STRING,
+    sa_nsa            STRING,
+    series_id         STRING,
+    item_label        STRING,
+    contribution_pp   DOUBLE,
+    rank_in_month     INT,
+    is_headline_total BOOLEAN
+)
+USING DELTA;
+
+-- ============================================================================
+-- Rolling-window stats companions to the daily spread / credit / curve
+-- tables. One row per entity × date × window, windows = 1/5/10/21/63/126/252
+-- trailing OBSERVATIONS (~trading-day horizons: day, week, 2 weeks, month,
+-- quarter, half-year, year). A row appears only once its window is fully
+-- populated — no partial-window stats. change = v_t − v_{t−w} in the parent
+-- table's native units; pct_change is vs. v_{t−w} (NULL at a zero base;
+-- of limited meaning for spreads that cross zero); zscore is against the
+-- trailing-w rolling mean/std including the current value (NULL when the
+-- window std is 0 — always for window 1). Trailing-only → point-in-time
+-- safe. Computed by fred_pipeline.terminal_views.compute_*_rolling and
+-- written by fred_pipeline.gold._build_terminal_views; DDL shapes only.
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS gold.curve_spread_rolling (
+    spread_name      STRING,
+    observation_date DATE,
+    window           INT,
+    value            DOUBLE,
+    change           DOUBLE,
+    pct_change       DOUBLE,
+    zscore           DOUBLE
+)
+USING DELTA;
+
+-- Credit convention: stats over the OAS in bps.
+CREATE TABLE IF NOT EXISTS gold.credit_spread_rolling (
+    instrument       STRING,
+    series_id        STRING,
+    observation_date DATE,
+    window           INT,
+    oas_bps          DOUBLE,
+    change_bps       DOUBLE,
+    pct_change       DOUBLE,
+    zscore           DOUBLE
+)
+USING DELTA;
+
+-- Yields in percent; change is a percent-point move (×100 for bps).
+CREATE TABLE IF NOT EXISTS gold.treasury_curve_rolling (
+    tenor_label      STRING,
+    tenor_months     INT,
+    series_id        STRING,
+    observation_date DATE,
+    window           INT,
+    yield_pct        DOUBLE,
+    change           DOUBLE,
+    pct_change       DOUBLE,
+    zscore           DOUBLE
+)
+USING DELTA;

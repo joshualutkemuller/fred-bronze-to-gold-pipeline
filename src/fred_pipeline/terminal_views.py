@@ -20,7 +20,10 @@ surfaces for Power BI (plan: ``docs/market_terminal_gold_views.md``):
   * **funding_tape_daily / funding_stress_daily** — the FUND tape (corridor
     rates, balances, spreads with expanding stats) and the 0–100 stress gauge;
   * **credit_spread_daily** — the CRDT OAS history with expanding stats and
-    percentile-based stress-episode flags.
+    percentile-based stress-episode flags;
+  * **inflation_explorer / inflation_contribution** — the INFL item trees
+    (CPI SA/NSA, PCE): index/MoM/YoY/acceleration/3m-annualized per item, and
+    the weight × MoM contribution waterfall against the headline print.
 
 Kept pure (dict-in → dict-out, no Spark, no SQLite) so the Local and
 Databricks backends share the same tested logic — the same pattern as
@@ -37,6 +40,7 @@ from typing import Any, Iterable, Optional
 
 from fred_pipeline.catalog_config import CatalogEntry, load_series_catalog
 from fred_pipeline.curve_config import TenorDef, load_curve_defs
+from fred_pipeline.inflation_config import InflationItemDef, load_inflation_items
 from fred_pipeline.rates_complex_config import (
     BenchmarkBoardConfig,
     CreditConfig,
@@ -757,3 +761,294 @@ def compute_credit_spread_daily(
                 "is_recession": _recession_at(flags, d),
             })
     return sorted(out, key=lambda r: (r["instrument"], r["observation_date"]))
+
+
+# ---- INFL inflation explorer -------------------------------------------------
+
+def _month_index(d: date) -> int:
+    return d.year * 12 + (d.month - 1)
+
+
+def compute_inflation_explorer(
+    latest_rows: Iterable[dict[str, Any]],
+    items: Optional[Iterable[InflationItemDef]] = None,
+) -> dict[str, list[dict[str, Any]]]:
+    """The INFL surfaces from ``config/inflation_items.yml``.
+
+    Returns ``explorer`` (one row per item × month: index level, MoM %, YoY %,
+    ΔMoM/ΔYoY acceleration, trailing-3-month annualized rate, the item's
+    relative-importance weight, and ``weight × MoM`` contribution in headline
+    percentage points) and ``contribution`` (the waterfall: per month and
+    tree, one row per ``waterfall: true`` item ranked by contribution, plus an
+    ``is_headline_total`` row carrying the headline's own MoM in pp).
+
+    All month arithmetic is calendar-based (``year × 12 + month``), so a
+    publication gap yields nulls rather than comparing the wrong months.
+    Items whose series aren't ingested emit no rows; the waterfall for a month
+    appears only when the tree's headline printed that month.
+    """
+    if items is None:
+        items = load_inflation_items()
+    item_list = list(items)
+    if not item_list:
+        return {"explorer": [], "contribution": []}
+    by_series = _group_sorted(
+        r for r in latest_rows
+        if r.get("series_id") in {i.series_id for i in item_list}
+    )
+
+    explorer: list[dict[str, Any]] = []
+    # (basket, sa_nsa) -> {month_index: {...}} for the waterfall pass
+    mom_by_tree: dict[tuple[str, str], dict[str, dict[int, Any]]] = {}
+
+    for item in item_list:
+        series = by_series.get(item.series_id)
+        if not series:
+            continue
+        # month_index -> (date, value); ascending input, last obs in a month wins
+        monthly: dict[int, tuple[date, float]] = {
+            _month_index(d): (d, v) for d, v in series
+        }
+        mom_map: dict[int, Optional[float]] = {}
+        for m in monthly:
+            prev = monthly.get(m - 1)
+            mom_map[m] = (
+                _pct_change(monthly[m][1], prev[1]) if prev else None
+            )
+        tree = mom_by_tree.setdefault((item.basket, item.sa_nsa), {})
+        tree[item.series_id] = mom_map
+
+        for m in sorted(monthly):
+            d, v = monthly[m]
+            year_ago = monthly.get(m - 12)
+            three_back = monthly.get(m - 3)
+            prev_mom, cur_mom = mom_map.get(m - 1), mom_map[m]
+            yoy = _pct_change(v, year_ago[1]) if year_ago else None
+            prev_yoy = None
+            if monthly.get(m - 1) and monthly.get(m - 13):
+                prev_yoy = _pct_change(monthly[m - 1][1], monthly[m - 13][1])
+            explorer.append({
+                "series_id": item.series_id,
+                "item_label": item.label,
+                "parent_item": item.parent or None,
+                "hierarchy_level": item.level,
+                "basket": item.basket,
+                "sa_nsa": item.sa_nsa,
+                "observation_date": d.isoformat(),
+                "index_value": v,
+                "mom_pct": cur_mom,
+                "yoy_pct": yoy,
+                "mom_accel": (
+                    cur_mom - prev_mom
+                    if cur_mom is not None and prev_mom is not None else None
+                ),
+                "yoy_accel": (
+                    yoy - prev_yoy
+                    if yoy is not None and prev_yoy is not None else None
+                ),
+                "three_month_annualized": (
+                    (v / three_back[1]) ** 4 - 1
+                    if three_back and three_back[1] > 0 and v > 0 else None
+                ),
+                "weight": item.weight,
+                "contribution_pp": (
+                    item.weight * cur_mom
+                    if item.weight is not None and cur_mom is not None else None
+                ),
+            })
+
+    # Waterfall: per tree × month where the headline printed, the waterfall
+    # items' contributions ranked largest-first, plus the headline-total row.
+    contribution: list[dict[str, Any]] = []
+    items_by_tree: dict[tuple[str, str], list[InflationItemDef]] = {}
+    for item in item_list:
+        items_by_tree.setdefault((item.basket, item.sa_nsa), []).append(item)
+    for key in sorted(items_by_tree):
+        basket, sa_nsa = key
+        tree_items = items_by_tree[key]
+        head = next((i for i in tree_items if i.level == 0), None)
+        wf = [i for i in tree_items if i.waterfall]
+        head_moms = mom_by_tree.get(key, {}).get(head.series_id, {}) if head else {}
+        for m in sorted(head_moms):
+            head_mom = head_moms[m]
+            if head_mom is None:
+                continue
+            d = date(m // 12, m % 12 + 1, 1)
+            rows = []
+            for i in wf:
+                mom = mom_by_tree[key].get(i.series_id, {}).get(m)
+                if mom is None:
+                    continue
+                rows.append({
+                    "observation_date": d.isoformat(),
+                    "basket": basket,
+                    "sa_nsa": sa_nsa,
+                    "series_id": i.series_id,
+                    "item_label": i.label,
+                    "contribution_pp": i.weight * mom,
+                    "rank_in_month": 0,
+                    "is_headline_total": False,
+                })
+            rows.sort(key=lambda r: -r["contribution_pp"])
+            for rank, r in enumerate(rows, start=1):
+                r["rank_in_month"] = rank
+            contribution.extend(rows)
+            contribution.append({
+                "observation_date": d.isoformat(),
+                "basket": basket,
+                "sa_nsa": sa_nsa,
+                "series_id": head.series_id,
+                "item_label": head.label,
+                "contribution_pp": head_mom * 100.0,  # headline MoM in pp
+                "rank_in_month": None,
+                "is_headline_total": True,
+            })
+    return {"explorer": explorer, "contribution": contribution}
+
+
+# ---- rolling-window stats companions -------------------------------------------
+
+# Trailing observation-count windows (~trading-day horizons: day, week,
+# 2 weeks, month, quarter, half-year, year).
+ROLLING_WINDOWS = (1, 5, 10, 21, 63, 126, 252)
+
+
+def _rolling_window_rows(
+    series: list[tuple[date, float]],
+    windows: tuple[int, ...] = ROLLING_WINDOWS,
+) -> list[dict[str, Any]]:
+    """Per observation × window: trailing change, percent change, and rolling
+    z-score, computed with prefix sums (O(n × windows), not O(n × w)).
+
+    A (observation, window) row is emitted only once the window is **fully
+    populated** (observation index ≥ w) — no partial-window stats. ``change``
+    is ``v_t − v_{t−w}`` in the series' native units; ``pct_change`` is
+    relative to ``v_{t−w}`` (``None`` at a zero base); ``zscore`` is against
+    the trailing-w rolling mean/std *including* the current value (``None``
+    when the window std is 0 — always the case for w=1). Windows are
+    observation counts, so for daily series they approximate trading-day
+    horizons; the stats are trailing-only (point-in-time safe).
+    """
+    n = len(series)
+    values = [v for _d, v in series]
+    s = [0.0] * (n + 1)   # prefix sums of x and x²
+    s2 = [0.0] * (n + 1)
+    for i, v in enumerate(values):
+        s[i + 1] = s[i] + v
+        s2[i + 1] = s2[i] + v * v
+
+    out: list[dict[str, Any]] = []
+    for i in range(n):
+        d, v = series[i]
+        for w in windows:
+            if i < w:
+                continue
+            base = values[i - w]
+            mean = (s[i + 1] - s[i + 1 - w]) / w
+            var = max((s2[i + 1] - s2[i + 1 - w]) / w - mean * mean, 0.0)
+            std = var ** 0.5
+            out.append({
+                "observation_date": d.isoformat(),
+                "window": w,
+                "value": v,
+                "change": v - base,
+                "pct_change": ((v - base) / base) if base != 0 else None,
+                "zscore": ((v - mean) / std) if std > 1e-12 else None,
+            })
+    return out
+
+
+def compute_curve_spread_rolling(
+    latest_rows: Iterable[dict[str, Any]],
+    spreads: Optional[Iterable[SpreadDef]] = None,
+    windows: tuple[int, ...] = ROLLING_WINDOWS,
+) -> list[dict[str, Any]]:
+    """``gold.curve_spread_rolling``: rolling-window companions to
+    ``curve_spread_daily`` — per configured spread/ratio, the trailing change,
+    percent change, and rolling z-score over each window. ``value``/``change``
+    are in the spread's native units (percent points for rate spreads); note
+    ``pct_change`` on a spread that crosses zero is of limited meaning and is
+    provided for uniformity."""
+    if spreads is None:
+        spreads = load_spread_defs()
+    base = compute_curve_spreads(latest_rows, spreads)
+    by_name: dict[str, list[tuple[date, float]]] = {}
+    for r in base:
+        d = _parse(r["observation_date"])
+        if d is not None:
+            by_name.setdefault(r["spread_name"], []).append((d, r["value"]))
+    out: list[dict[str, Any]] = []
+    for name in sorted(by_name):
+        series = sorted(by_name[name], key=lambda t: t[0])
+        for row in _rolling_window_rows(series, windows):
+            out.append({"spread_name": name, **row})
+    return out
+
+
+def compute_credit_spread_rolling(
+    latest_rows: Iterable[dict[str, Any]],
+    cfg: Optional[CreditConfig] = None,
+    windows: tuple[int, ...] = ROLLING_WINDOWS,
+) -> list[dict[str, Any]]:
+    """``gold.credit_spread_rolling``: rolling-window companions to
+    ``credit_spread_daily`` — per configured OAS instrument, over the spread
+    in **bps** (credit convention), so ``change`` is a bps move."""
+    if cfg is None:
+        cfg = load_credit_config()
+    by_series = _group_sorted(
+        r for r in latest_rows
+        if r.get("series_id") in {c.series_id for c in cfg.instruments}
+    )
+    out: list[dict[str, Any]] = []
+    for cd in cfg.instruments:
+        series = by_series.get(cd.series_id)
+        if not series:
+            continue
+        bps = [(d, v * 100.0) for d, v in series]
+        for row in _rolling_window_rows(bps, windows):
+            out.append({
+                "instrument": cd.instrument,
+                "series_id": cd.series_id,
+                "observation_date": row["observation_date"],
+                "window": row["window"],
+                "oas_bps": row["value"],
+                "change_bps": row["change"],
+                "pct_change": row["pct_change"],
+                "zscore": row["zscore"],
+            })
+    return out
+
+
+def compute_treasury_curve_rolling(
+    latest_rows: Iterable[dict[str, Any]],
+    tenors: Optional[Iterable[TenorDef]] = None,
+    windows: tuple[int, ...] = ROLLING_WINDOWS,
+) -> list[dict[str, Any]]:
+    """``gold.treasury_curve_rolling``: rolling-window companions to
+    ``treasury_curve`` — per tenor, over the constant-maturity yield in
+    percent, so ``change`` is a percent-point move (×100 for bps)."""
+    if tenors is None:
+        tenors = load_curve_defs()
+    tenor_list = sorted(tenors, key=lambda t: t.months)
+    by_series = _group_sorted(
+        r for r in latest_rows
+        if r.get("series_id") in {t.series_id for t in tenor_list}
+    )
+    out: list[dict[str, Any]] = []
+    for t in tenor_list:
+        series = by_series.get(t.series_id)
+        if not series:
+            continue
+        for row in _rolling_window_rows(series, windows):
+            out.append({
+                "tenor_label": t.label,
+                "tenor_months": t.months,
+                "series_id": t.series_id,
+                "observation_date": row["observation_date"],
+                "window": row["window"],
+                "yield_pct": row["value"],
+                "change": row["change"],
+                "pct_change": row["pct_change"],
+                "zscore": row["zscore"],
+            })
+    return out

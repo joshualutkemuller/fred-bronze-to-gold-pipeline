@@ -290,6 +290,25 @@ to `last_inverted_date` while ongoing), `trough_value`/`trough_bps`/
 `trough_date` (deepest inversion), `is_ongoing`, `recession_overlap` (any
 inverted date fell in an NBER recession; `NULL` until `USREC` is ingested).
 
+#### `gold.inflation_explorer`
+The INFL item trees (`config/inflation_items.yml`: CPI/SA rooted at
+`CPIAUCSL`, CPI/NSA rooted at `CUUR0000SA0`, PCE/SA rooted at `PCEPI`): one
+row per item × month with `index_value`, `mom_pct`/`yoy_pct` (fractions),
+`mom_accel`/`yoy_accel` (this month's rate − last month's), 
+`three_month_annualized` (`(I_t/I_{t−3})⁴ − 1`), the item's
+relative-importance `weight` (percent of the headline basket), and
+`contribution_pp` (`weight × mom_pct`, in headline percentage points), plus
+`item_label`/`parent_item`/`hierarchy_level`/`basket`/`sa_nsa` for the
+drill-down tree. Month arithmetic is calendar-based — a publication gap
+yields NULLs, never a wrong-month comparison.
+
+#### `gold.inflation_contribution`
+The contribution waterfall: per tree (basket × sa_nsa) and month where the
+headline printed, one row per `waterfall: true` item (the 8 CPI major
+groups), ranked by `contribution_pp` (`rank_in_month` 1 = largest), plus an
+`is_headline_total` row carrying the headline's own MoM in percentage points
+— the bar the item contributions stack against.
+
 #### `gold.benchmark_rate_board`
 One row per rate configured in `config/benchmark_rates.yml` at its latest
 observation: `latest_value`/`prior_value`, `change_bps`, `trend`
@@ -321,6 +340,21 @@ publishes percent — `oas_pct`, with `oas_bps` = ×100): `change_bps` vs. the
 prior print, expanding `zscore`/`percentile`, `is_stress_episode` (expanding
 percentile ≥ `stress_percentile`, default 0.90; `NULL` on the first
 observation), `is_recession` (NBER overlay, `NULL` until `USREC` is ingested).
+
+#### `gold.curve_spread_rolling` / `gold.credit_spread_rolling` / `gold.treasury_curve_rolling`
+Rolling-window stats companions to `curve_spread_daily`,
+`credit_spread_daily`, and `treasury_curve`: one row per entity × date ×
+`window`, with trailing windows of **1/5/10/21/63/126/252 observations**
+(~trading-day horizons: day, week, 2 weeks, month, quarter, half-year, year).
+Columns per row: the level (`value` in the spread's native units / `oas_bps`
+for credit / `yield_pct` for tenors), `change` (`v_t − v_{t−w}`, native
+units; bps for credit), `pct_change` (vs. `v_{t−w}`; `NULL` at a zero base —
+and of limited meaning for spreads that cross zero), and `zscore` (vs. the
+trailing-w rolling mean/std including the current value; `NULL` when the
+window std is 0 — always for window 1). A row appears only once its window
+is **fully populated** (no partial-window stats), and all stats are
+trailing-only, so they are point-in-time safe. In Power BI, put `window` on
+a slicer and one visual serves all horizons.
 
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.

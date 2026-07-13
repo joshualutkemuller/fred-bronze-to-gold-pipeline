@@ -112,6 +112,7 @@ views). Everything is additive — no existing Gold table changes shape.
 | 3b | `gold.treasury_curve_metrics` | 1 / as-of date | CURV metrics | fact (wide) |
 | 4 | `gold.curve_spread_daily` | 1 / spread × date | CURV spreads | fact (long) |
 | 4b | `gold.spread_inversion_episode` | 1 / spread × episode | CURV inversion history | fact (episodic) |
+| 4c | `gold.curve_spread_rolling` / `credit_spread_rolling` / `treasury_curve_rolling` | 1 / entity × date × window | multi-horizon momentum/z (windows 1–252 obs) | fact (long) |
 | 5 | `gold.benchmark_rate_board` | 1 / rate (latest) | BMRK | fact (snapshot) |
 | 6 | `gold.funding_tape_daily` | 1 / metric × date | FUND / FCOST | fact (long) |
 | 6b | `gold.funding_stress_daily` | 1 / date | FUND gauge | fact (wide) |
@@ -447,10 +448,28 @@ additions, following the existing `_build_*` pattern in `gold.py`.
   `LocalWarehouse.build_gold`), DDL in `sql/50_gold.sql`, tests in
   `tests/test_terminal_views.py`.
 
-**Phase 2 — Inflation Explorer.**
-- Activate + verify the CPI basket manifests; add `config/cpi_hierarchy.yml` +
-  `config/cpi_weights.yml`; build `gold.inflation_explorer` +
-  `inflation_contribution`. (PCE item level deferred to a BEA follow-up.)
+**Phase 2 — Inflation Explorer. — IMPLEMENTED**
+- `config/inflation_items.yml` + loader (`inflation_config.py`): three item
+  trees — CPI/SA, CPI/NSA, PCE/SA — with parent/level hierarchy, BLS
+  relative-importance weights on the 8 major groups, and `waterfall` flags.
+  Two documented refinements vs. the original sketch: (a) **one file** carries
+  hierarchy *and* weights (no cross-file join to get wrong) instead of
+  `cpi_hierarchy.yml` + `cpi_weights.yml`; (b) the SA tree is **rooted at the
+  already-active `CPIAUCSL`/`CPILFESL`** (and PCE at `PCEPI`/`PCEPILFE`), so
+  headline/core rows appear with zero activation — the CUSR/CUUR item
+  drill-down fills in when the basket manifests are verified + activated.
+- Engine `terminal_views.compute_inflation_explorer` →
+  `gold.inflation_explorer` (index, MoM/YoY, ΔMoM/ΔYoY acceleration,
+  3-month-annualized, weight, contribution_pp; calendar-based month
+  arithmetic so publication gaps yield NULLs, never wrong-month math) +
+  `gold.inflation_contribution` (per-month waterfall: ranked item
+  contributions + the headline-total row; emitted only for months where the
+  tree's headline printed).
+- ⚠️ Shipped weights are approximate (Dec-2023-era relative importance,
+  recalled — BLS unreachable from the build env); refresh from the BLS
+  relative-importance table before treating contributions as precise.
+- PCE item level remains the deferred BEA follow-up (tree ships headline +
+  core only).
 
 **Phase 3 — Curve & spreads. — IMPLEMENTED**
 - `config/curve.yml` (11 tenors) + `terminal_views.compute_treasury_curve` →
@@ -469,6 +488,15 @@ IMPLEMENTED**
   first prints negative and ends on the first print back at/above zero, with
   episode number, duration (obs + calendar days), trough value/date, ongoing
   flag, and recession overlap. Both backends + tests.
+
+**Phase 3c — Rolling-window stats companions. — IMPLEMENTED**
+- `gold.curve_spread_rolling` / `credit_spread_rolling` /
+  `treasury_curve_rolling` (§3 row 4c): per entity × date × window, trailing
+  change / percent change / rolling z-score over windows of
+  **1/5/10/21/63/126/252 observations**. One shared prefix-sum engine
+  (`terminal_views._rolling_window_rows`, O(n × windows)); rows only for
+  fully-populated windows; trailing-only (PIT-safe). Credit stats run in bps
+  (convention), curve/spread in native percent points.
 
 **Phase 4 — Rates complex (BMRK + FUND + FCOST + CRDT). — IMPLEMENTED**
 - Configs `benchmark_rates.yml` (17-rate board, categories, benchmark pairs,
