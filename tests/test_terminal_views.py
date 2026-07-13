@@ -692,3 +692,136 @@ def test_credit_spread_daily_absent_series_emit_nothing():
         instruments=(CreditInstrumentDef("IG_OAS", "BAMLC0A0CM"),))
     assert compute_credit_spread_daily(
         [_row("DGS10", "2024-01-02", 4.0)], cfg) == []
+
+
+# ---- Phase 2: Inflation Explorer -------------------------------------------------
+
+from fred_pipeline.inflation_config import (  # noqa: E402
+    InflationConfigError,
+    InflationItemDef,
+    load_inflation_items,
+)
+from fred_pipeline.terminal_views import compute_inflation_explorer  # noqa: E402
+
+
+def test_inflation_items_loader_missing_and_repo_file(tmp_path):
+    assert load_inflation_items(str(tmp_path / "nope.yml")) == []
+    items = load_inflation_items("config/inflation_items.yml")
+    assert any(i.series_id == "CPIAUCSL" and i.level == 0 for i in items)
+    # every parent resolves; exactly one root per (basket, sa_nsa) tree
+    ids = {i.series_id for i in items}
+    assert all(i.parent in ids for i in items if i.parent)
+    roots = [(i.basket, i.sa_nsa) for i in items if i.level == 0]
+    assert len(roots) == len(set(roots))
+    # the 8 SA major groups carry weights and the waterfall flag
+    wf = [i for i in items if i.waterfall and i.sa_nsa == "SA"]
+    assert len(wf) == 8 and all(i.weight for i in wf)
+
+
+@pytest.mark.parametrize("body", [
+    # level-0 with a parent
+    ("items:\n  - {series_id: A, label: L, basket: CPI, sa_nsa: SA,"
+     " level: 0, parent: B}\n"
+     "  - {series_id: B, label: L2, basket: CPI, sa_nsa: SA, level: 0}\n"),
+    # unknown parent
+    ("items:\n  - {series_id: A, label: L, basket: CPI, sa_nsa: SA,"
+     " level: 1, parent: NOPE}\n"),
+    # two roots in one tree
+    ("items:\n  - {series_id: A, label: L, basket: CPI, sa_nsa: SA, level: 0}\n"
+     "  - {series_id: B, label: L2, basket: CPI, sa_nsa: SA, level: 0}\n"),
+    # waterfall without weight
+    ("items:\n  - {series_id: A, label: L, basket: CPI, sa_nsa: SA,"
+     " level: 0, waterfall: true}\n"),
+    # bad basket
+    ("items:\n  - {series_id: A, label: L, basket: RPI, sa_nsa: SA, level: 0}\n"),
+])
+def test_inflation_items_loader_rejects_malformed(tmp_path, body):
+    p = tmp_path / "items.yml"
+    p.write_text(body)
+    with pytest.raises(InflationConfigError):
+        load_inflation_items(str(p))
+
+
+def _cpi_tree():
+    return [
+        InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA", level=0),
+        InflationItemDef("FOOD", "Food", "CPI", "SA", parent="CPIAUCSL",
+                         level=1, weight=20.0, waterfall=True),
+        InflationItemDef("ENERGY", "Energy", "CPI", "SA", parent="CPIAUCSL",
+                         level=1, weight=10.0, waterfall=True),
+    ]
+
+
+def test_inflation_explorer_math():
+    # 14 months of a smooth 0.5%/mo headline, then a 1.0% jump in the last month.
+    vals = [100.0 * 1.005 ** i for i in range(13)] + [100.0 * 1.005 ** 12 * 1.01]
+    rows = _monthly("CPIAUCSL", 2023, vals)
+    out = compute_inflation_explorer(
+        rows, [InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA")])
+    last = out["explorer"][-1]
+    assert last["observation_date"] == "2024-02-01"
+    assert last["mom_pct"] == pytest.approx(0.01)
+    # YoY: months 2..13 grew 0.5%*11 then 1.0%: (1.005^11 * 1.01) - 1
+    assert last["yoy_pct"] == pytest.approx(1.005 ** 11 * 1.01 - 1)
+    # acceleration: 1.0% this month vs 0.5% last month
+    assert last["mom_accel"] == pytest.approx(0.005)
+    # 3m annualized: (1.005^2 * 1.01)^4 - 1
+    assert last["three_month_annualized"] == pytest.approx(
+        (1.005 ** 2 * 1.01) ** 4 - 1)
+    # steady months have ~zero acceleration
+    mid = out["explorer"][6]
+    assert mid["mom_accel"] == pytest.approx(0.0, abs=1e-9)
+    # no weight configured -> no contribution
+    assert last["contribution_pp"] is None
+
+
+def test_inflation_contribution_waterfall():
+    rows = (
+        _monthly("CPIAUCSL", 2024, [100.0, 100.5])   # +0.5% headline
+        + _monthly("FOOD", 2024, [100.0, 102.0])     # +2.0% * 20 -> 0.40pp
+        + _monthly("ENERGY", 2024, [100.0, 99.0])    # -1.0% * 10 -> -0.10pp
+    )
+    out = compute_inflation_explorer(rows, _cpi_tree())
+    feb = [r for r in out["contribution"]
+           if r["observation_date"] == "2024-02-01"]
+    assert len(feb) == 3
+    head = next(r for r in feb if r["is_headline_total"])
+    assert head["contribution_pp"] == pytest.approx(0.5)  # headline MoM in pp
+    assert head["rank_in_month"] is None
+    food = next(r for r in feb if r["series_id"] == "FOOD")
+    energy = next(r for r in feb if r["series_id"] == "ENERGY")
+    assert food["contribution_pp"] == pytest.approx(0.40)
+    assert energy["contribution_pp"] == pytest.approx(-0.10)
+    assert food["rank_in_month"] == 1 and energy["rank_in_month"] == 2
+    # January: headline has no MoM (first obs) -> no waterfall rows at all
+    assert not [r for r in out["contribution"]
+                if r["observation_date"] == "2024-01-01"]
+    # explorer rows carry the same contribution for waterfall items
+    food_row = [r for r in out["explorer"] if r["series_id"] == "FOOD"][-1]
+    assert food_row["contribution_pp"] == pytest.approx(0.40)
+    assert food_row["weight"] == pytest.approx(20.0)
+
+
+def test_inflation_explorer_gap_yields_nulls_not_wrong_months():
+    # Jan, Feb, then a gap, then May: May's MoM must be null (no April),
+    # not Feb-vs-May masquerading as month-over-month.
+    rows = [
+        _row("CPIAUCSL", "2024-01-01", 100.0),
+        _row("CPIAUCSL", "2024-02-01", 100.5),
+        _row("CPIAUCSL", "2024-05-01", 101.5),
+    ]
+    out = compute_inflation_explorer(
+        rows, [InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA")])
+    may = out["explorer"][-1]
+    assert may["mom_pct"] is None and may["mom_accel"] is None
+    assert may["three_month_annualized"] == pytest.approx(
+        (101.5 / 100.5) ** 4 - 1)  # Feb IS exactly 3 months back
+
+
+def test_inflation_explorer_absent_series_and_empty_config():
+    out = compute_inflation_explorer(
+        _monthly("CPIAUCSL", 2024, [100.0, 100.5]), [])
+    assert out == {"explorer": [], "contribution": []}
+    out = compute_inflation_explorer(
+        [], [InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA")])
+    assert out == {"explorer": [], "contribution": []}

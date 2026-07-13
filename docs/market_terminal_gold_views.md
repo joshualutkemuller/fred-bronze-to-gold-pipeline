@@ -447,10 +447,28 @@ additions, following the existing `_build_*` pattern in `gold.py`.
   `LocalWarehouse.build_gold`), DDL in `sql/50_gold.sql`, tests in
   `tests/test_terminal_views.py`.
 
-**Phase 2 — Inflation Explorer.**
-- Activate + verify the CPI basket manifests; add `config/cpi_hierarchy.yml` +
-  `config/cpi_weights.yml`; build `gold.inflation_explorer` +
-  `inflation_contribution`. (PCE item level deferred to a BEA follow-up.)
+**Phase 2 — Inflation Explorer. — IMPLEMENTED**
+- `config/inflation_items.yml` + loader (`inflation_config.py`): three item
+  trees — CPI/SA, CPI/NSA, PCE/SA — with parent/level hierarchy, BLS
+  relative-importance weights on the 8 major groups, and `waterfall` flags.
+  Two documented refinements vs. the original sketch: (a) **one file** carries
+  hierarchy *and* weights (no cross-file join to get wrong) instead of
+  `cpi_hierarchy.yml` + `cpi_weights.yml`; (b) the SA tree is **rooted at the
+  already-active `CPIAUCSL`/`CPILFESL`** (and PCE at `PCEPI`/`PCEPILFE`), so
+  headline/core rows appear with zero activation — the CUSR/CUUR item
+  drill-down fills in when the basket manifests are verified + activated.
+- Engine `terminal_views.compute_inflation_explorer` →
+  `gold.inflation_explorer` (index, MoM/YoY, ΔMoM/ΔYoY acceleration,
+  3-month-annualized, weight, contribution_pp; calendar-based month
+  arithmetic so publication gaps yield NULLs, never wrong-month math) +
+  `gold.inflation_contribution` (per-month waterfall: ranked item
+  contributions + the headline-total row; emitted only for months where the
+  tree's headline printed).
+- ⚠️ Shipped weights are approximate (Dec-2023-era relative importance,
+  recalled — BLS unreachable from the build env); refresh from the BLS
+  relative-importance table before treating contributions as precise.
+- PCE item level remains the deferred BEA follow-up (tree ships headline +
+  core only).
 
 **Phase 3 — Curve & spreads. — IMPLEMENTED**
 - `config/curve.yml` (11 tenors) + `terminal_views.compute_treasury_curve` →

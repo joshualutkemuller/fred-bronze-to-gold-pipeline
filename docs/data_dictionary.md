@@ -290,6 +290,25 @@ to `last_inverted_date` while ongoing), `trough_value`/`trough_bps`/
 `trough_date` (deepest inversion), `is_ongoing`, `recession_overlap` (any
 inverted date fell in an NBER recession; `NULL` until `USREC` is ingested).
 
+#### `gold.inflation_explorer`
+The INFL item trees (`config/inflation_items.yml`: CPI/SA rooted at
+`CPIAUCSL`, CPI/NSA rooted at `CUUR0000SA0`, PCE/SA rooted at `PCEPI`): one
+row per item × month with `index_value`, `mom_pct`/`yoy_pct` (fractions),
+`mom_accel`/`yoy_accel` (this month's rate − last month's), 
+`three_month_annualized` (`(I_t/I_{t−3})⁴ − 1`), the item's
+relative-importance `weight` (percent of the headline basket), and
+`contribution_pp` (`weight × mom_pct`, in headline percentage points), plus
+`item_label`/`parent_item`/`hierarchy_level`/`basket`/`sa_nsa` for the
+drill-down tree. Month arithmetic is calendar-based — a publication gap
+yields NULLs, never a wrong-month comparison.
+
+#### `gold.inflation_contribution`
+The contribution waterfall: per tree (basket × sa_nsa) and month where the
+headline printed, one row per `waterfall: true` item (the 8 CPI major
+groups), ranked by `contribution_pp` (`rank_in_month` 1 = largest), plus an
+`is_headline_total` row carrying the headline's own MoM in percentage points
+— the bar the item contributions stack against.
+
 #### `gold.benchmark_rate_board`
 One row per rate configured in `config/benchmark_rates.yml` at its latest
 observation: `latest_value`/`prior_value`, `change_bps`, `trend`

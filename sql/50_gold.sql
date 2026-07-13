@@ -481,3 +481,51 @@ CREATE TABLE IF NOT EXISTS gold.credit_spread_daily (
     is_recession      BOOLEAN
 )
 USING DELTA;
+
+-- ============================================================================
+-- Phase 2 Inflation Explorer (docs/market_terminal_gold_views.md §4.2):
+-- the CPI/PCE item trees from config/inflation_items.yml. Computed by
+-- fred_pipeline.terminal_views.compute_inflation_explorer and written by
+-- fred_pipeline.gold._build_terminal_views; DDL provisions shapes only.
+-- ============================================================================
+
+-- One row per item × month: index level, MoM/YoY (fractions), ΔMoM/ΔYoY
+-- acceleration, trailing-3-month annualized rate, the item's relative-
+-- importance weight (percent of the headline basket), and weight × MoM
+-- contribution in headline percentage points. Month arithmetic is
+-- calendar-based, so publication gaps yield NULLs, never wrong-month math.
+CREATE TABLE IF NOT EXISTS gold.inflation_explorer (
+    series_id              STRING,
+    item_label             STRING,
+    parent_item            STRING,
+    hierarchy_level        INT,
+    basket                 STRING,
+    sa_nsa                 STRING,
+    observation_date       DATE,
+    index_value            DOUBLE,
+    mom_pct                DOUBLE,
+    yoy_pct                DOUBLE,
+    mom_accel              DOUBLE,
+    yoy_accel              DOUBLE,
+    three_month_annualized DOUBLE,
+    weight                 DOUBLE,
+    contribution_pp        DOUBLE
+)
+USING DELTA;
+
+-- The contribution waterfall: per tree (basket × sa_nsa) and month where the
+-- headline printed, one row per waterfall item ranked by contribution
+-- (rank 1 = largest), plus an is_headline_total row carrying the headline's
+-- own MoM in percentage points — the bar the item contributions stack
+-- against in Power BI's waterfall visual.
+CREATE TABLE IF NOT EXISTS gold.inflation_contribution (
+    observation_date  DATE,
+    basket            STRING,
+    sa_nsa            STRING,
+    series_id         STRING,
+    item_label        STRING,
+    contribution_pp   DOUBLE,
+    rank_in_month     INT,
+    is_headline_total BOOLEAN
+)
+USING DELTA;

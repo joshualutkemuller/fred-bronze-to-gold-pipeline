@@ -492,7 +492,7 @@ reconciliation for non-FRED sources; optional new sources).
 
 # Market Terminal Analytical Views (Power BI Gold plan)
 
-**Status: Phases 0, 1, 3, 3b, and 4 implemented** (branch `EconGoldTerminalViews`) —
+**Status: Phases 0, 1, 2, 3, 3b, and 4 implemented** (branch `EconGoldTerminalViews`) —
 full spec + per-phase status in `docs/market_terminal_gold_views.md`; column
 semantics in `docs/data_dictionary.md`.
 
@@ -517,9 +517,14 @@ ship inactive pending live-FRED verification: `macro_flags.yml`
 `fed_funding.yml` (EFFR/IORB/OBFR/BGCR/TGCR/RRPONTSYD/SOFR30DAYAVG),
 `ice_credit.yml` (9 OAS indices), and `DGS3/DGS7/DGS20` + `DPRIME`/
 `MORTGAGE30US` in `rates.yml`; absent series emit no Gold rows until
-activated, so the tables populate progressively. Remaining: Phase 2
-(Inflation Explorer), Phase 5 (regime + stats), Phase 6 (global + Power BI
-catalog).
+activated, so the tables populate progressively. Phase 2's Inflation
+Explorer (`gold.inflation_explorer` / `inflation_contribution`,
+`config/inflation_items.yml`) ships three item trees — the SA tree is rooted
+at already-active `CPIAUCSL`/`PCEPI` so headline rows appear immediately; the
+CUUR/CUSR item drill-down fills in when the CPI basket manifests are
+activated, and the shipped group weights are approximate (refresh from the
+BLS relative-importance table). Remaining: Phase 5 (regime + stats), Phase 6
+(global + Power BI catalog), plus the deferred PCE item-level (BEA) follow-up.
 
 A separate project, `market_terminal` (a Bloomberg-style quant terminal),
 renders its macro analytics (ECON macro dashboard, INFL inflation explorer, CURV

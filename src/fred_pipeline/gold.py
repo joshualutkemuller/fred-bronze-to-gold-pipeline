@@ -482,6 +482,7 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
     from fred_pipeline.catalog_config import load_series_catalog
     from fred_pipeline.curve_config import load_curve_defs
     from fred_pipeline.spread_config import load_spread_defs
+    from fred_pipeline.inflation_config import load_inflation_items
     from fred_pipeline.rates_complex_config import (
         load_benchmark_board, load_credit_config, load_funding_config,
     )
@@ -493,6 +494,7 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
         compute_credit_spread_daily,
         compute_curve_spread_daily,
         compute_funding_features,
+        compute_inflation_explorer,
         compute_macro_dashboard,
         compute_spread_inversion_episodes,
         compute_treasury_curve,
@@ -759,6 +761,48 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
          "oas_bps", "change_bps", "zscore", "percentile",
          "is_stress_episode", "is_recession"])
 
+    # Phase 2 Inflation Explorer (config/inflation_items.yml).
+    infl_items = load_inflation_items()
+    inflation = compute_inflation_explorer(
+        _collect_latest(
+            config, spark, sorted({i.series_id for i in infl_items})
+        ),
+        infl_items,
+    )
+    _write("inflation_explorer", inflation["explorer"], StructType([
+        StructField("series_id", StringType()),
+        StructField("item_label", StringType()),
+        StructField("parent_item", StringType()),
+        StructField("hierarchy_level", IntegerType()),
+        StructField("basket", StringType()),
+        StructField("sa_nsa", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("index_value", DoubleType()),
+        StructField("mom_pct", DoubleType()),
+        StructField("yoy_pct", DoubleType()),
+        StructField("mom_accel", DoubleType()),
+        StructField("yoy_accel", DoubleType()),
+        StructField("three_month_annualized", DoubleType()),
+        StructField("weight", DoubleType()),
+        StructField("contribution_pp", DoubleType()),
+    ]), ["series_id", "item_label", "parent_item", "hierarchy_level",
+         "basket", "sa_nsa",
+         "CAST(observation_date AS DATE) AS observation_date", "index_value",
+         "mom_pct", "yoy_pct", "mom_accel", "yoy_accel",
+         "three_month_annualized", "weight", "contribution_pp"])
+    _write("inflation_contribution", inflation["contribution"], StructType([
+        StructField("observation_date", StringType()),
+        StructField("basket", StringType()),
+        StructField("sa_nsa", StringType()),
+        StructField("series_id", StringType()),
+        StructField("item_label", StringType()),
+        StructField("contribution_pp", DoubleType()),
+        StructField("rank_in_month", IntegerType()),
+        StructField("is_headline_total", BooleanType()),
+    ]), ["CAST(observation_date AS DATE) AS observation_date", "basket",
+         "sa_nsa", "series_id", "item_label", "contribution_pp",
+         "rank_in_month", "is_headline_total"])
+
 
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
@@ -795,6 +839,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "spread_inversion_episode",
         "benchmark_rate_board", "funding_tape_daily", "funding_stress_daily",
         "credit_spread_daily",
+        "inflation_explorer", "inflation_contribution",
     ):
         results[name] = "ok"
     return results

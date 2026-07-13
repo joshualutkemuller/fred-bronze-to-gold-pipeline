@@ -219,6 +219,18 @@ CREATE TABLE IF NOT EXISTS gold_credit_spread_daily (
     oas_pct REAL, oas_bps REAL, change_bps REAL, zscore REAL,
     percentile REAL, is_stress_episode INTEGER, is_recession INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_inflation_explorer (
+    series_id TEXT, item_label TEXT, parent_item TEXT,
+    hierarchy_level INTEGER, basket TEXT, sa_nsa TEXT, observation_date TEXT,
+    index_value REAL, mom_pct REAL, yoy_pct REAL, mom_accel REAL,
+    yoy_accel REAL, three_month_annualized REAL, weight REAL,
+    contribution_pp REAL
+);
+CREATE TABLE IF NOT EXISTS gold_inflation_contribution (
+    observation_date TEXT, basket TEXT, sa_nsa TEXT, series_id TEXT,
+    item_label TEXT, contribution_pp REAL, rank_in_month INTEGER,
+    is_headline_total INTEGER
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -584,6 +596,7 @@ class LocalWarehouse:
             compute_credit_spread_daily,
             compute_curve_spread_daily,
             compute_funding_features,
+            compute_inflation_explorer,
             compute_macro_dashboard,
             compute_spread_inversion_episodes,
             compute_treasury_curve,
@@ -639,6 +652,13 @@ class LocalWarehouse:
         self._insert("gold_credit_spread_daily",
                      compute_credit_spread_daily(latest))
 
+        # Phase 2 Inflation Explorer (config/inflation_items.yml).
+        inflation = compute_inflation_explorer(latest)
+        self.conn.execute("DELETE FROM gold_inflation_explorer")
+        self._insert("gold_inflation_explorer", inflation["explorer"])
+        self.conn.execute("DELETE FROM gold_inflation_contribution")
+        self._insert("gold_inflation_contribution", inflation["contribution"])
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -654,6 +674,7 @@ class LocalWarehouse:
             "spread_inversion_episode",
             "benchmark_rate_board", "funding_tape_daily",
             "funding_stress_daily", "credit_spread_daily",
+            "inflation_explorer", "inflation_contribution",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
