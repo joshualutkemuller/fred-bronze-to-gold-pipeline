@@ -8,22 +8,7 @@ description: >
 version: 1
 
 series:
-  - series_id: CUUR0000SA0
-    title: CPI for All Urban Consumers - All Items (NSA, BLS)
-    category: inflation
-    frequency: m
-    units: Index 1982-1984=100
-    active: false
-    source: bls
-    load_type: incremental
-    expected_update_frequency: monthly
-    # BLS single-fetch returns latest values only (no ALFRED-style vintages).
-    vintage_enabled: false
-    validation_profile: standard
-    downstream_use_case: cross_source_validation
-    priority: 2
-    tags: [inflation, cpi, bls]
-
+  # CPI series moved to manifests/bls_cpi_basket.yml (the full item hierarchy).
   - series_id: LNS14000000
     title: Unemployment Rate (SA, BLS)
     category: labor

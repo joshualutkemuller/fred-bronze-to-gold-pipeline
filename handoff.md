@@ -17,6 +17,43 @@ inputs, and point-in-time macro features.
 
 ------------------------------------------------------------------------
 
+# Implementation Status (current)
+
+The original FRED-only spec below is fully realized and the pipeline has been
+generalized well past it. Current state:
+
+-   **Multi-source (8):** FRED, BLS, EIA, US Treasury, World Bank, BEA, Census,
+    SEC — a pluggable `SourceClient` layer (adding a source = one client module +
+    one registry entry). See **Multi-Source Ingestion**.
+-   **~2,380 series** across the FRED domain manifests + inactive demo manifests
+    for the seven other sources (incl. the NSA + SA **CPI-U baskets**).
+-   **Medallion with lineage:** `source` is part of the Silver natural key
+    `(source, series_id, observation_date, realtime_start)`; Bronze records
+    source + endpoint; replay is source-aware.
+-   **Loading:** full-on-first-run then restate-last-N incremental;
+    replay-from-Bronze; point-in-time (ALFRED) vintages.
+-   **Gold layer complete:** latest / point-in-time / daily feature matrix;
+    feature transforms; config-driven curve spreads; **frequency-aware N-leg
+    cross-series features** + a **leak-free point-in-time variant**; **governance**
+    (coverage/freshness view + cross-source reconciliation); **SEC company
+    financials** (standardized statements, ratios, cross-company ranks, with
+    quarterly/annual duration disambiguation incl. Q4 de-cumulation). All seven
+    Gold-roadmap items are implemented (see the roadmap section).
+-   **Engineering:** pure-core + lazy-Spark shell; Databricks/Delta **and** local
+    SQLite backends in parity; layered config (file/env/args/secret scope);
+    audit + data-quality profiles; Unity Catalog DDL; Asset Bundle (main +
+    per-source jobs); **~289 unit tests + a Spark/Delta integration job in CI**.
+-   **Docs:** this handoff, `README.md`, `docs/architecture.md`,
+    `data_dictionary.md`, `validation.md`, `adding_a_source.md`,
+    `deployment_runbook.md`, `incremental_loading.md`, `etl_build_spec.md`.
+
+**Open (non-blocking, documented):** go-live provisioning + live series-ID
+verification (`docs/deployment_runbook.md`); per-source metadata reconciliation
+for non-FRED sources (`reconcile`/`discover` are FRED-only); optional new sources
+(markets/OHLCV, the SDMX bundle) and a full SEC manifest generator.
+
+------------------------------------------------------------------------
+
 # Target Platform
 
 Use Databricks as the long-term home:
@@ -141,7 +178,8 @@ fred-databricks-etl/
 1.  Validate Manifest
 2.  Initialize Run
 3.  Read Manifest
-4.  Extract Source Data (FRED / BLS / EIA, per series `source`)
+4.  Extract Source Data (per series `source`: FRED / BLS / EIA / Treasury /
+    World Bank / BEA / Census / SEC)
 5.  Write Bronze
 6.  Transform to Silver
 7.  Run Data Quality
@@ -234,6 +272,14 @@ The implementation should:
 
 # Suggested Initial Series
 
+> **Historical seed set.** These 27 FRED series were the original hand-picked
+> universe. The live pipeline has since grown to **~2,380 series across 8
+> sources** — the FRED domain manifests (rates, inflation, labor, growth,
+> money/banking, prices, production/housing, international) plus the BLS/EIA/
+> Treasury/World Bank/BEA/Census/SEC demo manifests (see **Multi-Source
+> Ingestion** below and `manifests/`). This section is kept for provenance; it is
+> not the current universe.
+
 ## Rates
 
 -   DGS1MO
@@ -273,13 +319,43 @@ The implementation should:
 -   HOUST
 -   PERMIT
 
+## BLS CPI Basket (`source: bls`, `manifests/bls_cpi_basket.yml`)
+
+The full CPI-U item hierarchy from BLS (FRED mirrors only a subset). CPI-U, NSA,
+U.S. city average — series id `CUUR0000<item>`. A seasonally-adjusted companion
+(`manifests/bls_cpi_basket_sa.yml`, `CUSR0000<item>`) mirrors the SA-published
+aggregates/majors/common sub-items. Inactive by default; **item codes to be
+verified against the live BLS series directory before activating.**
+
+- **Headline / special aggregates:** SA0 (All items), SA0L1E (Core), SA0E
+  (Energy), SAC (Commodities), SAS (Services), SACL1E (Core goods), SASLE (Core
+  services)
+- **8 major groups:** SAF (Food & beverages), SAH (Housing), SAA (Apparel), SAT
+  (Transportation), SAM (Medical care), SAR (Recreation), SAE (Education &
+  communication), SAG (Other goods & services)
+- **Food:** SAF1 (Food), SAF11 (Food at home), SEFV (Food away from home), SAF116
+  (Alcoholic beverages)
+- **Housing:** SAH1 (Shelter), SEHA (Rent of primary residence), SEHC (Owners'
+  equivalent rent), SAH2 (Fuels & utilities), SEHF01 (Electricity), SEHF02
+  (Utility/piped gas)
+- **Transportation:** SETA01 (New vehicles), SETA02 (Used cars & trucks), SETB01
+  (Gasoline, all types)
+- **Medical:** SAM1 (Medical care commodities), SAM2 (Medical care services)
+
+SA (seasonally adjusted) variants use the `CUSR0000<item>` prefix and are shipped
+as `manifests/bls_cpi_basket_sa.yml` (29 series — SA is published for the
+aggregates/majors/common sub-items, not the full stratum set).
+
 ------------------------------------------------------------------------
 
 # Gold Layer Feature Engineering Roadmap
 
-Identified once the series universe grew beyond the initial seed set (27 →
-2,300+ series across rates, inflation, labor, growth, money/banking, prices,
-production/housing, and international domains). Not yet implemented.
+Identified once the series universe grew beyond the initial seed set (the 27
+FRED "Suggested Initial Series" → **~2,380 series across 8 sources**: FRED
+[rates, inflation, labor, growth, money/banking, prices, production/housing,
+international], plus BLS, EIA, US Treasury, World Bank, BEA, Census, and SEC). All
+seven roadmap items below are now **implemented** (see each item's status); this
+section is retained as the design record of how they came to be.
 
 ## 1. Point-in-time-safe (rolling) z-score --- correctness fix
 
@@ -405,10 +481,12 @@ figure for the same period end, which collided on the natural key. The SEC
 normalizer now keeps only facts matching a target duration — `SEC_PERIOD`
 (default `quarterly`, or `annual`) — so income concepts land as a consistent
 series and ratios like net margin use matching durations. Instant balance-sheet
-facts are always kept; Bronze replay resolves `SEC_PERIOD` identically.
-**Remaining edge** (documented): a 10-K reports the FY (12-month) figure, not Q4,
-so quarterly mode is missing Q4 each year; recovering it needs YTD de-cumulation
-(`Q4 = FY − 9-month YTD`) — a bounded future enhancement.
+facts are always kept; Bronze replay resolves `SEC_PERIOD` identically. A 10-K
+reports the FY (12-month) figure, not Q4, so **Q4 is synthesized by
+de-cumulation** (`Q4 = FY − 9-month YTD`, dated at the FY end, known as of the
+10-K filing) — giving a complete quarterly series. This is the last item on the
+Gold roadmap; the remaining open work is non-Gold (per-source metadata
+reconciliation for non-FRED sources; optional new sources).
 
 ------------------------------------------------------------------------
 
@@ -427,7 +505,16 @@ source-agnostic.
 
 -   **FRED** — refactored onto a shared HTTP transport; behavior unchanged.
 -   **BLS** (Bureau of Labor Statistics) — `source: bls`. Key optional (keyless
-    works at a lower quota). Demo manifest `manifests/bls_labor.yml` (inactive).
+    works at a lower quota). Demo manifests (inactive): `manifests/bls_labor.yml`
+    (unemployment); `manifests/bls_cpi_basket.yml` — the full **CPI-U item
+    hierarchy** (30 series: headline + special aggregates, the 8 major groups,
+    and key sub-strata), **NSA** (`CUUR0000<item>`); and
+    `manifests/bls_cpi_basket_sa.yml` — the **seasonally-adjusted** companion (29
+    series, `CUSR0000<item>`), covering the SA-published aggregates/majors/common
+    sub-items (SA is narrower than NSA). FRED mirrors only a subset of BLS's CPI
+    series, so the whole consumer basket lives here. **Item codes were assembled
+    from the documented CPI structure and must be verified against the live BLS
+    series directory before activating.**
 -   **EIA** (Energy Information Administration) — `source: eia`. Key required.
     Demo manifest `manifests/eia_energy.yml` (inactive).
 -   **US Treasury** (Fiscal Data) — `source: treasury`. **Keyless.** series_id

@@ -207,8 +207,9 @@ concept per `(cik, period)` — e.g. `debt_to_equity`, `current_ratio`,
 `return_on_equity`. Columns: `cik`, `ratio_name`, `observation_date`, `value`.
 Income-statement concepts are duration-disambiguated at ingestion (`SEC_PERIOD`,
 default `quarterly`), so income and balance-sheet concepts combine on a
-consistent basis. (Quarterly mode omits Q4, which a 10-K reports only as the FY
-figure; recovering it via YTD de-cumulation is a documented future enhancement.)
+consistent basis. Quarterly mode synthesizes Q4 by de-cumulation
+(`Q4 = FY − 9-month YTD`, dated at the FY end), since a 10-K reports only the FY
+figure — giving a complete quarterly series.
 
 ### `gold.fred_revision_stats`
 How much each observation moved between its first print and today. Reads raw

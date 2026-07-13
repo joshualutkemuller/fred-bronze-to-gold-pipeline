@@ -178,6 +178,47 @@ def test_instant_facts_always_kept_regardless_of_period():
     assert len(rows_q) == len(rows_a) == 3
 
 
+# A full fiscal year (start 2022-10-01, end 2023-09-30): Q1-Q3 reported as
+# quarterly facts; the 10-K gives the FY figure and the Q3 10-Q the 9-month YTD.
+_FY_ENTRIES = [
+    {"start": "2022-10-01", "end": "2022-12-31", "val": 30000, "filed": "2023-02-01"},  # Q1 (~91d)
+    {"start": "2023-01-01", "end": "2023-03-31", "val": 20000, "filed": "2023-05-01"},  # Q2 (~89d)
+    {"start": "2023-04-01", "end": "2023-06-30", "val": 25000, "filed": "2023-08-01"},  # Q3 (~90d)
+    {"start": "2022-10-01", "end": "2023-06-30", "val": 75000, "filed": "2023-08-01"},  # 9mo YTD (~272d)
+    {"start": "2022-10-01", "end": "2023-09-30", "val": 100000, "filed": "2023-11-01"},  # FY (~364d)
+]
+
+
+def test_q4_is_synthesized_from_fy_minus_ytd():
+    rows = normalize_sec_observations(_NI_SID, {"units": {"USD": _FY_ENTRIES}},
+                                      period="quarterly")
+    by_date = {r["observation_date"]: r["value"] for r in rows}
+    # Q1-Q3 direct, Q4 synthesized = FY(100000) - 9moYTD(75000) = 25000
+    assert by_date == {
+        "2022-12-31": 30000.0, "2023-03-31": 20000.0,
+        "2023-06-30": 25000.0, "2023-09-30": 25000.0,
+    }
+    # the synthetic Q4 is dated at FY end and known as of the 10-K filing
+    q4 = [r for r in rows if r["observation_date"] == "2023-09-30"][0]
+    assert q4["realtime_start"] == "2023-11-01"
+
+
+def test_q4_not_synthesized_without_matching_ytd():
+    # FY present but no 9-month YTD sharing its start -> no Q4
+    entries = [e for e in _FY_ENTRIES if not (e["start"] == "2022-10-01"
+                                              and e["end"] == "2023-06-30")]
+    rows = normalize_sec_observations(_NI_SID, {"units": {"USD": entries}},
+                                      period="quarterly")
+    assert "2023-09-30" not in {r["observation_date"] for r in rows}
+
+
+def test_annual_mode_keeps_fy_not_q4():
+    rows = normalize_sec_observations(_NI_SID, {"units": {"USD": _FY_ENTRIES}},
+                                      period="annual")
+    # annual mode keeps the FY figure (100000), no de-cumulation
+    assert [r["value"] for r in rows] == [100000.0]
+
+
 def test_client_period_from_env(monkeypatch):
     from fred_pipeline.sources.sec import resolve_sec_period
 
