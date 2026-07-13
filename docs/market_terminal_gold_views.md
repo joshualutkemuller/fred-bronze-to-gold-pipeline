@@ -401,27 +401,38 @@ Each phase = a self-contained slice that ships a working set of Gold objects,
 tests, and the `local_store` schema + `sql/50_gold.sql` / `sql/60_views.sql`
 additions, following the existing `_build_*` pattern in `gold.py`.
 
-**Phase 0 — Foundation (dimensions + catalog config).**
-- Add `config/series_catalog.yml` (category, polarity, default_transform, scale,
-  decimals per series) — the single source of the terminal's presentation
-  semantics.
-- Build `gold.dim_series` + `gold.dim_date` (+ `USREC` ingest for `is_recession`).
-- New engine helpers + tests. Unblocks every later phase.
+**Phase 0 — Foundation (dimensions + catalog config). — IMPLEMENTED**
+- `config/series_catalog.yml` (~65 already-ingested series tagged with
+  category, polarity, default_transform, scale, decimals) — the single source
+  of the terminal's presentation semantics; loader in
+  `src/fred_pipeline/catalog_config.py`.
+- `gold.dim_series` + `gold.dim_date` built by
+  `fred_pipeline.terminal_views.build_dim_series` / `build_dim_date`;
+  `manifests/macro_flags.yml` ships `USREC`/`USRECD` (inactive, verify-first) —
+  `is_recession` is `NULL` (unknown) until activated.
 
-**Phase 1 — ECON dashboard (highest value, all-domestic, data already ingested).**
+**Phase 1 — ECON dashboard. — IMPLEMENTED**
 - `gold.macro_indicator_dashboard`, `macro_indicator_sparkline`,
-  `macro_category_summary`. Reuses existing transforms + PIT z-score. Covers the
-  unemployment/labor and headline macro views immediately.
+  `macro_category_summary` via `terminal_views.compute_macro_dashboard`
+  (expanding PIT-safe z-score/percentile; trailing-window surprise proxy;
+  polarity-adjusted breadth). Covers the unemployment/labor and headline macro
+  views. Wired into both backends (`gold._build_terminal_views`,
+  `LocalWarehouse.build_gold`), DDL in `sql/50_gold.sql`, tests in
+  `tests/test_terminal_views.py`.
 
 **Phase 2 — Inflation Explorer.**
 - Activate + verify the CPI basket manifests; add `config/cpi_hierarchy.yml` +
   `config/cpi_weights.yml`; build `gold.inflation_explorer` +
   `inflation_contribution`. (PCE item level deferred to a BEA follow-up.)
 
-**Phase 3 — Curve & spreads.**
-- Add `DGS3/DGS7/DGS20` + `USREC` to manifests; `config/curve.yml`; build
-  `gold.treasury_curve`, `treasury_curve_metrics`, and the enriched
-  `gold.curve_spread_daily` (generalizing `fred_curve_spread`).
+**Phase 3 — Curve & spreads. — IMPLEMENTED**
+- `config/curve.yml` (11 tenors) + `terminal_views.compute_treasury_curve` →
+  `gold.treasury_curve` + `treasury_curve_metrics` (level/slope/curvature/
+  butterfly, inversions, recession overlay, bull/bear × steepener/flattener
+  move classification); `compute_curve_spread_daily` → the enriched
+  `gold.curve_spread_daily` (z-score/percentile/bps/inversion runs).
+  `DGS3/DGS7/DGS20` added to `manifests/rates.yml` (inactive, verify-first);
+  absent tenors simply emit no rows until activated.
 
 **Phase 4 — Rates complex (BMRK + FUND + FCOST + CRDT).**
 - Balances/SOFR already ingested; add the small free-FRED corridor

@@ -492,7 +492,22 @@ reconciliation for non-FRED sources; optional new sources).
 
 # Market Terminal Analytical Views (Power BI Gold plan)
 
-**Status: planned** — full spec in `docs/market_terminal_gold_views.md`.
+**Status: Phases 0, 1, and 3 implemented** (branch `EconGoldTerminalViews`) —
+full spec + per-phase status in `docs/market_terminal_gold_views.md`; column
+semantics in `docs/data_dictionary.md`.
+
+Implemented: `gold.dim_series` + `gold.dim_date` (star-schema dimensions;
+`config/series_catalog.yml` tags ~65 already-ingested series with category/
+polarity/transform), the ECON macro dashboard
+(`gold.macro_indicator_dashboard` / `macro_indicator_sparkline` /
+`macro_category_summary`), and the Treasury Curve Lab (`gold.treasury_curve` /
+`treasury_curve_metrics` / `curve_spread_daily`), all via the shared
+pure-Python engines in `src/fred_pipeline/terminal_views.py` wired into both
+backends. New manifests ship inactive pending live-FRED verification:
+`macro_flags.yml` (`USREC`/`USRECD` — recession overlays are NULL until
+activated) and `DGS3/DGS7/DGS20` in `rates.yml`. Remaining: Phase 2 (Inflation
+Explorer), Phase 4 (rates complex), Phase 5 (regime + stats), Phase 6 (global +
+Power BI catalog).
 
 A separate project, `market_terminal` (a Bloomberg-style quant terminal),
 renders its macro analytics (ECON macro dashboard, INFL inflation explorer, CURV

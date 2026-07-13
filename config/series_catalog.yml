@@ -1,0 +1,102 @@
+# Series catalog for the market-terminal analytical views (gold.dim_series +
+# gold.macro_indicator_dashboard). Assigns presentation semantics to series the
+# pipeline ALREADY ingests — nothing here adds ingestion; it only tags existing
+# series into the terminal's 10 EconCategory buckets.
+#
+# Fields (see src/fred_pipeline/catalog_config.py):
+#   econ_category      GROWTH | INFLATION | LABOR | RATES | CREDIT | HOUSING |
+#                      CONSUMER | MONEY | ACTIVITY | FX
+#   polarity           +1 a rise is bullish, -1 a rise is bearish, 0 neutral
+#   default_transform  pc1 (YoY %) | pch (period %) | chg (diff) | bps | level
+#   surprise_window    trailing obs for the no-consensus "surprise" proxy
+#   scale / decimals   display hints for Power BI ("" = native units)
+#
+# Adding a series to the ECON dashboard = adding a line here (config, not code).
+
+series:
+  # ---- LABOR ----------------------------------------------------------------
+  - {series_id: UNRATE,   econ_category: LABOR, polarity: -1, default_transform: level, notes: Unemployment rate}
+  - {series_id: U6RATE,   econ_category: LABOR, polarity: -1, default_transform: level, notes: U-6 underemployment}
+  - {series_id: PAYEMS,   econ_category: LABOR, polarity: 1,  default_transform: chg,   notes: Nonfarm payrolls (monthly change)}
+  - {series_id: ICSA,     econ_category: LABOR, polarity: -1, default_transform: level, surprise_window: 8, notes: Initial claims (weekly)}
+  - {series_id: CIVPART,  econ_category: LABOR, polarity: 1,  default_transform: level, notes: Participation rate}
+  - {series_id: EMRATIO,  econ_category: LABOR, polarity: 1,  default_transform: level, notes: Employment-population ratio}
+  - {series_id: JTSJOL,   econ_category: LABOR, polarity: 1,  default_transform: level, notes: JOLTS job openings}
+  - {series_id: UEMPMED,  econ_category: LABOR, polarity: -1, default_transform: level, notes: Median weeks unemployed}
+  - {series_id: AHETPI,   econ_category: LABOR, polarity: 1,  default_transform: pc1,   notes: Avg hourly earnings (production)}
+
+  # ---- INFLATION -------------------------------------------------------------
+  - {series_id: CPIAUCSL, econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: CPI headline}
+  - {series_id: CPILFESL, econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: CPI core}
+  - {series_id: PCEPI,    econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: PCE headline}
+  - {series_id: PCEPILFE, econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: PCE core}
+  - {series_id: CORESTICKM159SFRBATL, econ_category: INFLATION, polarity: -1, default_transform: level, notes: Atlanta Fed sticky core CPI (YoY rate)}
+  - {series_id: PCETRIM12M159SFRBDAL, econ_category: INFLATION, polarity: -1, default_transform: level, notes: Dallas Fed trimmed-mean PCE (12m rate)}
+  - {series_id: PPIACO,   econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: PPI all commodities}
+  - {series_id: T5YIE,    econ_category: INFLATION, polarity: -1, default_transform: level, notes: 5y breakeven}
+  - {series_id: T10YIE,   econ_category: INFLATION, polarity: -1, default_transform: level, notes: 10y breakeven}
+  - {series_id: EXPINF1YR, econ_category: INFLATION, polarity: -1, default_transform: level, notes: Cleveland Fed 1y expected inflation}
+
+  # ---- GROWTH ----------------------------------------------------------------
+  - {series_id: GDPC1,    econ_category: GROWTH, polarity: 1, default_transform: pc1, surprise_window: 8, notes: Real GDP}
+  - {series_id: GDI,      econ_category: GROWTH, polarity: 1, default_transform: pc1, surprise_window: 8, notes: Gross domestic income}
+  - {series_id: GPDIC1,   econ_category: GROWTH, polarity: 1, default_transform: pc1, surprise_window: 8, notes: Real private investment}
+  - {series_id: DGORDER,  econ_category: GROWTH, polarity: 1, default_transform: pc1, notes: Durable goods orders}
+  - {series_id: NEWORDER, econ_category: GROWTH, polarity: 1, default_transform: pc1, notes: Core capital goods orders}
+
+  # ---- ACTIVITY --------------------------------------------------------------
+  - {series_id: INDPRO,   econ_category: ACTIVITY, polarity: 1, default_transform: pc1,   notes: Industrial production}
+  - {series_id: IPMAN,    econ_category: ACTIVITY, polarity: 1, default_transform: pc1,   notes: Manufacturing production}
+  - {series_id: TCU,      econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: Capacity utilization}
+  - {series_id: CFNAI,    econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: Chicago Fed national activity}
+  - {series_id: CFNAIMA3, econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: CFNAI 3-month avg}
+
+  # ---- RATES -----------------------------------------------------------------
+  - {series_id: DGS3MO,   econ_category: RATES, polarity: 0, default_transform: level, notes: 3M Treasury}
+  - {series_id: DGS2,     econ_category: RATES, polarity: 0, default_transform: level, notes: 2Y Treasury}
+  - {series_id: DGS10,    econ_category: RATES, polarity: 0, default_transform: level, notes: 10Y Treasury}
+  - {series_id: DGS30,    econ_category: RATES, polarity: 0, default_transform: level, notes: 30Y Treasury}
+  - {series_id: FEDFUNDS, econ_category: RATES, polarity: 0, default_transform: level, notes: Effective fed funds (monthly)}
+  - {series_id: SOFR,     econ_category: RATES, polarity: 0, default_transform: level, notes: SOFR}
+  - {series_id: REAINTRATREARAT10Y, econ_category: RATES, polarity: 0, default_transform: level, notes: 10y real rate}
+
+  # ---- CREDIT ----------------------------------------------------------------
+  - {series_id: NFCI,     econ_category: CREDIT, polarity: -1, default_transform: level, notes: Chicago Fed financial conditions}
+  - {series_id: ANFCI,    econ_category: CREDIT, polarity: -1, default_transform: level, notes: Adjusted NFCI}
+  - {series_id: STLFSI4,  econ_category: CREDIT, polarity: -1, default_transform: level, notes: St. Louis Fed stress index}
+  - {series_id: NFCICREDIT, econ_category: CREDIT, polarity: -1, default_transform: level, notes: NFCI credit subindex}
+  - {series_id: NFCIRISK, econ_category: CREDIT, polarity: -1, default_transform: level, notes: NFCI risk subindex}
+  - {series_id: DRTSCILM, econ_category: CREDIT, polarity: -1, default_transform: level, surprise_window: 8, notes: SLOOS % tightening C&I (large/mid)}
+  - {series_id: BUSLOANS, econ_category: CREDIT, polarity: 1,  default_transform: pc1,   notes: Bank C&I loans}
+
+  # ---- HOUSING ---------------------------------------------------------------
+  - {series_id: HOUST,    econ_category: HOUSING, polarity: 1,  default_transform: level, notes: Housing starts}
+  - {series_id: PERMIT,   econ_category: HOUSING, polarity: 1,  default_transform: level, notes: Building permits}
+  - {series_id: HSN1F,    econ_category: HOUSING, polarity: 1,  default_transform: level, notes: New home sales}
+  - {series_id: MSPUS,    econ_category: HOUSING, polarity: 0,  default_transform: pc1,   surprise_window: 8, notes: Median sales price}
+  - {series_id: USSTHPI,  econ_category: HOUSING, polarity: 0,  default_transform: pc1,   surprise_window: 8, notes: FHFA house price index}
+  - {series_id: MSACSR,   econ_category: HOUSING, polarity: -1, default_transform: level, notes: Months supply of new homes}
+
+  # ---- CONSUMER --------------------------------------------------------------
+  - {series_id: RSXFS,    econ_category: CONSUMER, polarity: 1, default_transform: pc1,   notes: Retail sales ex food services}
+  - {series_id: RSAFS,    econ_category: CONSUMER, polarity: 1, default_transform: pc1,   notes: Retail and food services sales}
+  - {series_id: PCEC96,   econ_category: CONSUMER, polarity: 1, default_transform: pc1,   notes: Real consumption}
+  - {series_id: DSPIC96,  econ_category: CONSUMER, polarity: 1, default_transform: pc1,   notes: Real disposable income}
+  - {series_id: PSAVERT,  econ_category: CONSUMER, polarity: 0, default_transform: level, notes: Saving rate}
+  - {series_id: TOTALSL,  econ_category: CONSUMER, polarity: 0, default_transform: pc1,   notes: Consumer credit}
+
+  # ---- MONEY -----------------------------------------------------------------
+  - {series_id: M2SL,     econ_category: MONEY, polarity: 0, default_transform: pc1, notes: M2}
+  - {series_id: M1SL,     econ_category: MONEY, polarity: 0, default_transform: pc1, notes: M1}
+  - {series_id: WALCL,    econ_category: MONEY, polarity: 0, default_transform: chg, scale: $T, notes: Fed balance sheet}
+  - {series_id: WRESBAL,  econ_category: MONEY, polarity: 0, default_transform: chg, scale: $T, notes: Reserve balances}
+  - {series_id: BOGMBASE, econ_category: MONEY, polarity: 0, default_transform: pc1, notes: Monetary base}
+
+  # ---- FX --------------------------------------------------------------------
+  - {series_id: DTWEXBGS, econ_category: FX, polarity: 0, default_transform: level, notes: Broad dollar index}
+  - {series_id: DEXUSEU,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: USD per EUR}
+  - {series_id: DEXJPUS,  econ_category: FX, polarity: 0, default_transform: level, notes: JPY per USD}
+  - {series_id: DEXUSUK,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: USD per GBP}
+  - {series_id: DEXCHUS,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: CNY per USD}
+  - {series_id: DEXCAUS,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: CAD per USD}
+  - {series_id: DEXMXUS,  econ_category: FX, polarity: 0, default_transform: level, notes: MXN per USD}

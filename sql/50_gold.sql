@@ -234,3 +234,146 @@ JOIN base f ON f.series_id = b.series_id AND f.observation_date = b.observation_
           AND f.revision_number = b.min_rev
 JOIN base l ON l.series_id = b.series_id AND l.observation_date = b.observation_date
           AND l.revision_number = b.max_rev;
+
+-- ============================================================================
+-- Market-terminal analytical views (docs/market_terminal_gold_views.md):
+-- star-schema dimensions + the ECON macro dashboard + the Treasury Curve Lab,
+-- shaped for Power BI. All computed by the shared Python engines in
+-- fred_pipeline.terminal_views and written by
+-- fred_pipeline.gold._build_terminal_views — this DDL just provisions the
+-- shapes; the build overwrites them.
+-- ============================================================================
+
+-- Star-schema hub: presentation semantics (config/series_catalog.yml) merged
+-- with title/frequency/units from meta.fred_series. polarity: +1 a rise is
+-- bullish, -1 bearish, 0 neutral. default_transform: pc1|pch|chg|bps|level.
+CREATE TABLE IF NOT EXISTS gold.dim_series (
+    series_id         STRING,
+    title             STRING,
+    source            STRING,
+    frequency         STRING,
+    units             STRING,
+    econ_category     STRING,
+    polarity          INT,
+    default_transform STRING,
+    scale             STRING,
+    decimals          INT,
+    notes             STRING
+)
+USING DELTA;
+
+-- Calendar dimension over the observed date range. is_recession is the NBER
+-- USREC flag (NULL until manifests/macro_flags.yml is activated — unknown,
+-- never false). fiscal_year is US federal (October start).
+CREATE TABLE IF NOT EXISTS gold.dim_date (
+    date         DATE,
+    year         INT,
+    quarter      INT,
+    month        INT,
+    month_name   STRING,
+    is_month_end BOOLEAN,
+    fiscal_year  INT,
+    is_recession BOOLEAN
+)
+USING DELTA;
+
+-- ECON macro dashboard: one row per cataloged series at its latest
+-- observation — latest/prior/change/YoY, expanding (PIT-safe) z-score and
+-- percentile, the no-consensus surprise proxy (latest − trailing-window mean),
+-- polarity-adjusted direction, sparkline bounds, staleness, provenance.
+CREATE TABLE IF NOT EXISTS gold.macro_indicator_dashboard (
+    series_id         STRING,
+    econ_category     STRING,
+    polarity          INT,
+    default_transform STRING,
+    as_of_date        DATE,
+    latest_date       DATE,
+    latest_value      DOUBLE,
+    prior_date        DATE,
+    prior_value       DOUBLE,
+    change_abs        DOUBLE,
+    change_pct        DOUBLE,
+    yoy_pct           DOUBLE,
+    zscore            DOUBLE,
+    percentile        DOUBLE,
+    surprise          DOUBLE,
+    surprise_z        DOUBLE,
+    direction_is_good BOOLEAN,
+    spark_min         DOUBLE,
+    spark_max         DOUBLE,
+    staleness_days    INT,
+    realtime_start    STRING
+)
+USING DELTA;
+
+-- Last 36 observations per cataloged series (point_index 0 = oldest), for
+-- Power BI sparkline visuals keyed on series_id.
+CREATE TABLE IF NOT EXISTS gold.macro_indicator_sparkline (
+    series_id        STRING,
+    point_index      INT,
+    observation_date DATE,
+    value            DOUBLE
+)
+USING DELTA;
+
+-- Per-EconCategory breadth (% of directional series improving,
+-- polarity-adjusted) and the surprise index (mean surprise_z).
+CREATE TABLE IF NOT EXISTS gold.macro_category_summary (
+    econ_category   STRING,
+    as_of_date      DATE,
+    n_series        INT,
+    n_improving     INT,
+    n_deteriorating INT,
+    breadth_pct     DOUBLE,
+    avg_zscore      DOUBLE,
+    surprise_index  DOUBLE
+)
+USING DELTA;
+
+-- Curve Lab, tidy: one row per as-of date × tenor with data
+-- (config/curve.yml maps tenors to DGS* series).
+CREATE TABLE IF NOT EXISTS gold.treasury_curve (
+    as_of_date   DATE,
+    tenor_label  STRING,
+    tenor_months INT,
+    series_id    STRING,
+    yield_pct    DOUBLE
+)
+USING DELTA;
+
+-- Curve Lab, per-date metrics: level (mean of available tenors), 2s10s/3m10s
+-- slopes, 2-5-10 curvature, 2-10-30 butterfly, inversion flags, NBER
+-- recession flag, and the bull/bear × steepener/flattener move vs the prior
+-- curve date (parallel-*/twist-* when only one of level/slope moved).
+CREATE TABLE IF NOT EXISTS gold.treasury_curve_metrics (
+    as_of_date        DATE,
+    level             DOUBLE,
+    slope_10y2y       DOUBLE,
+    slope_10y3m       DOUBLE,
+    curvature_2_5_10  DOUBLE,
+    butterfly_2_10_30 DOUBLE,
+    is_inverted_10y2y BOOLEAN,
+    is_inverted_10y3m BOOLEAN,
+    is_recession      BOOLEAN,
+    curve_move        STRING
+)
+USING DELTA;
+
+-- The configured spreads/ratios (config/spreads.yml) enriched with expanding
+-- (PIT-safe) z-score/percentile, inversion flag + consecutive-inverted-
+-- observation run (spreads only; a ratio has no zero line), bps value, and
+-- the NBER recession flag.
+CREATE TABLE IF NOT EXISTS gold.curve_spread_daily (
+    spread_name      STRING,
+    observation_date DATE,
+    long_leg         STRING,
+    short_leg        STRING,
+    value            DOUBLE,
+    value_bps        DOUBLE,
+    zscore           DOUBLE,
+    percentile       DOUBLE,
+    is_inverted      BOOLEAN,
+    inversion_run    INT,
+    is_recession     BOOLEAN
+)
+USING DELTA;

@@ -1,0 +1,18 @@
+# Treasury curve tenor map for gold.treasury_curve / gold.treasury_curve_metrics
+# (see src/fred_pipeline/curve_config.py). Maps each curve point to its FRED
+# constant-maturity series. Tenors whose series are not (yet) ingested simply
+# emit no rows — DGS3/DGS7/DGS20 are listed so the curve completes itself the
+# moment those manifest entries are activated (manifests/rates.yml).
+
+tenors:
+  - {label: 1M,  months: 1,   series_id: DGS1MO}
+  - {label: 3M,  months: 3,   series_id: DGS3MO}
+  - {label: 6M,  months: 6,   series_id: DGS6MO}
+  - {label: 1Y,  months: 12,  series_id: DGS1}
+  - {label: 2Y,  months: 24,  series_id: DGS2}
+  - {label: 3Y,  months: 36,  series_id: DGS3}
+  - {label: 5Y,  months: 60,  series_id: DGS5}
+  - {label: 7Y,  months: 84,  series_id: DGS7}
+  - {label: 10Y, months: 120, series_id: DGS10}
+  - {label: 20Y, months: 240, series_id: DGS20}
+  - {label: 30Y, months: 360, series_id: DGS30}

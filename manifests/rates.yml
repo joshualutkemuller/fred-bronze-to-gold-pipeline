@@ -95,6 +95,44 @@ series:
     priority: 2
     tags: [rates, curve, treasury]
 
+  # Belly/long tenors that complete the curve for gold.treasury_curve
+  # (config/curve.yml). Standard FRED constant-maturity ids, but shipped
+  # inactive — this environment can't reach FRED to live-verify them, so
+  # confirm each at https://fred.stlouisfed.org before flipping active: true.
+  # (DGS20 has a 1987–1993 publication gap; that's expected, not an error.)
+  - series_id: DGS3
+    title: 3-Year Treasury Constant Maturity Rate
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 2
+    tags: [rates, curve, treasury]
+
+  - series_id: DGS7
+    title: 7-Year Treasury Constant Maturity Rate
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 2
+    tags: [rates, curve, treasury]
+
+  - series_id: DGS20
+    title: 20-Year Treasury Constant Maturity Rate
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 3
+    tags: [rates, curve, treasury]
+
   - series_id: FEDFUNDS
     title: Federal Funds Effective Rate
     category: rates
