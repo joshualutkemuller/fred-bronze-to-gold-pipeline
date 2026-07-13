@@ -273,6 +273,30 @@ The implementation should:
 -   HOUST
 -   PERMIT
 
+## BLS CPI Basket (`source: bls`, `manifests/bls_cpi_basket.yml`)
+
+The full CPI-U item hierarchy from BLS (FRED mirrors only a subset). CPI-U, NSA,
+U.S. city average — series id `CUUR0000<item>`. Inactive by default; **item
+codes to be verified against the live BLS series directory before activating.**
+
+- **Headline / special aggregates:** SA0 (All items), SA0L1E (Core), SA0E
+  (Energy), SAC (Commodities), SAS (Services), SACL1E (Core goods), SASLE (Core
+  services)
+- **8 major groups:** SAF (Food & beverages), SAH (Housing), SAA (Apparel), SAT
+  (Transportation), SAM (Medical care), SAR (Recreation), SAE (Education &
+  communication), SAG (Other goods & services)
+- **Food:** SAF1 (Food), SAF11 (Food at home), SEFV (Food away from home), SAF116
+  (Alcoholic beverages)
+- **Housing:** SAH1 (Shelter), SEHA (Rent of primary residence), SEHC (Owners'
+  equivalent rent), SAH2 (Fuels & utilities), SEHF01 (Electricity), SEHF02
+  (Utility/piped gas)
+- **Transportation:** SETA01 (New vehicles), SETA02 (Used cars & trucks), SETB01
+  (Gasoline, all types)
+- **Medical:** SAM1 (Medical care commodities), SAM2 (Medical care services)
+
+SA (seasonally adjusted) variants use the `CUSR0000<item>` prefix and exist for
+the major aggregates only.
+
 ------------------------------------------------------------------------
 
 # Gold Layer Feature Engineering Roadmap
@@ -429,7 +453,13 @@ source-agnostic.
 
 -   **FRED** — refactored onto a shared HTTP transport; behavior unchanged.
 -   **BLS** (Bureau of Labor Statistics) — `source: bls`. Key optional (keyless
-    works at a lower quota). Demo manifest `manifests/bls_labor.yml` (inactive).
+    works at a lower quota). Demo manifests (inactive): `manifests/bls_labor.yml`
+    (unemployment) and `manifests/bls_cpi_basket.yml` — the full **CPI-U item
+    hierarchy** (30 series: headline + special aggregates, the 8 major groups,
+    and key sub-strata), NSA (`CUUR0000<item>`). FRED mirrors only a subset of
+    BLS's CPI series, so the whole consumer basket lives here. **Item codes were
+    assembled from the documented CPI structure and must be verified against the
+    live BLS series directory before activating.**
 -   **EIA** (Energy Information Administration) — `source: eia`. Key required.
     Demo manifest `manifests/eia_energy.yml` (inactive).
 -   **US Treasury** (Fiscal Data) — `source: treasury`. **Keyless.** series_id
