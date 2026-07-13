@@ -141,7 +141,8 @@ fred-databricks-etl/
 1.  Validate Manifest
 2.  Initialize Run
 3.  Read Manifest
-4.  Extract Source Data (FRED / BLS / EIA, per series `source`)
+4.  Extract Source Data (per series `source`: FRED / BLS / EIA / Treasury /
+    World Bank / BEA / Census / SEC)
 5.  Write Bronze
 6.  Transform to Silver
 7.  Run Data Quality
@@ -234,6 +235,14 @@ The implementation should:
 
 # Suggested Initial Series
 
+> **Historical seed set.** These 27 FRED series were the original hand-picked
+> universe. The live pipeline has since grown to **~2,380 series across 8
+> sources** — the FRED domain manifests (rates, inflation, labor, growth,
+> money/banking, prices, production/housing, international) plus the BLS/EIA/
+> Treasury/World Bank/BEA/Census/SEC demo manifests (see **Multi-Source
+> Ingestion** below and `manifests/`). This section is kept for provenance; it is
+> not the current universe.
+
 ## Rates
 
 -   DGS1MO
@@ -276,8 +285,10 @@ The implementation should:
 ## BLS CPI Basket (`source: bls`, `manifests/bls_cpi_basket.yml`)
 
 The full CPI-U item hierarchy from BLS (FRED mirrors only a subset). CPI-U, NSA,
-U.S. city average — series id `CUUR0000<item>`. Inactive by default; **item
-codes to be verified against the live BLS series directory before activating.**
+U.S. city average — series id `CUUR0000<item>`. A seasonally-adjusted companion
+(`manifests/bls_cpi_basket_sa.yml`, `CUSR0000<item>`) mirrors the SA-published
+aggregates/majors/common sub-items. Inactive by default; **item codes to be
+verified against the live BLS series directory before activating.**
 
 - **Headline / special aggregates:** SA0 (All items), SA0L1E (Core), SA0E
   (Energy), SAC (Commodities), SAS (Services), SACL1E (Core goods), SASLE (Core
@@ -294,16 +305,20 @@ codes to be verified against the live BLS series directory before activating.**
   (Gasoline, all types)
 - **Medical:** SAM1 (Medical care commodities), SAM2 (Medical care services)
 
-SA (seasonally adjusted) variants use the `CUSR0000<item>` prefix and exist for
-the major aggregates only.
+SA (seasonally adjusted) variants use the `CUSR0000<item>` prefix and are shipped
+as `manifests/bls_cpi_basket_sa.yml` (29 series — SA is published for the
+aggregates/majors/common sub-items, not the full stratum set).
 
 ------------------------------------------------------------------------
 
 # Gold Layer Feature Engineering Roadmap
 
-Identified once the series universe grew beyond the initial seed set (27 →
-2,300+ series across rates, inflation, labor, growth, money/banking, prices,
-production/housing, and international domains). Not yet implemented.
+Identified once the series universe grew beyond the initial seed set (the 27
+FRED "Suggested Initial Series" → **~2,380 series across 8 sources**: FRED
+[rates, inflation, labor, growth, money/banking, prices, production/housing,
+international], plus BLS, EIA, US Treasury, World Bank, BEA, Census, and SEC). All
+seven roadmap items below are now **implemented** (see each item's status); this
+section is retained as the design record of how they came to be.
 
 ## 1. Point-in-time-safe (rolling) z-score --- correctness fix
 
@@ -454,12 +469,15 @@ source-agnostic.
 -   **FRED** — refactored onto a shared HTTP transport; behavior unchanged.
 -   **BLS** (Bureau of Labor Statistics) — `source: bls`. Key optional (keyless
     works at a lower quota). Demo manifests (inactive): `manifests/bls_labor.yml`
-    (unemployment) and `manifests/bls_cpi_basket.yml` — the full **CPI-U item
+    (unemployment); `manifests/bls_cpi_basket.yml` — the full **CPI-U item
     hierarchy** (30 series: headline + special aggregates, the 8 major groups,
-    and key sub-strata), NSA (`CUUR0000<item>`). FRED mirrors only a subset of
-    BLS's CPI series, so the whole consumer basket lives here. **Item codes were
-    assembled from the documented CPI structure and must be verified against the
-    live BLS series directory before activating.**
+    and key sub-strata), **NSA** (`CUUR0000<item>`); and
+    `manifests/bls_cpi_basket_sa.yml` — the **seasonally-adjusted** companion (29
+    series, `CUSR0000<item>`), covering the SA-published aggregates/majors/common
+    sub-items (SA is narrower than NSA). FRED mirrors only a subset of BLS's CPI
+    series, so the whole consumer basket lives here. **Item codes were assembled
+    from the documented CPI structure and must be verified against the live BLS
+    series directory before activating.**
 -   **EIA** (Energy Information Administration) — `source: eia`. Key required.
     Demo manifest `manifests/eia_energy.yml` (inactive).
 -   **US Treasury** (Fiscal Data) — `source: treasury`. **Keyless.** series_id
