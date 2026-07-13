@@ -152,6 +152,21 @@ CREATE TABLE IF NOT EXISTS gold.fred_cross_series_feature (
 )
 USING DELTA;
 
+-- Point-in-time (realtime_start-aligned) variant of the cross-series features:
+-- each leg uses the value that was actually known (as-first-reported) rather than
+-- latest-revised, so the feature series is leak-free for backtests. Reads Silver
+-- (all vintages). Computed by the shared Python engine
+-- (fred_pipeline.features.compute_cross_series_features_pit) and written by
+-- fred_pipeline.gold._build_cross_series_pit. DDL provisions the shape only.
+CREATE TABLE IF NOT EXISTS gold.fred_cross_series_feature_pit (
+    feature_name     STRING,
+    op               STRING,
+    observation_date DATE,
+    value            DOUBLE,
+    basis            STRING
+)
+USING DELTA;
+
 -- Cross-source reconciliation (config/reconciliations.yml): same-concept series
 -- from different sources, aligned and compared with a divergence flag. Computed
 -- by the shared Python engine (fred_pipeline.features.compute_source_reconciliation)
@@ -167,6 +182,28 @@ CREATE TABLE IF NOT EXISTS gold.fred_source_reconciliation (
     abs_diff         DOUBLE,
     pct_diff         DOUBLE,
     diverged         BOOLEAN
+)
+USING DELTA;
+
+-- SEC company financials: canonical line items standardized from raw XBRL tags
+-- (config/sec_concepts.yml) and derived ratios (config/sec_ratios.yml). Computed
+-- by the shared Python engine (fred_pipeline.sec_standardization) and written by
+-- fred_pipeline.gold._build_company_financials — the standardization (priority
+-- tag coalescing) is impractical in SQL. DDL provisions the shape only.
+CREATE TABLE IF NOT EXISTS gold.fred_company_fundamentals (
+    cik              STRING,
+    concept          STRING,
+    statement        STRING,
+    observation_date DATE,
+    value            DOUBLE
+)
+USING DELTA;
+
+CREATE TABLE IF NOT EXISTS gold.fred_company_ratios (
+    cik              STRING,
+    ratio_name       STRING,
+    observation_date DATE,
+    value            DOUBLE
 )
 USING DELTA;
 

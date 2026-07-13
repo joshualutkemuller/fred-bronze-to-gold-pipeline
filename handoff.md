@@ -128,7 +128,10 @@ fred-databricks-etl/
 -   gold.fred_feature_transforms
 -   gold.fred_curve_spread
 -   gold.fred_cross_series_feature
+-   gold.fred_cross_series_feature_pit
 -   gold.fred_source_reconciliation
+-   gold.fred_company_fundamentals
+-   gold.fred_company_ratios
 -   gold.fred_revision_stats
 
 ------------------------------------------------------------------------
@@ -369,8 +372,43 @@ sign-off.
     A pure view can't do this (series ids differ by source with no join key), so
     the concept pairs are declared in YAML.
 
-**Still open** (recommended next): a point-in-time variant of the cross-series
-engine that aligns on `realtime_start` for leak-free modeling inputs.
+## 6. Point-in-time cross-series features (leak-free)
+
+**Status: implemented** (`fred_pipeline.features.compute_cross_series_features_pit`;
+new table `gold.fred_cross_series_feature_pit`).
+
+The cross-series features (item 4) use *latest-revised* values — fine for
+dashboards, but they inject later revisions into historical points (look-ahead
+bias). This adds a **`realtime_start`-aligned** variant: each leg contributes the
+value that was actually known (as-first-reported by default, or as-of any date),
+so the feature series is leak-free for backtests. Reuses the same alignment/
+combine logic (both backends share the one Python engine), reads raw Silver for
+vintages. Identical to latest-revised for non-vintage series.
+
+## 7. SEC statement standardization + company financials
+
+**Status: implemented** (`config/sec_concepts.yml` + `config/sec_ratios.yml` +
+`fred_pipeline.sec_standardization`; tables `gold.fred_company_fundamentals` /
+`gold.fred_company_ratios`; view `gold.v_company_ratio_ranks`).
+
+The SEC source lands one raw XBRL concept per series; companies use different
+tags for the same line item. This standardizes raw tags → canonical concepts via
+a priority-ordered mapping, then computes derived ratios, then ranks companies
+cross-sectionally. **Restatement analytics come free** from
+`gold.fred_revision_stats` (SEC filings carry `filed`-date vintages, which already
+flow through it). Both backends share the one Python engine (SQL can't do the
+priority tag-coalescing cleanly).
+
+**Duration disambiguation: implemented.** Income-statement facts carry a
+duration; a single 10-Q reports both the quarterly (~3-month) and YTD (~9-month)
+figure for the same period end, which collided on the natural key. The SEC
+normalizer now keeps only facts matching a target duration — `SEC_PERIOD`
+(default `quarterly`, or `annual`) — so income concepts land as a consistent
+series and ratios like net margin use matching durations. Instant balance-sheet
+facts are always kept; Bronze replay resolves `SEC_PERIOD` identically.
+**Remaining edge** (documented): a 10-K reports the FY (12-month) figure, not Q4,
+so quarterly mode is missing Q4 each year; recovering it needs YTD de-cumulation
+(`Q4 = FY − 9-month YTD`) — a bounded future enhancement.
 
 ------------------------------------------------------------------------
 

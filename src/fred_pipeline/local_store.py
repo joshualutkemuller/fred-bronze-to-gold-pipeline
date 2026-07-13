@@ -127,9 +127,18 @@ CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
 CREATE TABLE IF NOT EXISTS gold_fred_cross_series_feature (
     feature_name TEXT, op TEXT, observation_date TEXT, value REAL
 );
+CREATE TABLE IF NOT EXISTS gold_fred_cross_series_feature_pit (
+    feature_name TEXT, op TEXT, observation_date TEXT, value REAL, basis TEXT
+);
 CREATE TABLE IF NOT EXISTS gold_fred_source_reconciliation (
     name TEXT, observation_date TEXT, series_a TEXT, value_a REAL,
     series_b TEXT, value_b REAL, abs_diff REAL, pct_diff REAL, diverged INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_fred_company_fundamentals (
+    cik TEXT, concept TEXT, statement TEXT, observation_date TEXT, value REAL
+);
+CREATE TABLE IF NOT EXISTS gold_fred_company_ratios (
+    cik TEXT, ratio_name TEXT, observation_date TEXT, value REAL
 );
 CREATE TABLE IF NOT EXISTS gold_fred_revision_stats (
     series_id TEXT, observation_date TEXT, revision_count INTEGER,
@@ -240,6 +249,18 @@ SELECT source, series_id, category, frequency, latest_observation_date,
          ELSE 0
        END AS is_stale
 FROM aged;
+
+-- Cross-company ranks/percentiles of each SEC-derived ratio within each period.
+-- Mirrors gold.v_company_ratio_ranks in sql/60_views.sql.
+CREATE VIEW IF NOT EXISTS gold_v_company_ratio_ranks AS
+SELECT cik, ratio_name, observation_date, value,
+       PERCENT_RANK() OVER (
+           PARTITION BY ratio_name, observation_date ORDER BY value
+       ) AS pct_rank,
+       ROW_NUMBER() OVER (
+           PARTITION BY ratio_name, observation_date ORDER BY value DESC
+       ) AS rank_desc
+FROM gold_fred_company_ratios;
 """
 
 
@@ -448,14 +469,32 @@ class LocalWarehouse:
         # the pure-Python reference directly (same function the Spark path reuses).
         from fred_pipeline.features import (
             compute_cross_series_features,
+            compute_cross_series_features_pit,
             compute_source_reconciliation,
         )
         self.conn.execute("DELETE FROM gold_fred_cross_series_feature")
         self._insert("gold_fred_cross_series_feature",
                      compute_cross_series_features(latest))
+        # Point-in-time (as-first-reported) variant: leak-free, reads raw Silver
+        # (all vintages), not latest-revision rows.
+        self.conn.execute("DELETE FROM gold_fred_cross_series_feature_pit")
+        self._insert("gold_fred_cross_series_feature_pit",
+                     compute_cross_series_features_pit(silver))
         self.conn.execute("DELETE FROM gold_fred_source_reconciliation")
         self._insert("gold_fred_source_reconciliation",
                      compute_source_reconciliation(latest))
+
+        # SEC company financials: standardize raw XBRL tags into canonical line
+        # items, then derived ratios (reads raw Silver for source='sec' rows).
+        from fred_pipeline.sec_standardization import (
+            compute_sec_ratios,
+            standardize_sec_statements,
+        )
+        fundamentals = standardize_sec_statements(silver)
+        self.conn.execute("DELETE FROM gold_fred_company_fundamentals")
+        self._insert("gold_fred_company_fundamentals", fundamentals)
+        self.conn.execute("DELETE FROM gold_fred_company_ratios")
+        self._insert("gold_fred_company_ratios", compute_sec_ratios(fundamentals))
 
         # revision stats read raw Silver (every vintage), not latest-revision
         # rows — they exist to measure how much observations get revised.
@@ -467,7 +506,9 @@ class LocalWarehouse:
             "fred_point_in_time", "fred_latest_observation",
             "fred_macro_feature_daily", "fred_feature_transforms",
             "fred_curve_spread", "fred_cross_series_feature",
-            "fred_source_reconciliation", "fred_revision_stats",
+            "fred_cross_series_feature_pit", "fred_source_reconciliation",
+            "fred_company_fundamentals", "fred_company_ratios",
+            "fred_revision_stats",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

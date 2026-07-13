@@ -40,3 +40,21 @@ series:
     downstream_use_case: fundamentals
     priority: 3
     tags: [sec, fundamentals, balance_sheet]
+
+  # Income-statement (duration) concept: a 10-Q reports both the quarterly and
+  # YTD figure for the same period end. The normalizer keeps only the target
+  # duration (SEC_PERIOD, default quarterly), so they don't collide.
+  - series_id: "CIK0000320193:us-gaap/NetIncomeLoss:USD"
+    title: Apple Inc. — Net Income (quarterly)
+    category: company_financials
+    frequency: q
+    units: US Dollars
+    active: false
+    source: sec
+    load_type: incremental
+    expected_update_frequency: quarterly
+    vintage_enabled: true
+    validation_profile: standard
+    downstream_use_case: fundamentals
+    priority: 3
+    tags: [sec, fundamentals, income_statement]

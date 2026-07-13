@@ -10,7 +10,10 @@ from fred_pipeline.cross_series_config import (
     CrossSeriesDef,
     load_cross_series_defs,
 )
-from fred_pipeline.features import compute_cross_series_features
+from fred_pipeline.features import (
+    compute_cross_series_features,
+    compute_cross_series_features_pit,
+)
 from fred_pipeline.local_store import LocalWarehouse
 
 
@@ -145,6 +148,61 @@ def test_missing_values_are_skipped():
     assert [(r["observation_date"], r["value"]) for r in out] == [("2024-01-02", 8.0)]
 
 
+# ---- point-in-time (realtime_start-aligned) variant ----------------------
+
+def _srow(series_id, date, value, rt, missing=False):
+    """A raw Silver-shaped row with a vintage (realtime_start)."""
+    return {"series_id": series_id, "observation_date": date, "value": value,
+            "realtime_start": rt, "is_missing": missing}
+
+
+# A is revised (first print 10 on 2024-02-01, revised to 12 on 2024-05-01);
+# B is non-vintage (blank realtime_start).
+_PIT_SILVER = [
+    _srow("A", "2024-01-01", 10.0, "2024-02-01"),
+    _srow("A", "2024-01-01", 12.0, "2024-05-01"),
+    _srow("B", "2024-01-01", 3.0, ""),
+]
+_PIT_DEF = [_def("s", "spread", "d", [("A", 1.0), ("B", 1.0)])]
+
+
+def test_pit_first_report_uses_earliest_vintage():
+    out = compute_cross_series_features_pit(_PIT_SILVER, _PIT_DEF)
+    assert out == [{"feature_name": "s", "op": "spread",
+                    "observation_date": "2024-01-01", "value": 7.0,  # 10 (first) - 3
+                    "basis": "first_report"}]
+
+
+def test_pit_differs_from_latest_revised():
+    # latest-revised uses A=12 -> 9; point-in-time uses A=10 (first print) -> 7
+    latest = [_row("A", "2024-01-01", 12.0), _row("B", "2024-01-01", 3.0)]
+    assert compute_cross_series_features(latest, _PIT_DEF)[0]["value"] == 9.0
+    assert compute_cross_series_features_pit(_PIT_SILVER, _PIT_DEF)[0]["value"] == 7.0
+
+
+def test_pit_as_of_selects_vintage_known_by_date():
+    # as of 2024-03-01 only the first print (10) is known -> 7
+    early = compute_cross_series_features_pit(_PIT_SILVER, _PIT_DEF, as_of="2024-03-01")
+    assert early[0]["value"] == 7.0 and early[0]["basis"] == "2024-03-01"
+    # as of 2024-06-01 the revision (12) is known -> 9
+    late = compute_cross_series_features_pit(_PIT_SILVER, _PIT_DEF, as_of="2024-06-01")
+    assert late[0]["value"] == 9.0
+
+
+def test_pit_as_of_before_first_publication_is_empty():
+    # nothing for A was published by 2024-01-15 -> no common period
+    out = compute_cross_series_features_pit(_PIT_SILVER, _PIT_DEF, as_of="2024-01-15")
+    assert out == []
+
+
+def test_pit_non_vintage_matches_latest():
+    # both legs non-vintage (blank realtime) -> PIT == latest-revised
+    silver = [_srow("A", "2024-01-01", 10.0, ""), _srow("B", "2024-01-01", 3.0, "")]
+    latest = [_row("A", "2024-01-01", 10.0), _row("B", "2024-01-01", 3.0)]
+    pit = compute_cross_series_features_pit(silver, _PIT_DEF)
+    assert pit[0]["value"] == compute_cross_series_features(latest, _PIT_DEF)[0]["value"]
+
+
 # ---- polars parity (skipped if polars absent) ----------------------------
 
 def test_polars_parity():
@@ -187,4 +245,36 @@ def test_local_build_gold_populates_cross_series(tmp_path, monkeypatch):
                    "FROM gold_fred_cross_series_feature")
     assert got == [{"feature_name": "a_minus_b", "op": "spread",
                     "observation_date": "2024-01-01", "value": 7.0}]
+    wh.close()
+
+
+def test_local_build_gold_pit_vs_latest(tmp_path, monkeypatch):
+    cfg_path = _write(tmp_path, """
+        features:
+          - name: a_minus_b
+            op: spread
+            frequency: d
+            legs: [A, B]
+    """)
+    monkeypatch.setenv("FRED_CROSS_SERIES_FILE", cfg_path)
+
+    cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k")
+    wh = LocalWarehouse(cfg, db_path=str(tmp_path / "f.db"))
+
+    def _sv(series_id, value, rt):
+        return {"source": "fred", "series_id": series_id,
+                "observation_date": "2024-01-01", "realtime_start": rt,
+                "realtime_end": "", "value": value, "raw_value": str(value),
+                "is_missing": False, "row_hash": f"{series_id}{rt}",
+                "revision_number": 1, "ingested_at": "t", "run_id": "r"}
+
+    # A revised (10 first, 12 later); B non-vintage (3)
+    wh.merge_silver([_sv("A", 10.0, "2024-02-01"), _sv("A", 12.0, "2024-05-01"),
+                     _sv("B", 3.0, "")])
+    wh.build_gold()
+
+    latest = wh.query("SELECT value FROM gold_fred_cross_series_feature")
+    pit = wh.query("SELECT value, basis FROM gold_fred_cross_series_feature_pit")
+    assert latest == [{"value": 9.0}]                       # latest-revised: 12-3
+    assert pit == [{"value": 7.0, "basis": "first_report"}]  # first print: 10-3
     wh.close()

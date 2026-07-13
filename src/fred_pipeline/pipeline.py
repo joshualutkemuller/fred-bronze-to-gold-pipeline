@@ -100,9 +100,13 @@ def _make_census(config: PipelineConfig) -> SourceClient:
 
 
 def _make_sec(config: PipelineConfig) -> SourceClient:
-    # SEC is keyless but requires a descriptive User-Agent (contact).
+    # SEC is keyless but requires a descriptive User-Agent (contact). The target
+    # income-statement duration comes from SEC_PERIOD (default quarterly).
+    from fred_pipeline.sources.sec import resolve_sec_period
+
     return SECClient(
         user_agent=getattr(config, "sec_user_agent", "") or None,
+        period=resolve_sec_period(),
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
     )

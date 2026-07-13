@@ -198,6 +198,7 @@ environments:
 | BEA API key | `bea_api_key` | `BEA_API_KEY` | required to activate `source: bea` series |
 | Census API key (optional) | `census_api_key` | `CENSUS_API_KEY` | keyless works at a lower quota |
 | SEC User-Agent | `sec_user_agent` | `SEC_USER_AGENT` | set to your contact; SEC 403s without a descriptive UA |
+| SEC income duration | — | `SEC_PERIOD` | `quarterly` (default) or `annual` — target duration for income-statement facts |
 | API base URL | `fred_base_url` | `FRED_BASE_URL` | |
 | Request timeout | `request_timeout_seconds` | `FRED_REQUEST_TIMEOUT_SECONDS` | |
 | Max retries | `max_retries` | `FRED_MAX_RETRIES` | |
@@ -403,7 +404,10 @@ live FRED); **incremental loads** (full-on-first-run, then restate last N);
 (freshness + value bounds); **quant Gold features** (MoM/YoY/diff/z-score, curve
 spreads, **frequency-aware N-leg cross-series features** — `config/cross_series.yml`,
 as-of alignment for cross-source/cross-frequency spreads/ratios/composites,
-as-of-date point-in-time snapshots); **governance Gold** (multi-source
+plus a **point-in-time (`realtime_start`-aligned) leak-free variant** for
+backtests, as-of-date point-in-time snapshots); **SEC company financials**
+(XBRL tags standardized to canonical statements + derived ratios +
+cross-company ranks); **governance Gold** (multi-source
 coverage/freshness view + config-driven cross-source reconciliation with a
 divergence flag); a pluggable storage backend
 (**Databricks/Delta or local SQLite**); layered configuration (**YAML file / env

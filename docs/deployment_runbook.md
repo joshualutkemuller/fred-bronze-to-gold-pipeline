@@ -61,7 +61,8 @@ databricks secrets put-secret   fred census_api_key # Census(optional — keyles
 
 Treasury, World Bank, Census, and SEC are keyless. **SEC** needs a descriptive
 `SEC_USER_AGENT` (your contact) set as an env var / `spark_env_vars`, not a
-secret — SEC 403s without it.
+secret — SEC 403s without it. Optionally set `SEC_PERIOD` (`quarterly` default /
+`annual`) to choose the income-statement duration.
 
 - [ ] FRED key stored (all envs)
 - [ ] EIA / BEA keys stored **iff** those sources are activated (see Part C)
@@ -230,9 +231,11 @@ Run after the first ingestion in an environment:
 - [ ] Gold tables built: `gold.fred_latest_observation`,
       `gold.fred_point_in_time`, `gold.fred_macro_feature_daily`,
       `gold.fred_feature_transforms`, `gold.fred_curve_spread`,
-      `gold.fred_cross_series_feature`, `gold.fred_source_reconciliation`,
-      `gold.fred_revision_stats`; views `gold.v_latest_revised` /
-      `gold.v_point_in_time` / `gold.v_source_coverage` resolve.
+      `gold.fred_cross_series_feature`, `gold.fred_cross_series_feature_pit`,
+      `gold.fred_source_reconciliation`, `gold.fred_company_fundamentals`,
+      `gold.fred_company_ratios`, `gold.fred_revision_stats`; views
+      `gold.v_latest_revised` / `gold.v_point_in_time` / `gold.v_source_coverage`
+      / `gold.v_company_ratio_ranks` resolve.
 - [ ] Coverage view sanity: `SELECT source, count(*), sum(is_stale) FROM
       gold.v_source_coverage GROUP BY source` — no unexpected stale series.
 - [ ] Metadata governance: run `reconcile` (FRED series only) and review

@@ -170,6 +170,17 @@ aligned value. Both backends compute it via the one shared Python engine
 (`fred_pipeline.features.compute_cross_series_features`). Columns: `feature_name`,
 `op`, `observation_date`, `value`.
 
+### `gold.fred_cross_series_feature_pit`
+**Point-in-time (`realtime_start`-aligned)** version of the above: each leg
+contributes the value that was **actually known** (as-first-reported — the
+earliest vintage per observation) rather than latest-revised, so the feature
+series is **leak-free for backtests**. Reads raw Silver (all vintages) via
+`fred_pipeline.features.compute_cross_series_features_pit`; the function also
+accepts an `as_of` date to reconstruct the series as it stood on any past date.
+For non-vintage series this equals the latest-revised feature. Columns:
+`feature_name`, `op`, `observation_date`, `value`, `basis` (`first_report` or the
+as-of date).
+
 ### `gold.fred_source_reconciliation`
 Cross-source data-lineage QA: same-concept series from **different sources**
 (e.g. FRED `UNRATE` vs BLS `LNS14000000`; FRED `GDP` vs a BEA NIPA line) compared
@@ -179,6 +190,25 @@ pairing is declared, not inferred. Both backends compute it via
 `fred_pipeline.features.compute_source_reconciliation`. Columns: `name`,
 `observation_date`, `series_a`, `value_a`, `series_b`, `value_b`, `abs_diff`,
 `pct_diff`, `diverged` (`|pct_diff| > tolerance_pct`).
+
+### `gold.fred_company_fundamentals`
+SEC company financials, **standardized**: raw XBRL tags mapped to canonical line
+items (`config/sec_concepts.yml`, priority-ordered candidate tags) so companies
+using different tags for the same concept line up. Per `(cik, concept, period)`
+the value comes from the highest-priority tag reported, latest-filed vintage.
+Built by `fred_pipeline.sec_standardization.standardize_sec_statements`. Columns:
+`cik`, `concept`, `statement`, `observation_date`, `value`. (Restatement history
+for these is already in `gold.fred_revision_stats`, since SEC filings carry
+vintages.)
+
+### `gold.fred_company_ratios`
+Derived company ratios (`config/sec_ratios.yml`): `numerator / denominator`
+concept per `(cik, period)` — e.g. `debt_to_equity`, `current_ratio`,
+`return_on_equity`. Columns: `cik`, `ratio_name`, `observation_date`, `value`.
+Income-statement concepts are duration-disambiguated at ingestion (`SEC_PERIOD`,
+default `quarterly`), so income and balance-sheet concepts combine on a
+consistent basis. (Quarterly mode omits Q4, which a 10-K reports only as the FY
+figure; recovering it via YTD de-cumulation is a documented future enhancement.)
 
 ### `gold.fred_revision_stats`
 How much each observation moved between its first print and today. Reads raw
@@ -210,3 +240,6 @@ REPLACE VIEW`, so these must be kept in sync manually between the two).
   `(source, series_id)` the latest observation date, observation count, days
   since last, and an `is_stale` verdict from the manifest cadence
   (`meta.fred_series.frequency` vs. `FREQUENCY_MAX_AGE_DAYS`).
+* `v_company_ratio_ranks` — cross-company ranks/percentiles of each SEC-derived
+  ratio within each period (`pct_rank` 0..1 ascending; `rank_desc` = 1 is the
+  largest), over `fred_company_ratios`.

@@ -193,24 +193,18 @@ def _downsample_asof(series: list[tuple[date, float]], freq: str) -> dict[str, f
     return out
 
 
-def compute_cross_series_features(
-    latest_rows: Iterable[dict[str, Any]],
-    defs: Optional[Iterable[CrossSeriesDef]] = None,
+def _combine_cross_series(
+    by_series: dict[str, list[tuple[date, float]]],
+    defs: Iterable[CrossSeriesDef],
+    *,
+    basis: Optional[str] = None,
 ) -> list[dict[str, Any]]:
-    """Compute frequency-aware, N-leg cross-series features per ``defs``.
+    """Align each leg to its target frequency and combine per ``op``.
 
-    ``defs`` defaults to ``config/cross_series.yml`` (see
-    :func:`fred_pipeline.cross_series_config.load_cross_series_defs`). Each leg is
-    aligned as-of to the feature's target frequency, then combined by ``op``
-    (``spread`` = a−b, ``ratio`` = a/b, ``composite`` = Σ wᵢ·legᵢ). A period is
-    emitted only when *every* leg has an aligned value (ratio also requires a
-    nonzero denominator). Returns rows
-    ``(feature_name, op, observation_date, value)``.
+    ``by_series`` maps series_id → date-sorted ``[(date, value)]`` (already
+    reduced to one value per date — latest-revised or point-in-time, per caller).
+    When ``basis`` is set it is stamped on every row (used by the PIT variant).
     """
-    if defs is None:
-        defs = load_cross_series_defs()
-    by_series = _group_sorted(latest_rows)
-
     out: list[dict[str, Any]] = []
     for cd in defs:
         aligned: Optional[list[tuple[float, dict[str, float]]]] = []
@@ -237,13 +231,106 @@ def compute_cross_series_features(
                 value = vals[0] / vals[1]
             else:  # composite: weighted sum
                 value = sum(w * v for (w, _m), v in zip(aligned, vals))
-            out.append({
+            row = {
                 "feature_name": cd.name,
                 "op": cd.op,
                 "observation_date": period,
                 "value": value,
-            })
+            }
+            if basis is not None:
+                row["basis"] = basis
+            out.append(row)
     return sorted(out, key=lambda r: (r["feature_name"], r["observation_date"]))
+
+
+def compute_cross_series_features(
+    latest_rows: Iterable[dict[str, Any]],
+    defs: Optional[Iterable[CrossSeriesDef]] = None,
+) -> list[dict[str, Any]]:
+    """Compute frequency-aware, N-leg cross-series features per ``defs``.
+
+    ``defs`` defaults to ``config/cross_series.yml`` (see
+    :func:`fred_pipeline.cross_series_config.load_cross_series_defs`). Each leg is
+    aligned as-of to the feature's target frequency, then combined by ``op``
+    (``spread`` = a−b, ``ratio`` = a/b, ``composite`` = Σ wᵢ·legᵢ). A period is
+    emitted only when *every* leg has an aligned value (ratio also requires a
+    nonzero denominator). Uses **latest-revised** values. Returns rows
+    ``(feature_name, op, observation_date, value)``.
+    """
+    if defs is None:
+        defs = load_cross_series_defs()
+    return _combine_cross_series(_group_sorted(latest_rows), defs)
+
+
+def _select_vintage(
+    vintages: list[tuple[str, float]], as_of: Optional[str]
+) -> Optional[float]:
+    """Pick one value from an observation's vintages (``(realtime_start, value)``).
+
+    ``as_of=None`` → **first report** (earliest ``realtime_start``). ``as_of=D`` →
+    the value **known as of D** (latest ``realtime_start`` ≤ D); ``None`` if the
+    observation wasn't published by D. A blank ``realtime_start`` (non-vintage
+    series) is treated as always-known.
+    """
+    if as_of is None:
+        return min(vintages, key=lambda t: t[0])[1]
+    eligible = [t for t in vintages if t[0] == "" or t[0] <= as_of]
+    if not eligible:
+        return None
+    return max(eligible, key=lambda t: t[0])[1]
+
+
+def _pit_by_series(
+    silver_rows: Iterable[dict[str, Any]], as_of: Optional[str]
+) -> dict[str, list[tuple[date, float]]]:
+    """Reduce raw Silver (all vintages) to one point-in-time value per
+    (series, observation_date), selected by :func:`_select_vintage`."""
+    groups: dict[tuple[str, str], list[tuple[str, float]]] = {}
+    for r in silver_rows:
+        if r.get("is_missing"):
+            continue
+        v = r.get("value")
+        od = r.get("observation_date")
+        if v is None or not od:
+            continue
+        rt = r.get("realtime_start") or ""
+        groups.setdefault((r["series_id"], str(od)[:10]), []).append((str(rt), float(v)))
+
+    by_series: dict[str, list[tuple[date, float]]] = {}
+    for (sid, od), vintages in groups.items():
+        chosen = _select_vintage(vintages, as_of)
+        d = _parse(od)
+        if chosen is None or d is None:
+            continue
+        by_series.setdefault(sid, []).append((d, chosen))
+    for s in by_series.values():
+        s.sort(key=lambda t: t[0])
+    return by_series
+
+
+def compute_cross_series_features_pit(
+    silver_rows: Iterable[dict[str, Any]],
+    defs: Optional[Iterable[CrossSeriesDef]] = None,
+    *,
+    as_of: Optional[str] = None,
+) -> list[dict[str, Any]]:
+    """Point-in-time (``realtime_start``-aligned) cross-series features.
+
+    Same alignment/combination as :func:`compute_cross_series_features`, but each
+    leg contributes the value that was **actually known** rather than the
+    latest-revised one — so the resulting feature series is leak-free for
+    backtests. Reads raw **Silver** (all vintages).
+
+    ``as_of=None`` (default) builds the *as-first-reported* series (each
+    observation's earliest vintage). ``as_of=D`` builds the series as it stood on
+    date ``D`` (only vintages published by ``D``). Rows carry a ``basis`` column
+    (``"first_report"`` or the as-of date). For non-vintage series this is
+    identical to the latest-revised feature.
+    """
+    if defs is None:
+        defs = load_cross_series_defs()
+    basis = as_of if as_of else "first_report"
+    return _combine_cross_series(_pit_by_series(silver_rows, as_of), defs, basis=basis)
 
 
 def compute_source_reconciliation(
