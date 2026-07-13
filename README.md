@@ -279,9 +279,10 @@ the same Bronze/Silver/Gold path — each row is tagged with its `source` in the
 natural key. Treasury, World Bank, Census, and SEC are keyless (SEC needs a
 descriptive User-Agent); EIA and BEA require a key. **SEC** brings company
 financials (fundamentals from EDGAR XBRL) in as point-in-time series. See the
-inactive demos under `manifests/` (`*_labor.yml`, `eia_energy.yml`,
-`treasury_fiscal.yml`, `worldbank_global.yml`, `bea_national_accounts.yml`,
-`census_indicators.yml`, `sec_financials.yml`), and
+inactive demos under `manifests/` (`bls_labor.yml`, `bls_cpi_basket.yml` — the
+full CPI-U item hierarchy, more complete than FRED's partial mirror —
+`eia_energy.yml`, `treasury_fiscal.yml`, `worldbank_global.yml`,
+`bea_national_accounts.yml`, `census_indicators.yml`, `sec_financials.yml`), and
 [`docs/adding_a_source.md`](docs/adding_a_source.md) for how to add a new source
 (one client module + one registry entry).
 
