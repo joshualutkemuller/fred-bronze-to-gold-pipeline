@@ -223,6 +223,73 @@ a legitimate "not revised" signal, not a data gap. Useful for judging how much
 to trust a series' initial print (e.g. GDP/payrolls are heavily revised;
 market/price series usually are not).
 
+### Market-terminal analytical views
+Gold objects recreating the `market_terminal` project's economic-analysis
+surfaces for Power BI (plan + full column semantics in
+`docs/market_terminal_gold_views.md`). All computed by the shared pure-Python
+engines in `fred_pipeline.terminal_views`; the ECON dashboard covers only
+series cataloged in `config/series_catalog.yml`.
+
+#### `gold.dim_series`
+Star-schema hub: one row per cataloged series — presentation semantics from
+`config/series_catalog.yml` (`econ_category`, `polarity` [+1 rise-is-bullish /
+−1 / 0], `default_transform` [`pc1|pch|chg|bps|level`], `scale`, `decimals`,
+`notes`) merged with `title`/`frequency`/`units` from `meta.fred_series`.
+
+#### `gold.dim_date`
+One row per calendar day over the observed range: `year`, `quarter`, `month`,
+`month_name`, `is_month_end`, `fiscal_year` (US federal, October start), and
+`is_recession` (NBER `USREC`; `NULL` = unknown until
+`manifests/macro_flags.yml` is activated, never `false`).
+
+#### `gold.macro_indicator_dashboard`
+The ECON macro grid: one row per cataloged series at its latest observation —
+`latest`/`prior` value+date, `change_abs`/`change_pct`, `yoy_pct`, expanding
+(PIT-safe) `zscore` and `percentile`, `surprise` (no-consensus proxy: latest −
+trailing `surprise_window` mean; `surprise_z` divides by that window's std),
+polarity-adjusted `direction_is_good`, sparkline bounds, `staleness_days`
+(vs. the run's `as_of_date`), `realtime_start` provenance.
+
+#### `gold.macro_indicator_sparkline`
+Last 36 observations per cataloged series (`point_index` 0 = oldest) for
+Power BI sparkline visuals keyed on `series_id`.
+
+#### `gold.macro_category_summary`
+Per-`econ_category` rollup: `n_series`, `n_improving`/`n_deteriorating`
+(polarity-adjusted), `breadth_pct` (of directional series), `avg_zscore`,
+`surprise_index` (mean `surprise_z`).
+
+#### `gold.treasury_curve`
+Curve Lab, tidy: one row per `as_of_date` × tenor with data (`tenor_label`,
+sortable `tenor_months`, `series_id`, `yield_pct`). Tenor→series map in
+`config/curve.yml`; tenors without ingested data emit no rows.
+
+#### `gold.treasury_curve_metrics`
+Per-date curve metrics: `level` (mean of available tenors), `slope_10y2y`,
+`slope_10y3m`, `curvature_2_5_10` (2×5Y − 2Y − 10Y), `butterfly_2_10_30`
+(2×10Y − 2Y − 30Y), inversion flags, `is_recession`, and `curve_move` — the
+bull/bear × steepener/flattener classification vs. the prior curve date
+(`parallel-*` / `twist-*` when only one of level/slope moved).
+
+#### `gold.curve_spread_daily`
+The configured spreads/ratios (`config/spreads.yml`) enriched with expanding
+(PIT-safe) `zscore`/`percentile`, `value_bps`, `is_inverted` +
+`inversion_run` (consecutive inverted observations; spreads only — a ratio has
+no zero line), and `is_recession`. Supersets `gold.fred_curve_spread` (kept
+for compatibility).
+
+#### `gold.spread_inversion_episode`
+One row per **unique inversion episode** per configured spread (`op: spread`
+only): the episode opens on the first negative observation and closes on the
+first later non-negative one (`end_date` = that re-steepening date; a single
+positive print between two inversions splits them into two episodes). Columns:
+`spread_name`, `long_leg`, `short_leg`, `episode_number` (1-based,
+chronological per spread), `start_date`, `end_date` (`NULL` while ongoing),
+`last_inverted_date`, `observation_count`, `calendar_days` (to `end_date`, or
+to `last_inverted_date` while ongoing), `trough_value`/`trough_bps`/
+`trough_date` (deepest inversion), `is_ongoing`, `recession_overlap` (any
+inverted date fell in an NBER recession; `NULL` until `USREC` is ingested).
+
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
 point_in_time_features(as_of)` return each series' value **as it was known** on

@@ -111,6 +111,7 @@ views). Everything is additive — no existing Gold table changes shape.
 | 3 | `gold.treasury_curve` | 1 / as-of date × tenor | CURV / YCURV | fact (long) |
 | 3b | `gold.treasury_curve_metrics` | 1 / as-of date | CURV metrics | fact (wide) |
 | 4 | `gold.curve_spread_daily` | 1 / spread × date | CURV spreads | fact (long) |
+| 4b | `gold.spread_inversion_episode` | 1 / spread × episode | CURV inversion history | fact (episodic) |
 | 5 | `gold.benchmark_rate_board` | 1 / rate (latest) | BMRK | fact (snapshot) |
 | 6 | `gold.funding_tape_daily` | 1 / metric × date | FUND / FCOST | fact (long) |
 | 6b | `gold.funding_stress_daily` | 1 / date | FUND gauge | fact (wide) |
@@ -267,6 +268,32 @@ inversion streak). Long, one row per spread × date, so Power BI slices by
 run alongside the level. **Config:** `config/spreads.yml` (exists — add the extra
 pairs). **Series:** same `DGS*` + `USREC`.
 
+### 4.4b CURV inversion history — `gold.spread_inversion_episode`
+
+**Reproduces:** the Curve Lab's inversion-episode history — the discrete
+inversion periods it lists per spread and cross-references with recessions.
+Where `curve_spread_daily` is one row per observation, this is **one row per
+unique inversion episode per spread**: an episode *starts* on the first
+observation where the spread goes negative and *ends* on the first later
+observation where it turns non-negative again (that re-steepening date is the
+`end_date`; a single positive print between two inversions therefore splits
+them into two distinct episodes). An episode still negative at the end of
+history is *ongoing* (`end_date` null, `is_ongoing` true, duration measured to
+`last_inverted_date`).
+
+Columns (grain 1 / spread × episode): `spread_name` · `long_leg` · `short_leg` ·
+`episode_number` (1-based per spread, chronological) · `start_date` ·
+`end_date` · `last_inverted_date` · `observation_count` (inverted obs) ·
+`calendar_days` · `trough_value` / `trough_bps` / `trough_date` (deepest
+inversion) · `is_ongoing` · `recession_overlap` (any inverted date fell in an
+NBER recession; null until `USREC` is ingested). Only `op: spread` definitions
+participate — a ratio has no zero line. Power BI renders this as the episode
+table / Gantt-style timeline next to the spread chart.
+
+**Engine:** `compute_spread_inversion_episodes` (pure Python, both backends).
+**Config:** `config/spreads.yml` (same definitions as §4.4). **Series:** same
+`DGS*` legs + `USREC`.
+
 ### 4.5 BMRK — `gold.benchmark_rate_board`
 
 **Reproduces:** the 43-rate benchmark board with trend, spread-to-benchmark, and
@@ -401,27 +428,47 @@ Each phase = a self-contained slice that ships a working set of Gold objects,
 tests, and the `local_store` schema + `sql/50_gold.sql` / `sql/60_views.sql`
 additions, following the existing `_build_*` pattern in `gold.py`.
 
-**Phase 0 — Foundation (dimensions + catalog config).**
-- Add `config/series_catalog.yml` (category, polarity, default_transform, scale,
-  decimals per series) — the single source of the terminal's presentation
-  semantics.
-- Build `gold.dim_series` + `gold.dim_date` (+ `USREC` ingest for `is_recession`).
-- New engine helpers + tests. Unblocks every later phase.
+**Phase 0 — Foundation (dimensions + catalog config). — IMPLEMENTED**
+- `config/series_catalog.yml` (~65 already-ingested series tagged with
+  category, polarity, default_transform, scale, decimals) — the single source
+  of the terminal's presentation semantics; loader in
+  `src/fred_pipeline/catalog_config.py`.
+- `gold.dim_series` + `gold.dim_date` built by
+  `fred_pipeline.terminal_views.build_dim_series` / `build_dim_date`;
+  `manifests/macro_flags.yml` ships `USREC`/`USRECD` (inactive, verify-first) —
+  `is_recession` is `NULL` (unknown) until activated.
 
-**Phase 1 — ECON dashboard (highest value, all-domestic, data already ingested).**
+**Phase 1 — ECON dashboard. — IMPLEMENTED**
 - `gold.macro_indicator_dashboard`, `macro_indicator_sparkline`,
-  `macro_category_summary`. Reuses existing transforms + PIT z-score. Covers the
-  unemployment/labor and headline macro views immediately.
+  `macro_category_summary` via `terminal_views.compute_macro_dashboard`
+  (expanding PIT-safe z-score/percentile; trailing-window surprise proxy;
+  polarity-adjusted breadth). Covers the unemployment/labor and headline macro
+  views. Wired into both backends (`gold._build_terminal_views`,
+  `LocalWarehouse.build_gold`), DDL in `sql/50_gold.sql`, tests in
+  `tests/test_terminal_views.py`.
 
 **Phase 2 — Inflation Explorer.**
 - Activate + verify the CPI basket manifests; add `config/cpi_hierarchy.yml` +
   `config/cpi_weights.yml`; build `gold.inflation_explorer` +
   `inflation_contribution`. (PCE item level deferred to a BEA follow-up.)
 
-**Phase 3 — Curve & spreads.**
-- Add `DGS3/DGS7/DGS20` + `USREC` to manifests; `config/curve.yml`; build
-  `gold.treasury_curve`, `treasury_curve_metrics`, and the enriched
-  `gold.curve_spread_daily` (generalizing `fred_curve_spread`).
+**Phase 3 — Curve & spreads. — IMPLEMENTED**
+- `config/curve.yml` (11 tenors) + `terminal_views.compute_treasury_curve` →
+  `gold.treasury_curve` + `treasury_curve_metrics` (level/slope/curvature/
+  butterfly, inversions, recession overlay, bull/bear × steepener/flattener
+  move classification); `compute_curve_spread_daily` → the enriched
+  `gold.curve_spread_daily` (z-score/percentile/bps/inversion runs).
+  `DGS3/DGS7/DGS20` added to `manifests/rates.yml` (inactive, verify-first);
+  absent tenors simply emit no rows until activated.
+
+**Phase 3b — Inversion episodes (unique inversion periods per spread). —
+IMPLEMENTED**
+- `gold.spread_inversion_episode` (§4.4b) via
+  `terminal_views.compute_spread_inversion_episodes`: one row per unique
+  inversion episode per configured spread — the episode starts when the spread
+  first prints negative and ends on the first print back at/above zero, with
+  episode number, duration (obs + calendar days), trough value/date, ongoing
+  flag, and recession overlap. Both backends + tests.
 
 **Phase 4 — Rates complex (BMRK + FUND + FCOST + CRDT).**
 - Balances/SOFR already ingested; add the small free-FRED corridor

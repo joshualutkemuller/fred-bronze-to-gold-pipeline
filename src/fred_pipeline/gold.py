@@ -452,6 +452,225 @@ def _build_source_reconciliation(config: PipelineConfig, spark: Any) -> None:
     ).saveAsTable(gold)
 
 
+def _collect_latest(config: PipelineConfig, spark: Any, series_ids: list[str]) -> list[dict[str, Any]]:
+    """Collect the named series from ``gold.fred_latest_observation`` as plain
+    dicts (dates as ISO strings) — the input shape the pure-Python
+    terminal-view engines expect."""
+    if not series_ids:
+        return []
+    latest = config.table("gold", "fred_latest_observation")
+    in_list = ", ".join("'" + s.replace("'", "''") + "'" for s in series_ids)
+    df = spark.sql(
+        f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
+        f"CAST(realtime_start AS STRING) AS realtime_start, value, is_missing "
+        f"FROM {latest} WHERE series_id IN ({in_list})"
+    )
+    return [r.asDict() for r in df.collect()]
+
+
+def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
+    """Build the market-terminal analytical views (dimensions + ECON macro
+    dashboard + Treasury Curve Lab; see ``docs/market_terminal_gold_views.md``)
+    by reusing the pure-Python engines in :mod:`fred_pipeline.terminal_views` —
+    the same collect-and-compute pattern as :func:`_build_cross_series`, so
+    both backends stay in parity. Inputs are bounded: only cataloged series,
+    curve tenors, spread legs, and USREC are collected."""
+    from pyspark.sql.types import (
+        BooleanType, DoubleType, IntegerType, StringType, StructField, StructType,
+    )
+
+    from fred_pipeline.catalog_config import load_series_catalog
+    from fred_pipeline.curve_config import load_curve_defs
+    from fred_pipeline.spread_config import load_spread_defs
+    from fred_pipeline.terminal_views import (
+        RECESSION_SERIES,
+        build_dim_date,
+        build_dim_series,
+        compute_curve_spread_daily,
+        compute_macro_dashboard,
+        compute_spread_inversion_episodes,
+        compute_treasury_curve,
+    )
+
+    def _write(name: str, rows: list[dict[str, Any]], schema: Any, casts: list[str]) -> None:
+        spark.createDataFrame(rows, schema=schema).selectExpr(*casts).write.format(
+            "delta"
+        ).mode("overwrite").option("overwriteSchema", "true").saveAsTable(
+            config.table("gold", name)
+        )
+
+    catalog = load_series_catalog()
+    tenors = load_curve_defs()
+    spreads = load_spread_defs()
+
+    # dim_series: catalog semantics + title/frequency/units from meta.
+    meta_df = spark.sql(
+        f"SELECT series_id, title, frequency, units FROM "
+        f"{config.table('meta', 'fred_series')}"
+    )
+    dim_series = build_dim_series(catalog, [r.asDict() for r in meta_df.collect()])
+    _write("dim_series", dim_series, StructType([
+        StructField("series_id", StringType()), StructField("title", StringType()),
+        StructField("source", StringType()), StructField("frequency", StringType()),
+        StructField("units", StringType()), StructField("econ_category", StringType()),
+        StructField("polarity", IntegerType()),
+        StructField("default_transform", StringType()),
+        StructField("scale", StringType()), StructField("decimals", IntegerType()),
+        StructField("notes", StringType()),
+    ]), ["*"])
+
+    # dim_date: calendar bounds from latest observations + the USREC overlay.
+    latest = config.table("gold", "fred_latest_observation")
+    bounds = spark.sql(
+        f"SELECT CAST(MIN(observation_date) AS STRING) AS lo, "
+        f"CAST(MAX(observation_date) AS STRING) AS hi FROM {latest} "
+        f"WHERE is_missing = false"
+    ).collect()[0]
+    usrec_rows = _collect_latest(config, spark, [RECESSION_SERIES])
+    dim_date = (
+        build_dim_date(bounds["lo"], bounds["hi"], usrec_rows)
+        if bounds["lo"] else []
+    )
+    _write("dim_date", dim_date, StructType([
+        StructField("date", StringType()), StructField("year", IntegerType()),
+        StructField("quarter", IntegerType()), StructField("month", IntegerType()),
+        StructField("month_name", StringType()),
+        StructField("is_month_end", BooleanType()),
+        StructField("fiscal_year", IntegerType()),
+        StructField("is_recession", BooleanType()),
+    ]), ["CAST(date AS DATE) AS date", "year", "quarter", "month", "month_name",
+         "is_month_end", "fiscal_year", "is_recession"])
+
+    # ECON macro dashboard (+ sparkline + category summary) over the catalog.
+    dash = compute_macro_dashboard(
+        _collect_latest(config, spark, sorted(e.series_id for e in catalog)),
+        catalog,
+    )
+    _write("macro_indicator_dashboard", dash["dashboard"], StructType([
+        StructField("series_id", StringType()),
+        StructField("econ_category", StringType()),
+        StructField("polarity", IntegerType()),
+        StructField("default_transform", StringType()),
+        StructField("as_of_date", StringType()),
+        StructField("latest_date", StringType()),
+        StructField("latest_value", DoubleType()),
+        StructField("prior_date", StringType()),
+        StructField("prior_value", DoubleType()),
+        StructField("change_abs", DoubleType()),
+        StructField("change_pct", DoubleType()),
+        StructField("yoy_pct", DoubleType()),
+        StructField("zscore", DoubleType()),
+        StructField("percentile", DoubleType()),
+        StructField("surprise", DoubleType()),
+        StructField("surprise_z", DoubleType()),
+        StructField("direction_is_good", BooleanType()),
+        StructField("spark_min", DoubleType()),
+        StructField("spark_max", DoubleType()),
+        StructField("staleness_days", IntegerType()),
+        StructField("realtime_start", StringType()),
+    ]), ["series_id", "econ_category", "polarity", "default_transform",
+         "CAST(as_of_date AS DATE) AS as_of_date",
+         "CAST(latest_date AS DATE) AS latest_date", "latest_value",
+         "CAST(prior_date AS DATE) AS prior_date", "prior_value", "change_abs",
+         "change_pct", "yoy_pct", "zscore", "percentile", "surprise",
+         "surprise_z", "direction_is_good", "spark_min", "spark_max",
+         "staleness_days", "realtime_start"])
+    _write("macro_indicator_sparkline", dash["sparkline"], StructType([
+        StructField("series_id", StringType()),
+        StructField("point_index", IntegerType()),
+        StructField("observation_date", StringType()),
+        StructField("value", DoubleType()),
+    ]), ["series_id", "point_index",
+         "CAST(observation_date AS DATE) AS observation_date", "value"])
+    _write("macro_category_summary", dash["category_summary"], StructType([
+        StructField("econ_category", StringType()),
+        StructField("as_of_date", StringType()),
+        StructField("n_series", IntegerType()),
+        StructField("n_improving", IntegerType()),
+        StructField("n_deteriorating", IntegerType()),
+        StructField("breadth_pct", DoubleType()),
+        StructField("avg_zscore", DoubleType()),
+        StructField("surprise_index", DoubleType()),
+    ]), ["econ_category", "CAST(as_of_date AS DATE) AS as_of_date", "n_series",
+         "n_improving", "n_deteriorating", "breadth_pct", "avg_zscore",
+         "surprise_index"])
+
+    # Treasury Curve Lab: tenor series + USREC.
+    curve_rows = _collect_latest(
+        config, spark,
+        sorted({t.series_id for t in tenors} | {RECESSION_SERIES}),
+    )
+    curve = compute_treasury_curve(curve_rows, tenors)
+    _write("treasury_curve", curve["curve"], StructType([
+        StructField("as_of_date", StringType()),
+        StructField("tenor_label", StringType()),
+        StructField("tenor_months", IntegerType()),
+        StructField("series_id", StringType()),
+        StructField("yield_pct", DoubleType()),
+    ]), ["CAST(as_of_date AS DATE) AS as_of_date", "tenor_label",
+         "tenor_months", "series_id", "yield_pct"])
+    _write("treasury_curve_metrics", curve["metrics"], StructType([
+        StructField("as_of_date", StringType()),
+        StructField("level", DoubleType()),
+        StructField("slope_10y2y", DoubleType()),
+        StructField("slope_10y3m", DoubleType()),
+        StructField("curvature_2_5_10", DoubleType()),
+        StructField("butterfly_2_10_30", DoubleType()),
+        StructField("is_inverted_10y2y", BooleanType()),
+        StructField("is_inverted_10y3m", BooleanType()),
+        StructField("is_recession", BooleanType()),
+        StructField("curve_move", StringType()),
+    ]), ["CAST(as_of_date AS DATE) AS as_of_date", "level", "slope_10y2y",
+         "slope_10y3m", "curvature_2_5_10", "butterfly_2_10_30",
+         "is_inverted_10y2y", "is_inverted_10y3m", "is_recession", "curve_move"])
+
+    # Enriched spread history + inversion episodes: spread legs + USREC.
+    leg_ids = sorted(
+        {s for sd in spreads for s in (sd.long_leg, sd.short_leg)}
+        | {RECESSION_SERIES}
+    )
+    leg_rows = _collect_latest(config, spark, leg_ids)
+    spread_daily = compute_curve_spread_daily(leg_rows, spreads)
+    _write("curve_spread_daily", spread_daily, StructType([
+        StructField("spread_name", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("long_leg", StringType()),
+        StructField("short_leg", StringType()),
+        StructField("value", DoubleType()),
+        StructField("value_bps", DoubleType()),
+        StructField("zscore", DoubleType()),
+        StructField("percentile", DoubleType()),
+        StructField("is_inverted", BooleanType()),
+        StructField("inversion_run", IntegerType()),
+        StructField("is_recession", BooleanType()),
+    ]), ["spread_name", "CAST(observation_date AS DATE) AS observation_date",
+         "long_leg", "short_leg", "value", "value_bps", "zscore", "percentile",
+         "is_inverted", "inversion_run", "is_recession"])
+    episodes = compute_spread_inversion_episodes(leg_rows, spreads)
+    _write("spread_inversion_episode", episodes, StructType([
+        StructField("spread_name", StringType()),
+        StructField("long_leg", StringType()),
+        StructField("short_leg", StringType()),
+        StructField("episode_number", IntegerType()),
+        StructField("start_date", StringType()),
+        StructField("end_date", StringType()),
+        StructField("last_inverted_date", StringType()),
+        StructField("observation_count", IntegerType()),
+        StructField("calendar_days", IntegerType()),
+        StructField("trough_value", DoubleType()),
+        StructField("trough_bps", DoubleType()),
+        StructField("trough_date", StringType()),
+        StructField("is_ongoing", BooleanType()),
+        StructField("recession_overlap", BooleanType()),
+    ]), ["spread_name", "long_leg", "short_leg", "episode_number",
+         "CAST(start_date AS DATE) AS start_date",
+         "CAST(end_date AS DATE) AS end_date",
+         "CAST(last_inverted_date AS DATE) AS last_inverted_date",
+         "observation_count", "calendar_days", "trough_value", "trough_bps",
+         "CAST(trough_date AS DATE) AS trough_date", "is_ongoing",
+         "recession_overlap"])
+
+
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
     spark = get_spark(spark)
@@ -478,4 +697,13 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     _build_company_financials(config, spark)
     results["fred_company_fundamentals"] = "ok"
     results["fred_company_ratios"] = "ok"
+    _build_terminal_views(config, spark)
+    for name in (
+        "dim_series", "dim_date",
+        "macro_indicator_dashboard", "macro_indicator_sparkline",
+        "macro_category_summary",
+        "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
+        "spread_inversion_episode",
+    ):
+        results[name] = "ok"
     return results

@@ -146,6 +146,59 @@ CREATE TABLE IF NOT EXISTS gold_fred_revision_stats (
     latest_value REAL, latest_realtime_start TEXT,
     revision_delta REAL, revision_pct REAL
 );
+
+-- Market-terminal analytical views (docs/market_terminal_gold_views.md):
+-- star-schema dimensions + the ECON macro dashboard + the Treasury Curve Lab,
+-- shaped for Power BI. Built by fred_pipeline.terminal_views (pure Python,
+-- shared with the Spark backend).
+CREATE TABLE IF NOT EXISTS gold_dim_series (
+    series_id TEXT PRIMARY KEY, title TEXT, source TEXT, frequency TEXT,
+    units TEXT, econ_category TEXT, polarity INTEGER, default_transform TEXT,
+    scale TEXT, decimals INTEGER, notes TEXT
+);
+CREATE TABLE IF NOT EXISTS gold_dim_date (
+    date TEXT PRIMARY KEY, year INTEGER, quarter INTEGER, month INTEGER,
+    month_name TEXT, is_month_end INTEGER, fiscal_year INTEGER,
+    is_recession INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_macro_indicator_dashboard (
+    series_id TEXT, econ_category TEXT, polarity INTEGER,
+    default_transform TEXT, as_of_date TEXT, latest_date TEXT,
+    latest_value REAL, prior_date TEXT, prior_value REAL, change_abs REAL,
+    change_pct REAL, yoy_pct REAL, zscore REAL, percentile REAL,
+    surprise REAL, surprise_z REAL, direction_is_good INTEGER,
+    spark_min REAL, spark_max REAL, staleness_days INTEGER, realtime_start TEXT
+);
+CREATE TABLE IF NOT EXISTS gold_macro_indicator_sparkline (
+    series_id TEXT, point_index INTEGER, observation_date TEXT, value REAL
+);
+CREATE TABLE IF NOT EXISTS gold_macro_category_summary (
+    econ_category TEXT, as_of_date TEXT, n_series INTEGER,
+    n_improving INTEGER, n_deteriorating INTEGER, breadth_pct REAL,
+    avg_zscore REAL, surprise_index REAL
+);
+CREATE TABLE IF NOT EXISTS gold_treasury_curve (
+    as_of_date TEXT, tenor_label TEXT, tenor_months INTEGER,
+    series_id TEXT, yield_pct REAL
+);
+CREATE TABLE IF NOT EXISTS gold_treasury_curve_metrics (
+    as_of_date TEXT, level REAL, slope_10y2y REAL, slope_10y3m REAL,
+    curvature_2_5_10 REAL, butterfly_2_10_30 REAL,
+    is_inverted_10y2y INTEGER, is_inverted_10y3m INTEGER,
+    is_recession INTEGER, curve_move TEXT
+);
+CREATE TABLE IF NOT EXISTS gold_curve_spread_daily (
+    spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT,
+    value REAL, value_bps REAL, zscore REAL, percentile REAL,
+    is_inverted INTEGER, inversion_run INTEGER, is_recession INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_spread_inversion_episode (
+    spread_name TEXT, long_leg TEXT, short_leg TEXT, episode_number INTEGER,
+    start_date TEXT, end_date TEXT, last_inverted_date TEXT,
+    observation_count INTEGER, calendar_days INTEGER,
+    trough_value REAL, trough_bps REAL, trough_date TEXT,
+    is_ongoing INTEGER, recession_overlap INTEGER
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -501,6 +554,54 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_fred_revision_stats")
         insert("gold_fred_revision_stats", build_revision_stats(silver))
 
+        # Market-terminal analytical views (docs/market_terminal_gold_views.md):
+        # dimensions, the ECON macro dashboard, and the Treasury Curve Lab.
+        # All pure-Python engines shared verbatim with the Spark backend.
+        from fred_pipeline.terminal_views import (
+            build_dim_date,
+            build_dim_series,
+            compute_curve_spread_daily,
+            compute_macro_dashboard,
+            compute_spread_inversion_episodes,
+            compute_treasury_curve,
+        )
+        meta_rows = self.query(
+            "SELECT series_id, title, frequency, units FROM meta_fred_series"
+        )
+        self.conn.execute("DELETE FROM gold_dim_series")
+        self._insert("gold_dim_series", build_dim_series(meta_rows=meta_rows))
+
+        obs_dates = [
+            r["observation_date"] for r in latest
+            if not r["is_missing"] and r.get("observation_date")
+        ]
+        usrec = [r for r in latest if r["series_id"] == "USREC"]
+        self.conn.execute("DELETE FROM gold_dim_date")
+        if obs_dates:
+            self._insert(
+                "gold_dim_date",
+                build_dim_date(min(obs_dates), max(obs_dates), usrec),
+            )
+
+        dash = compute_macro_dashboard(latest)
+        self.conn.execute("DELETE FROM gold_macro_indicator_dashboard")
+        self._insert("gold_macro_indicator_dashboard", dash["dashboard"])
+        self.conn.execute("DELETE FROM gold_macro_indicator_sparkline")
+        self._insert("gold_macro_indicator_sparkline", dash["sparkline"])
+        self.conn.execute("DELETE FROM gold_macro_category_summary")
+        self._insert("gold_macro_category_summary", dash["category_summary"])
+
+        curve = compute_treasury_curve(latest)
+        self.conn.execute("DELETE FROM gold_treasury_curve")
+        self._insert("gold_treasury_curve", curve["curve"])
+        self.conn.execute("DELETE FROM gold_treasury_curve_metrics")
+        self._insert("gold_treasury_curve_metrics", curve["metrics"])
+        self.conn.execute("DELETE FROM gold_curve_spread_daily")
+        self._insert("gold_curve_spread_daily", compute_curve_spread_daily(latest))
+        self.conn.execute("DELETE FROM gold_spread_inversion_episode")
+        self._insert("gold_spread_inversion_episode",
+                     compute_spread_inversion_episodes(latest))
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -509,6 +610,11 @@ class LocalWarehouse:
             "fred_cross_series_feature_pit", "fred_source_reconciliation",
             "fred_company_fundamentals", "fred_company_ratios",
             "fred_revision_stats",
+            "dim_series", "dim_date",
+            "macro_indicator_dashboard", "macro_indicator_sparkline",
+            "macro_category_summary",
+            "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
+            "spread_inversion_episode",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
