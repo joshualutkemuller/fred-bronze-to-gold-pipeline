@@ -46,6 +46,8 @@ DEFAULT_USER_AGENT = "fred-bronze-to-gold-pipeline (set SEC_USER_AGENT to your c
 # don't collide on the natural key. Instant (balance-sheet) facts have no `start`
 # and are always kept.
 _PERIOD_WINDOWS = {"quarterly": (80, 100), "annual": (350, 380)}
+# 9-month YTD window, used to de-cumulate Q4 (= FY − 9-month YTD).
+_NINE_MONTH_WINDOW = (250, 290)
 
 
 def resolve_sec_period() -> str:
@@ -63,6 +65,71 @@ def _duration_days(start: Any, end: Any) -> Optional[int]:
         return (e - s).days
     except (ValueError, TypeError):
         return None
+
+
+def _in_window(start: Any, end: Any, window: tuple[int, int]) -> bool:
+    days = _duration_days(start, end)
+    return days is not None and window[0] <= days <= window[1]
+
+
+def _decumulate_q4(
+    entries: list[dict[str, Any]], existing_ends: set[str]
+) -> list[dict[str, Any]]:
+    """Synthesize the 4th-quarter fact each fiscal year: ``Q4 = FY − 9-month YTD``.
+
+    A 10-K reports the full-year (12-month) figure, not Q4, so Q4 is never
+    directly reported. For each annual (FY) fact we subtract the 9-month YTD fact
+    sharing the same fiscal-year ``start`` (as known at the FY filing), producing
+    a synthetic ~3-month fact dated at the FY end. Skips a year that already has a
+    directly-reported quarterly fact at that end, or that lacks a matching YTD.
+    """
+    fy_facts = [e for e in entries
+                if e.get("start") is not None
+                and _in_window(e.get("start"), e.get("end"), _PERIOD_WINDOWS["annual"])]
+    nm_by_start: dict[str, list[dict[str, Any]]] = {}
+    for e in entries:
+        if e.get("start") is not None and _in_window(
+                e.get("start"), e.get("end"), _NINE_MONTH_WINDOW):
+            nm_by_start.setdefault(str(e.get("start")), []).append(e)
+
+    synth: list[dict[str, Any]] = []
+    for fy in fy_facts:
+        end = str(fy.get("end") or "")[:10]
+        if not end or end in existing_ends:
+            continue
+        candidates = nm_by_start.get(str(fy.get("start")), [])
+        if not candidates:
+            continue
+        fy_filed = str(fy.get("filed") or "")
+        # the 9-month figure known as of the FY filing (else the latest available)
+        eligible = [c for c in candidates if str(c.get("filed") or "") <= fy_filed]
+        src = max(eligible or candidates, key=lambda c: str(c.get("filed") or ""))
+        fy_val, nm_val = parse_value(fy.get("val")), parse_value(src.get("val"))
+        if fy_val is None or nm_val is None:
+            continue
+        synth.append({
+            "start": src.get("end"),   # Q4 covers (9-month end, FY end]
+            "end": fy.get("end"),
+            "val": fy_val - nm_val,
+            "filed": fy.get("filed"),  # Q4 becomes known when the 10-K is filed
+        })
+    return synth
+
+
+def _select_period_entries(
+    entries: list[dict[str, Any]], period: str
+) -> list[dict[str, Any]]:
+    """Pick the entries to emit for ``period``: instant facts always, duration
+    facts matching the target window, plus (quarterly) synthesized Q4 facts."""
+    window = _PERIOD_WINDOWS.get(period, _PERIOD_WINDOWS["quarterly"])
+    instant = [e for e in entries if e.get("start") is None]
+    matched = [e for e in entries
+               if e.get("start") is not None
+               and _in_window(e.get("start"), e.get("end"), window)]
+    if period == "quarterly":
+        existing_ends = {str(e.get("end") or "")[:10] for e in matched}
+        matched = matched + _decumulate_q4(entries, existing_ends)
+    return instant + matched
 
 
 class SECAPIError(SourceError):
@@ -158,22 +225,17 @@ def normalize_sec_observations(
     (~9-month) figure for the same period ``end``, which would collide on the
     natural key. Only facts whose duration matches ``period`` (``quarterly`` or
     ``annual``) are kept; balance-sheet **instant** facts (no ``start``) are
-    always kept.
+    always kept. In quarterly mode the 4th quarter (never reported directly — a
+    10-K gives the full year) is synthesized as ``FY − 9-month YTD``.
     """
     ingested_at = ingested_at or _utc_now_iso()
     _cik, _tax, _tag, unit = _parse_series_id(series_id)
     entries = (payload.get("units") or {}).get(unit) or []
-    lo, hi = _PERIOD_WINDOWS.get(period, _PERIOD_WINDOWS["quarterly"])
     rows: list[dict[str, Any]] = []
-    for e in entries:
+    for e in _select_period_entries(entries, period):
         obs_date = e.get("end")
         if not obs_date:
             continue
-        start = e.get("start")
-        if start is not None:  # duration fact → keep only the target duration
-            days = _duration_days(start, obs_date)
-            if days is None or not (lo <= days <= hi):
-                continue
         if track_vintage:
             rt_start = e.get("filed", "") or ""
             rt_end = ""

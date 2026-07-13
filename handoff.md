@@ -405,10 +405,12 @@ figure for the same period end, which collided on the natural key. The SEC
 normalizer now keeps only facts matching a target duration — `SEC_PERIOD`
 (default `quarterly`, or `annual`) — so income concepts land as a consistent
 series and ratios like net margin use matching durations. Instant balance-sheet
-facts are always kept; Bronze replay resolves `SEC_PERIOD` identically.
-**Remaining edge** (documented): a 10-K reports the FY (12-month) figure, not Q4,
-so quarterly mode is missing Q4 each year; recovering it needs YTD de-cumulation
-(`Q4 = FY − 9-month YTD`) — a bounded future enhancement.
+facts are always kept; Bronze replay resolves `SEC_PERIOD` identically. A 10-K
+reports the FY (12-month) figure, not Q4, so **Q4 is synthesized by
+de-cumulation** (`Q4 = FY − 9-month YTD`, dated at the FY end, known as of the
+10-K filing) — giving a complete quarterly series. This is the last item on the
+Gold roadmap; the remaining open work is non-Gold (per-source metadata
+reconciliation for non-FRED sources; optional new sources).
 
 ------------------------------------------------------------------------
 
