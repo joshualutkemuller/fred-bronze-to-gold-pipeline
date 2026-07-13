@@ -341,6 +341,21 @@ prior print, expanding `zscore`/`percentile`, `is_stress_episode` (expanding
 percentile ≥ `stress_percentile`, default 0.90; `NULL` on the first
 observation), `is_recession` (NBER overlay, `NULL` until `USREC` is ingested).
 
+#### `gold.curve_spread_rolling` / `gold.credit_spread_rolling` / `gold.treasury_curve_rolling`
+Rolling-window stats companions to `curve_spread_daily`,
+`credit_spread_daily`, and `treasury_curve`: one row per entity × date ×
+`window`, with trailing windows of **1/5/10/21/63/126/252 observations**
+(~trading-day horizons: day, week, 2 weeks, month, quarter, half-year, year).
+Columns per row: the level (`value` in the spread's native units / `oas_bps`
+for credit / `yield_pct` for tenors), `change` (`v_t − v_{t−w}`, native
+units; bps for credit), `pct_change` (vs. `v_{t−w}`; `NULL` at a zero base —
+and of limited meaning for spreads that cross zero), and `zscore` (vs. the
+trailing-w rolling mean/std including the current value; `NULL` when the
+window std is 0 — always for window 1). A row appears only once its window
+is **fully populated** (no partial-window stats), and all stats are
+trailing-only, so they are point-in-time safe. In Power BI, put `window` on
+a slicer and one visual serves all horizons.
+
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
 point_in_time_features(as_of)` return each series' value **as it was known** on

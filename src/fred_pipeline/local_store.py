@@ -231,6 +231,19 @@ CREATE TABLE IF NOT EXISTS gold_inflation_contribution (
     item_label TEXT, contribution_pp REAL, rank_in_month INTEGER,
     is_headline_total INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_curve_spread_rolling (
+    spread_name TEXT, observation_date TEXT, window INTEGER,
+    value REAL, change REAL, pct_change REAL, zscore REAL
+);
+CREATE TABLE IF NOT EXISTS gold_credit_spread_rolling (
+    instrument TEXT, series_id TEXT, observation_date TEXT, window INTEGER,
+    oas_bps REAL, change_bps REAL, pct_change REAL, zscore REAL
+);
+CREATE TABLE IF NOT EXISTS gold_treasury_curve_rolling (
+    tenor_label TEXT, tenor_months INTEGER, series_id TEXT,
+    observation_date TEXT, window INTEGER,
+    yield_pct REAL, change REAL, pct_change REAL, zscore REAL
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -594,12 +607,15 @@ class LocalWarehouse:
             build_dim_series,
             compute_benchmark_rate_board,
             compute_credit_spread_daily,
+            compute_credit_spread_rolling,
             compute_curve_spread_daily,
+            compute_curve_spread_rolling,
             compute_funding_features,
             compute_inflation_explorer,
             compute_macro_dashboard,
             compute_spread_inversion_episodes,
             compute_treasury_curve,
+            compute_treasury_curve_rolling,
         )
         meta_rows = self.query(
             "SELECT series_id, title, frequency, units FROM meta_fred_series"
@@ -659,6 +675,18 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_inflation_contribution")
         self._insert("gold_inflation_contribution", inflation["contribution"])
 
+        # Rolling-window stats companions (windows 1/5/10/21/63/126/252 obs)
+        # for the spread, credit, and curve daily tables.
+        self.conn.execute("DELETE FROM gold_curve_spread_rolling")
+        self._insert("gold_curve_spread_rolling",
+                     compute_curve_spread_rolling(latest))
+        self.conn.execute("DELETE FROM gold_credit_spread_rolling")
+        self._insert("gold_credit_spread_rolling",
+                     compute_credit_spread_rolling(latest))
+        self.conn.execute("DELETE FROM gold_treasury_curve_rolling")
+        self._insert("gold_treasury_curve_rolling",
+                     compute_treasury_curve_rolling(latest))
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -675,6 +703,8 @@ class LocalWarehouse:
             "benchmark_rate_board", "funding_tape_daily",
             "funding_stress_daily", "credit_spread_daily",
             "inflation_explorer", "inflation_contribution",
+            "curve_spread_rolling", "credit_spread_rolling",
+            "treasury_curve_rolling",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

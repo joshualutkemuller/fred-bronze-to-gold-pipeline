@@ -904,3 +904,151 @@ def compute_inflation_explorer(
                 "is_headline_total": True,
             })
     return {"explorer": explorer, "contribution": contribution}
+
+
+# ---- rolling-window stats companions -------------------------------------------
+
+# Trailing observation-count windows (~trading-day horizons: day, week,
+# 2 weeks, month, quarter, half-year, year).
+ROLLING_WINDOWS = (1, 5, 10, 21, 63, 126, 252)
+
+
+def _rolling_window_rows(
+    series: list[tuple[date, float]],
+    windows: tuple[int, ...] = ROLLING_WINDOWS,
+) -> list[dict[str, Any]]:
+    """Per observation × window: trailing change, percent change, and rolling
+    z-score, computed with prefix sums (O(n × windows), not O(n × w)).
+
+    A (observation, window) row is emitted only once the window is **fully
+    populated** (observation index ≥ w) — no partial-window stats. ``change``
+    is ``v_t − v_{t−w}`` in the series' native units; ``pct_change`` is
+    relative to ``v_{t−w}`` (``None`` at a zero base); ``zscore`` is against
+    the trailing-w rolling mean/std *including* the current value (``None``
+    when the window std is 0 — always the case for w=1). Windows are
+    observation counts, so for daily series they approximate trading-day
+    horizons; the stats are trailing-only (point-in-time safe).
+    """
+    n = len(series)
+    values = [v for _d, v in series]
+    s = [0.0] * (n + 1)   # prefix sums of x and x²
+    s2 = [0.0] * (n + 1)
+    for i, v in enumerate(values):
+        s[i + 1] = s[i] + v
+        s2[i + 1] = s2[i] + v * v
+
+    out: list[dict[str, Any]] = []
+    for i in range(n):
+        d, v = series[i]
+        for w in windows:
+            if i < w:
+                continue
+            base = values[i - w]
+            mean = (s[i + 1] - s[i + 1 - w]) / w
+            var = max((s2[i + 1] - s2[i + 1 - w]) / w - mean * mean, 0.0)
+            std = var ** 0.5
+            out.append({
+                "observation_date": d.isoformat(),
+                "window": w,
+                "value": v,
+                "change": v - base,
+                "pct_change": ((v - base) / base) if base != 0 else None,
+                "zscore": ((v - mean) / std) if std > 1e-12 else None,
+            })
+    return out
+
+
+def compute_curve_spread_rolling(
+    latest_rows: Iterable[dict[str, Any]],
+    spreads: Optional[Iterable[SpreadDef]] = None,
+    windows: tuple[int, ...] = ROLLING_WINDOWS,
+) -> list[dict[str, Any]]:
+    """``gold.curve_spread_rolling``: rolling-window companions to
+    ``curve_spread_daily`` — per configured spread/ratio, the trailing change,
+    percent change, and rolling z-score over each window. ``value``/``change``
+    are in the spread's native units (percent points for rate spreads); note
+    ``pct_change`` on a spread that crosses zero is of limited meaning and is
+    provided for uniformity."""
+    if spreads is None:
+        spreads = load_spread_defs()
+    base = compute_curve_spreads(latest_rows, spreads)
+    by_name: dict[str, list[tuple[date, float]]] = {}
+    for r in base:
+        d = _parse(r["observation_date"])
+        if d is not None:
+            by_name.setdefault(r["spread_name"], []).append((d, r["value"]))
+    out: list[dict[str, Any]] = []
+    for name in sorted(by_name):
+        series = sorted(by_name[name], key=lambda t: t[0])
+        for row in _rolling_window_rows(series, windows):
+            out.append({"spread_name": name, **row})
+    return out
+
+
+def compute_credit_spread_rolling(
+    latest_rows: Iterable[dict[str, Any]],
+    cfg: Optional[CreditConfig] = None,
+    windows: tuple[int, ...] = ROLLING_WINDOWS,
+) -> list[dict[str, Any]]:
+    """``gold.credit_spread_rolling``: rolling-window companions to
+    ``credit_spread_daily`` — per configured OAS instrument, over the spread
+    in **bps** (credit convention), so ``change`` is a bps move."""
+    if cfg is None:
+        cfg = load_credit_config()
+    by_series = _group_sorted(
+        r for r in latest_rows
+        if r.get("series_id") in {c.series_id for c in cfg.instruments}
+    )
+    out: list[dict[str, Any]] = []
+    for cd in cfg.instruments:
+        series = by_series.get(cd.series_id)
+        if not series:
+            continue
+        bps = [(d, v * 100.0) for d, v in series]
+        for row in _rolling_window_rows(bps, windows):
+            out.append({
+                "instrument": cd.instrument,
+                "series_id": cd.series_id,
+                "observation_date": row["observation_date"],
+                "window": row["window"],
+                "oas_bps": row["value"],
+                "change_bps": row["change"],
+                "pct_change": row["pct_change"],
+                "zscore": row["zscore"],
+            })
+    return out
+
+
+def compute_treasury_curve_rolling(
+    latest_rows: Iterable[dict[str, Any]],
+    tenors: Optional[Iterable[TenorDef]] = None,
+    windows: tuple[int, ...] = ROLLING_WINDOWS,
+) -> list[dict[str, Any]]:
+    """``gold.treasury_curve_rolling``: rolling-window companions to
+    ``treasury_curve`` — per tenor, over the constant-maturity yield in
+    percent, so ``change`` is a percent-point move (×100 for bps)."""
+    if tenors is None:
+        tenors = load_curve_defs()
+    tenor_list = sorted(tenors, key=lambda t: t.months)
+    by_series = _group_sorted(
+        r for r in latest_rows
+        if r.get("series_id") in {t.series_id for t in tenor_list}
+    )
+    out: list[dict[str, Any]] = []
+    for t in tenor_list:
+        series = by_series.get(t.series_id)
+        if not series:
+            continue
+        for row in _rolling_window_rows(series, windows):
+            out.append({
+                "tenor_label": t.label,
+                "tenor_months": t.months,
+                "series_id": t.series_id,
+                "observation_date": row["observation_date"],
+                "window": row["window"],
+                "yield_pct": row["value"],
+                "change": row["change"],
+                "pct_change": row["pct_change"],
+                "zscore": row["zscore"],
+            })
+    return out

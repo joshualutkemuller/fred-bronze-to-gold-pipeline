@@ -825,3 +825,97 @@ def test_inflation_explorer_absent_series_and_empty_config():
     out = compute_inflation_explorer(
         [], [InflationItemDef("CPIAUCSL", "All Items", "CPI", "SA")])
     assert out == {"explorer": [], "contribution": []}
+
+
+# ---- rolling-window stats companions ----------------------------------------------
+
+from fred_pipeline.terminal_views import (  # noqa: E402
+    ROLLING_WINDOWS,
+    _rolling_window_rows,
+    compute_credit_spread_rolling,
+    compute_curve_spread_rolling,
+    compute_treasury_curve_rolling,
+)
+from datetime import date as _date, timedelta as _timedelta  # noqa: E402
+
+
+def _daily_series(values, start="2024-01-01"):
+    d0 = _date.fromisoformat(start)
+    return [(d0 + _timedelta(days=i), float(v)) for i, v in enumerate(values)]
+
+
+def test_rolling_window_rows_math():
+    # 10 obs, windows 1 and 5.
+    series = _daily_series([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    rows = _rolling_window_rows(series, windows=(1, 5))
+    w1 = [r for r in rows if r["window"] == 1]
+    w5 = [r for r in rows if r["window"] == 5]
+    # window 1: starts at the 2nd obs; daily change; zscore always None (std 0)
+    assert len(w1) == 9
+    assert w1[0]["change"] == pytest.approx(1.0)
+    assert w1[0]["pct_change"] == pytest.approx(1.0)  # 2 vs 1
+    assert all(r["zscore"] is None for r in w1)
+    # window 5: first row at the 6th obs (index 5): v=6, base=v[0]=1
+    assert len(w5) == 5
+    first = w5[0]
+    assert first["observation_date"] == "2024-01-06"
+    assert first["change"] == pytest.approx(5.0)
+    assert first["pct_change"] == pytest.approx(5.0)
+    # rolling mean of [2..6] = 4, pop std = sqrt(2) -> z = (6-4)/sqrt(2)
+    assert first["zscore"] == pytest.approx(2.0 / 2.0 ** 0.5)
+
+
+def test_rolling_window_rows_flat_and_zero_base():
+    # flat series: change 0, zscore None (std 0)
+    rows = _rolling_window_rows(_daily_series([5, 5, 5, 5, 5, 5]), windows=(5,))
+    (r,) = rows
+    assert r["change"] == pytest.approx(0.0) and r["zscore"] is None
+    # zero base: pct_change None, change still defined
+    rows = _rolling_window_rows(_daily_series([0.0, 1.0]), windows=(1,))
+    assert rows[0]["pct_change"] is None
+    assert rows[0]["change"] == pytest.approx(1.0)
+
+
+def test_rolling_window_no_partial_windows():
+    rows = _rolling_window_rows(_daily_series([1, 2, 3]), windows=ROLLING_WINDOWS)
+    assert {r["window"] for r in rows} == {1}  # only w=1 fully populated
+
+
+def test_curve_spread_rolling_keys():
+    spreads = [SpreadDef("T10Y2Y", "DGS10", "DGS2")]
+    rows = []
+    for i in range(7):
+        d = f"2024-01-{i + 1:02d}"
+        rows += [_row("DGS10", d, 4.0 + 0.01 * i), _row("DGS2", d, 3.8)]
+    out = compute_curve_spread_rolling(rows, spreads, windows=(1, 5))
+    assert {r["spread_name"] for r in out} == {"T10Y2Y"}
+    w5 = [r for r in out if r["window"] == 5]
+    assert len(w5) == 2
+    assert w5[0]["change"] == pytest.approx(0.05)  # 5 * 1bp/day in pp
+
+
+def test_credit_spread_rolling_in_bps():
+    cfg = CreditConfig(
+        instruments=(CreditInstrumentDef("HY_OAS", "BAMLH0A0HYM2"),))
+    rows = [_row("BAMLH0A0HYM2", f"2024-01-{i + 1:02d}", 3.5 + 0.1 * i)
+            for i in range(3)]
+    out = compute_credit_spread_rolling(rows, cfg, windows=(1,))
+    assert [r["oas_bps"] for r in out] == pytest.approx([360.0, 370.0])
+    assert all(r["change_bps"] == pytest.approx(10.0) for r in out)
+    assert out[0]["instrument"] == "HY_OAS"
+
+
+def test_treasury_curve_rolling_per_tenor():
+    tenors = [TenorDef("2Y", 24, "DGS2"), TenorDef("10Y", 120, "DGS10")]
+    rows = []
+    for i in range(3):
+        d = f"2024-01-{i + 1:02d}"
+        rows += [_row("DGS2", d, 4.0 - 0.05 * i), _row("DGS10", d, 4.2)]
+    out = compute_treasury_curve_rolling(rows, tenors, windows=(1,))
+    by_tenor = {}
+    for r in out:
+        by_tenor.setdefault(r["tenor_label"], []).append(r)
+    assert set(by_tenor) == {"2Y", "10Y"}
+    assert all(r["change"] == pytest.approx(-0.05) for r in by_tenor["2Y"])
+    assert all(r["change"] == pytest.approx(0.0) for r in by_tenor["10Y"])
+    assert by_tenor["2Y"][0]["tenor_months"] == 24

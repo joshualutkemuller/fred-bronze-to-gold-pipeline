@@ -492,12 +492,15 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
         build_dim_series,
         compute_benchmark_rate_board,
         compute_credit_spread_daily,
+        compute_credit_spread_rolling,
         compute_curve_spread_daily,
+        compute_curve_spread_rolling,
         compute_funding_features,
         compute_inflation_explorer,
         compute_macro_dashboard,
         compute_spread_inversion_episodes,
         compute_treasury_curve,
+        compute_treasury_curve_rolling,
     )
 
     def _write(name: str, rows: list[dict[str, Any]], schema: Any, casts: list[str]) -> None:
@@ -631,6 +634,20 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
     ]), ["CAST(as_of_date AS DATE) AS as_of_date", "level", "slope_10y2y",
          "slope_10y3m", "curvature_2_5_10", "butterfly_2_10_30",
          "is_inverted_10y2y", "is_inverted_10y3m", "is_recession", "curve_move"])
+    _write("treasury_curve_rolling",
+           compute_treasury_curve_rolling(curve_rows, tenors), StructType([
+        StructField("tenor_label", StringType()),
+        StructField("tenor_months", IntegerType()),
+        StructField("series_id", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("window", IntegerType()),
+        StructField("yield_pct", DoubleType()),
+        StructField("change", DoubleType()),
+        StructField("pct_change", DoubleType()),
+        StructField("zscore", DoubleType()),
+    ]), ["tenor_label", "tenor_months", "series_id",
+         "CAST(observation_date AS DATE) AS observation_date", "window",
+         "yield_pct", "change", "pct_change", "zscore"])
 
     # Enriched spread history + inversion episodes: spread legs + USREC.
     leg_ids = sorted(
@@ -677,6 +694,17 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
          "observation_count", "calendar_days", "trough_value", "trough_bps",
          "CAST(trough_date AS DATE) AS trough_date", "is_ongoing",
          "recession_overlap"])
+    _write("curve_spread_rolling",
+           compute_curve_spread_rolling(leg_rows, spreads), StructType([
+        StructField("spread_name", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("window", IntegerType()),
+        StructField("value", DoubleType()),
+        StructField("change", DoubleType()),
+        StructField("pct_change", DoubleType()),
+        StructField("zscore", DoubleType()),
+    ]), ["spread_name", "CAST(observation_date AS DATE) AS observation_date",
+         "window", "value", "change", "pct_change", "zscore"])
 
     # Phase 4 rates complex: BMRK benchmark board, FUND funding tape + stress
     # gauge, CRDT credit spreads (configs under config/).
@@ -741,9 +769,8 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
     credit_ids = sorted(
         {cd.series_id for cd in credit_cfg.instruments} | {RECESSION_SERIES}
     )
-    credit_rows = compute_credit_spread_daily(
-        _collect_latest(config, spark, credit_ids), credit_cfg
-    )
+    credit_input = _collect_latest(config, spark, credit_ids)
+    credit_rows = compute_credit_spread_daily(credit_input, credit_cfg)
     _write("credit_spread_daily", credit_rows, StructType([
         StructField("instrument", StringType()),
         StructField("series_id", StringType()),
@@ -760,6 +787,19 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
          "CAST(observation_date AS DATE) AS observation_date", "oas_pct",
          "oas_bps", "change_bps", "zscore", "percentile",
          "is_stress_episode", "is_recession"])
+    _write("credit_spread_rolling",
+           compute_credit_spread_rolling(credit_input, credit_cfg), StructType([
+        StructField("instrument", StringType()),
+        StructField("series_id", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("window", IntegerType()),
+        StructField("oas_bps", DoubleType()),
+        StructField("change_bps", DoubleType()),
+        StructField("pct_change", DoubleType()),
+        StructField("zscore", DoubleType()),
+    ]), ["instrument", "series_id",
+         "CAST(observation_date AS DATE) AS observation_date", "window",
+         "oas_bps", "change_bps", "pct_change", "zscore"])
 
     # Phase 2 Inflation Explorer (config/inflation_items.yml).
     infl_items = load_inflation_items()
@@ -840,6 +880,8 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "benchmark_rate_board", "funding_tape_daily", "funding_stress_daily",
         "credit_spread_daily",
         "inflation_explorer", "inflation_contribution",
+        "curve_spread_rolling", "credit_spread_rolling",
+        "treasury_curve_rolling",
     ):
         results[name] = "ok"
     return results

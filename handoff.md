@@ -492,7 +492,10 @@ reconciliation for non-FRED sources; optional new sources).
 
 # Market Terminal Analytical Views (Power BI Gold plan)
 
-**Status: Phases 0, 1, 2, 3, 3b, and 4 implemented** (branch `EconGoldTerminalViews`) —
+**Status: Phases 0, 1, 2, 3, 3b, 3c, and 4 implemented** (branch
+`EconGoldTerminalViews`; 3c = rolling-window stats companions
+`gold.curve_spread_rolling` / `credit_spread_rolling` /
+`treasury_curve_rolling`, windows 1/5/10/21/63/126/252 obs) —
 full spec + per-phase status in `docs/market_terminal_gold_views.md`; column
 semantics in `docs/data_dictionary.md`.
 

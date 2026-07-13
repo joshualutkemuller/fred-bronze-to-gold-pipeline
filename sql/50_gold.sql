@@ -529,3 +529,55 @@ CREATE TABLE IF NOT EXISTS gold.inflation_contribution (
     is_headline_total BOOLEAN
 )
 USING DELTA;
+
+-- ============================================================================
+-- Rolling-window stats companions to the daily spread / credit / curve
+-- tables. One row per entity × date × window, windows = 1/5/10/21/63/126/252
+-- trailing OBSERVATIONS (~trading-day horizons: day, week, 2 weeks, month,
+-- quarter, half-year, year). A row appears only once its window is fully
+-- populated — no partial-window stats. change = v_t − v_{t−w} in the parent
+-- table's native units; pct_change is vs. v_{t−w} (NULL at a zero base;
+-- of limited meaning for spreads that cross zero); zscore is against the
+-- trailing-w rolling mean/std including the current value (NULL when the
+-- window std is 0 — always for window 1). Trailing-only → point-in-time
+-- safe. Computed by fred_pipeline.terminal_views.compute_*_rolling and
+-- written by fred_pipeline.gold._build_terminal_views; DDL shapes only.
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS gold.curve_spread_rolling (
+    spread_name      STRING,
+    observation_date DATE,
+    window           INT,
+    value            DOUBLE,
+    change           DOUBLE,
+    pct_change       DOUBLE,
+    zscore           DOUBLE
+)
+USING DELTA;
+
+-- Credit convention: stats over the OAS in bps.
+CREATE TABLE IF NOT EXISTS gold.credit_spread_rolling (
+    instrument       STRING,
+    series_id        STRING,
+    observation_date DATE,
+    window           INT,
+    oas_bps          DOUBLE,
+    change_bps       DOUBLE,
+    pct_change       DOUBLE,
+    zscore           DOUBLE
+)
+USING DELTA;
+
+-- Yields in percent; change is a percent-point move (×100 for bps).
+CREATE TABLE IF NOT EXISTS gold.treasury_curve_rolling (
+    tenor_label      STRING,
+    tenor_months     INT,
+    series_id        STRING,
+    observation_date DATE,
+    window           INT,
+    yield_pct        DOUBLE,
+    change           DOUBLE,
+    pct_change       DOUBLE,
+    zscore           DOUBLE
+)
+USING DELTA;

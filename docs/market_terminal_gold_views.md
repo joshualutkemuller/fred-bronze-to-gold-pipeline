@@ -112,6 +112,7 @@ views). Everything is additive — no existing Gold table changes shape.
 | 3b | `gold.treasury_curve_metrics` | 1 / as-of date | CURV metrics | fact (wide) |
 | 4 | `gold.curve_spread_daily` | 1 / spread × date | CURV spreads | fact (long) |
 | 4b | `gold.spread_inversion_episode` | 1 / spread × episode | CURV inversion history | fact (episodic) |
+| 4c | `gold.curve_spread_rolling` / `credit_spread_rolling` / `treasury_curve_rolling` | 1 / entity × date × window | multi-horizon momentum/z (windows 1–252 obs) | fact (long) |
 | 5 | `gold.benchmark_rate_board` | 1 / rate (latest) | BMRK | fact (snapshot) |
 | 6 | `gold.funding_tape_daily` | 1 / metric × date | FUND / FCOST | fact (long) |
 | 6b | `gold.funding_stress_daily` | 1 / date | FUND gauge | fact (wide) |
@@ -487,6 +488,15 @@ IMPLEMENTED**
   first prints negative and ends on the first print back at/above zero, with
   episode number, duration (obs + calendar days), trough value/date, ongoing
   flag, and recession overlap. Both backends + tests.
+
+**Phase 3c — Rolling-window stats companions. — IMPLEMENTED**
+- `gold.curve_spread_rolling` / `credit_spread_rolling` /
+  `treasury_curve_rolling` (§3 row 4c): per entity × date × window, trailing
+  change / percent change / rolling z-score over windows of
+  **1/5/10/21/63/126/252 observations**. One shared prefix-sum engine
+  (`terminal_views._rolling_window_rows`, O(n × windows)); rows only for
+  fully-populated windows; trailing-only (PIT-safe). Credit stats run in bps
+  (convention), curve/spread in native percent points.
 
 **Phase 4 — Rates complex (BMRK + FUND + FCOST + CRDT). — IMPLEMENTED**
 - Configs `benchmark_rates.yml` (17-rate board, categories, benchmark pairs,
