@@ -278,6 +278,18 @@ The configured spreads/ratios (`config/spreads.yml`) enriched with expanding
 no zero line), and `is_recession`. Supersets `gold.fred_curve_spread` (kept
 for compatibility).
 
+#### `gold.spread_inversion_episode`
+One row per **unique inversion episode** per configured spread (`op: spread`
+only): the episode opens on the first negative observation and closes on the
+first later non-negative one (`end_date` = that re-steepening date; a single
+positive print between two inversions splits them into two episodes). Columns:
+`spread_name`, `long_leg`, `short_leg`, `episode_number` (1-based,
+chronological per spread), `start_date`, `end_date` (`NULL` while ongoing),
+`last_inverted_date`, `observation_count`, `calendar_days` (to `end_date`, or
+to `last_inverted_date` while ongoing), `trough_value`/`trough_bps`/
+`trough_date` (deepest inversion), `is_ongoing`, `recession_overlap` (any
+inverted date fell in an NBER recession; `NULL` until `USREC` is ingested).
+
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
 point_in_time_features(as_of)` return each series' value **as it was known** on

@@ -488,6 +488,7 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
         build_dim_series,
         compute_curve_spread_daily,
         compute_macro_dashboard,
+        compute_spread_inversion_episodes,
         compute_treasury_curve,
     )
 
@@ -623,14 +624,13 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
          "slope_10y3m", "curvature_2_5_10", "butterfly_2_10_30",
          "is_inverted_10y2y", "is_inverted_10y3m", "is_recession", "curve_move"])
 
-    # Enriched spread history: spread legs + USREC.
+    # Enriched spread history + inversion episodes: spread legs + USREC.
     leg_ids = sorted(
         {s for sd in spreads for s in (sd.long_leg, sd.short_leg)}
         | {RECESSION_SERIES}
     )
-    spread_daily = compute_curve_spread_daily(
-        _collect_latest(config, spark, leg_ids), spreads
-    )
+    leg_rows = _collect_latest(config, spark, leg_ids)
+    spread_daily = compute_curve_spread_daily(leg_rows, spreads)
     _write("curve_spread_daily", spread_daily, StructType([
         StructField("spread_name", StringType()),
         StructField("observation_date", StringType()),
@@ -646,6 +646,29 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
     ]), ["spread_name", "CAST(observation_date AS DATE) AS observation_date",
          "long_leg", "short_leg", "value", "value_bps", "zscore", "percentile",
          "is_inverted", "inversion_run", "is_recession"])
+    episodes = compute_spread_inversion_episodes(leg_rows, spreads)
+    _write("spread_inversion_episode", episodes, StructType([
+        StructField("spread_name", StringType()),
+        StructField("long_leg", StringType()),
+        StructField("short_leg", StringType()),
+        StructField("episode_number", IntegerType()),
+        StructField("start_date", StringType()),
+        StructField("end_date", StringType()),
+        StructField("last_inverted_date", StringType()),
+        StructField("observation_count", IntegerType()),
+        StructField("calendar_days", IntegerType()),
+        StructField("trough_value", DoubleType()),
+        StructField("trough_bps", DoubleType()),
+        StructField("trough_date", StringType()),
+        StructField("is_ongoing", BooleanType()),
+        StructField("recession_overlap", BooleanType()),
+    ]), ["spread_name", "long_leg", "short_leg", "episode_number",
+         "CAST(start_date AS DATE) AS start_date",
+         "CAST(end_date AS DATE) AS end_date",
+         "CAST(last_inverted_date AS DATE) AS last_inverted_date",
+         "observation_count", "calendar_days", "trough_value", "trough_bps",
+         "CAST(trough_date AS DATE) AS trough_date", "is_ongoing",
+         "recession_overlap"])
 
 
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
@@ -680,6 +703,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "macro_indicator_dashboard", "macro_indicator_sparkline",
         "macro_category_summary",
         "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
+        "spread_inversion_episode",
     ):
         results[name] = "ok"
     return results

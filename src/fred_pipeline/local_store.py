@@ -192,6 +192,13 @@ CREATE TABLE IF NOT EXISTS gold_curve_spread_daily (
     value REAL, value_bps REAL, zscore REAL, percentile REAL,
     is_inverted INTEGER, inversion_run INTEGER, is_recession INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_spread_inversion_episode (
+    spread_name TEXT, long_leg TEXT, short_leg TEXT, episode_number INTEGER,
+    start_date TEXT, end_date TEXT, last_inverted_date TEXT,
+    observation_count INTEGER, calendar_days INTEGER,
+    trough_value REAL, trough_bps REAL, trough_date TEXT,
+    is_ongoing INTEGER, recession_overlap INTEGER
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -555,6 +562,7 @@ class LocalWarehouse:
             build_dim_series,
             compute_curve_spread_daily,
             compute_macro_dashboard,
+            compute_spread_inversion_episodes,
             compute_treasury_curve,
         )
         meta_rows = self.query(
@@ -590,6 +598,9 @@ class LocalWarehouse:
         self._insert("gold_treasury_curve_metrics", curve["metrics"])
         self.conn.execute("DELETE FROM gold_curve_spread_daily")
         self._insert("gold_curve_spread_daily", compute_curve_spread_daily(latest))
+        self.conn.execute("DELETE FROM gold_spread_inversion_episode")
+        self._insert("gold_spread_inversion_episode",
+                     compute_spread_inversion_episodes(latest))
 
         self.conn.commit()
         return {k: "ok" for k in (
@@ -603,6 +614,7 @@ class LocalWarehouse:
             "macro_indicator_dashboard", "macro_indicator_sparkline",
             "macro_category_summary",
             "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
+            "spread_inversion_episode",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

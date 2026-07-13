@@ -111,6 +111,7 @@ views). Everything is additive — no existing Gold table changes shape.
 | 3 | `gold.treasury_curve` | 1 / as-of date × tenor | CURV / YCURV | fact (long) |
 | 3b | `gold.treasury_curve_metrics` | 1 / as-of date | CURV metrics | fact (wide) |
 | 4 | `gold.curve_spread_daily` | 1 / spread × date | CURV spreads | fact (long) |
+| 4b | `gold.spread_inversion_episode` | 1 / spread × episode | CURV inversion history | fact (episodic) |
 | 5 | `gold.benchmark_rate_board` | 1 / rate (latest) | BMRK | fact (snapshot) |
 | 6 | `gold.funding_tape_daily` | 1 / metric × date | FUND / FCOST | fact (long) |
 | 6b | `gold.funding_stress_daily` | 1 / date | FUND gauge | fact (wide) |
@@ -266,6 +267,32 @@ inversion streak). Long, one row per spread × date, so Power BI slices by
 **Engine:** extend `compute_curve_spreads` to emit z-score/percentile/inversion-
 run alongside the level. **Config:** `config/spreads.yml` (exists — add the extra
 pairs). **Series:** same `DGS*` + `USREC`.
+
+### 4.4b CURV inversion history — `gold.spread_inversion_episode`
+
+**Reproduces:** the Curve Lab's inversion-episode history — the discrete
+inversion periods it lists per spread and cross-references with recessions.
+Where `curve_spread_daily` is one row per observation, this is **one row per
+unique inversion episode per spread**: an episode *starts* on the first
+observation where the spread goes negative and *ends* on the first later
+observation where it turns non-negative again (that re-steepening date is the
+`end_date`; a single positive print between two inversions therefore splits
+them into two distinct episodes). An episode still negative at the end of
+history is *ongoing* (`end_date` null, `is_ongoing` true, duration measured to
+`last_inverted_date`).
+
+Columns (grain 1 / spread × episode): `spread_name` · `long_leg` · `short_leg` ·
+`episode_number` (1-based per spread, chronological) · `start_date` ·
+`end_date` · `last_inverted_date` · `observation_count` (inverted obs) ·
+`calendar_days` · `trough_value` / `trough_bps` / `trough_date` (deepest
+inversion) · `is_ongoing` · `recession_overlap` (any inverted date fell in an
+NBER recession; null until `USREC` is ingested). Only `op: spread` definitions
+participate — a ratio has no zero line. Power BI renders this as the episode
+table / Gantt-style timeline next to the spread chart.
+
+**Engine:** `compute_spread_inversion_episodes` (pure Python, both backends).
+**Config:** `config/spreads.yml` (same definitions as §4.4). **Series:** same
+`DGS*` legs + `USREC`.
 
 ### 4.5 BMRK — `gold.benchmark_rate_board`
 
@@ -433,6 +460,15 @@ additions, following the existing `_build_*` pattern in `gold.py`.
   `gold.curve_spread_daily` (z-score/percentile/bps/inversion runs).
   `DGS3/DGS7/DGS20` added to `manifests/rates.yml` (inactive, verify-first);
   absent tenors simply emit no rows until activated.
+
+**Phase 3b — Inversion episodes (unique inversion periods per spread). —
+IMPLEMENTED**
+- `gold.spread_inversion_episode` (§4.4b) via
+  `terminal_views.compute_spread_inversion_episodes`: one row per unique
+  inversion episode per configured spread — the episode starts when the spread
+  first prints negative and ends on the first print back at/above zero, with
+  episode number, duration (obs + calendar days), trough value/date, ongoing
+  flag, and recession overlap. Both backends + tests.
 
 **Phase 4 — Rates complex (BMRK + FUND + FCOST + CRDT).**
 - Balances/SOFR already ingested; add the small free-FRED corridor

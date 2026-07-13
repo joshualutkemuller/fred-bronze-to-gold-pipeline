@@ -377,3 +377,30 @@ CREATE TABLE IF NOT EXISTS gold.curve_spread_daily (
     is_recession     BOOLEAN
 )
 USING DELTA;
+
+-- Unique inversion episodes per configured spread (op: spread only): an
+-- episode opens on the first negative observation and closes on the first
+-- later non-negative one (end_date = that re-steepening date; a single
+-- positive print between two inversions splits them into two episodes).
+-- Ongoing episodes have end_date NULL and duration measured to
+-- last_inverted_date. recession_overlap: any inverted date fell in an NBER
+-- recession (NULL until USREC is ingested). Computed by
+-- fred_pipeline.terminal_views.compute_spread_inversion_episodes and written
+-- by fred_pipeline.gold._build_terminal_views; DDL provisions the shape only.
+CREATE TABLE IF NOT EXISTS gold.spread_inversion_episode (
+    spread_name        STRING,
+    long_leg           STRING,
+    short_leg          STRING,
+    episode_number     INT,
+    start_date         DATE,
+    end_date           DATE,
+    last_inverted_date DATE,
+    observation_count  INT,
+    calendar_days      INT,
+    trough_value       DOUBLE,
+    trough_bps         DOUBLE,
+    trough_date        DATE,
+    is_ongoing         BOOLEAN,
+    recession_overlap  BOOLEAN
+)
+USING DELTA;

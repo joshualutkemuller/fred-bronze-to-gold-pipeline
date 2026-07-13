@@ -11,7 +11,10 @@ surfaces for Power BI (plan: ``docs/market_terminal_gold_views.md``):
     level/slope/curvature/butterfly, inversion flags, recession overlay, and
     bull/bear × steepen/flatten curve-move classification;
   * **curve_spread_daily** — the configured spreads enriched with expanding
-    (point-in-time safe) z-score/percentile, inversion flags/runs, recession.
+    (point-in-time safe) z-score/percentile, inversion flags/runs, recession;
+  * **spread_inversion_episode** — one row per *unique inversion episode* per
+    spread: opens on the first negative observation, closes when the spread
+    turns non-negative again (with trough, duration, and recession overlap).
 
 Kept pure (dict-in → dict-out, no Spark, no SQLite) so the Local and
 Databricks backends share the same tested logic — the same pattern as
@@ -421,4 +424,88 @@ def compute_curve_spread_daily(
                 "inversion_run": run if is_spread else None,
                 "is_recession": _recession_at(flags, d) if d else None,
             })
+    return out
+
+
+def compute_spread_inversion_episodes(
+    latest_rows: Iterable[dict[str, Any]],
+    spreads: Optional[Iterable[SpreadDef]] = None,
+) -> list[dict[str, Any]]:
+    """``gold.spread_inversion_episode``: one row per unique inversion episode
+    per configured spread (``op: spread`` only — a ratio has no zero line).
+
+    An episode **opens** on the first observation where the spread is negative
+    and **closes** on the first later observation where it is non-negative
+    again (``end_date`` = that re-steepening date; a single positive print
+    between two inversions therefore splits them into two distinct episodes).
+    An episode still negative at the end of history is **ongoing**:
+    ``end_date`` is ``None`` and duration is measured to ``last_inverted_date``.
+    Each row carries the trough (most negative value and its date), the
+    inverted-observation count, calendar duration, and whether any inverted
+    date overlapped an NBER recession (``None`` until USREC is ingested).
+    """
+    if spreads is None:
+        spreads = load_spread_defs()
+    spread_list = [sd for sd in spreads if sd.op == "spread"]
+    base = compute_curve_spreads(latest_rows, spread_list)
+    flags = _recession_flags(latest_rows)
+
+    by_name: dict[str, list[dict[str, Any]]] = {}
+    for row in base:
+        by_name.setdefault(row["spread_name"], []).append(row)
+
+    out: list[dict[str, Any]] = []
+    for name in sorted(by_name):
+        rows = sorted(by_name[name], key=lambda r: r["observation_date"])
+        episode: Optional[dict[str, Any]] = None
+        number = 0
+
+        def _close(end_date: Optional[str]) -> None:
+            ep = episode
+            last = _parse(ep["last_inverted_date"])
+            start = _parse(ep["start_date"])
+            end = _parse(end_date) if end_date else None
+            ep["end_date"] = end_date
+            ep["is_ongoing"] = end_date is None
+            ep["calendar_days"] = ((end or last) - start).days
+            ep["trough_bps"] = ep["trough_value"] * 100.0
+            out.append(ep)
+
+        for r in rows:
+            v, d = r["value"], str(r["observation_date"])[:10]
+            if v < 0:
+                rec = _recession_at(flags, _parse(d))
+                if episode is None:
+                    number += 1
+                    episode = {
+                        "spread_name": name,
+                        "long_leg": r["long_leg"],
+                        "short_leg": r["short_leg"],
+                        "episode_number": number,
+                        "start_date": d,
+                        "end_date": None,
+                        "last_inverted_date": d,
+                        "observation_count": 1,
+                        "calendar_days": 0,
+                        "trough_value": v,
+                        "trough_bps": v * 100.0,
+                        "trough_date": d,
+                        "is_ongoing": True,
+                        "recession_overlap": rec,
+                    }
+                else:
+                    episode["last_inverted_date"] = d
+                    episode["observation_count"] += 1
+                    if v < episode["trough_value"]:
+                        episode["trough_value"] = v
+                        episode["trough_date"] = d
+                    if rec is not None:
+                        episode["recession_overlap"] = (
+                            bool(episode["recession_overlap"]) or rec
+                        )
+            elif episode is not None:
+                _close(d)  # re-steepened: this date ends the episode
+                episode = None
+        if episode is not None:
+            _close(None)  # still inverted at the end of history
     return out

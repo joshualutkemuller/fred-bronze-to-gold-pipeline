@@ -492,7 +492,7 @@ reconciliation for non-FRED sources; optional new sources).
 
 # Market Terminal Analytical Views (Power BI Gold plan)
 
-**Status: Phases 0, 1, and 3 implemented** (branch `EconGoldTerminalViews`) —
+**Status: Phases 0, 1, 3, and 3b implemented** (branch `EconGoldTerminalViews`) —
 full spec + per-phase status in `docs/market_terminal_gold_views.md`; column
 semantics in `docs/data_dictionary.md`.
 
@@ -501,7 +501,10 @@ Implemented: `gold.dim_series` + `gold.dim_date` (star-schema dimensions;
 polarity/transform), the ECON macro dashboard
 (`gold.macro_indicator_dashboard` / `macro_indicator_sparkline` /
 `macro_category_summary`), and the Treasury Curve Lab (`gold.treasury_curve` /
-`treasury_curve_metrics` / `curve_spread_daily`), all via the shared
+`treasury_curve_metrics` / `curve_spread_daily`, plus
+`gold.spread_inversion_episode` — one row per unique inversion period per
+spread, opening on the first negative print and closing when the spread turns
+non-negative), all via the shared
 pure-Python engines in `src/fred_pipeline/terminal_views.py` wired into both
 backends. New manifests ship inactive pending live-FRED verification:
 `macro_flags.yml` (`USREC`/`USRECD` — recession overlays are NULL until

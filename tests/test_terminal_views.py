@@ -23,6 +23,7 @@ from fred_pipeline.terminal_views import (
     build_dim_series,
     compute_curve_spread_daily,
     compute_macro_dashboard,
+    compute_spread_inversion_episodes,
     compute_treasury_curve,
 )
 
@@ -332,6 +333,98 @@ def test_curve_spread_daily_recession_overlay():
     assert r["is_recession"] is True
 
 
+# ---- inversion episodes -------------------------------------------------------
+
+def _spread_days(pairs):
+    """(date, y10, y2) triples -> latest rows for DGS10/DGS2."""
+    rows = []
+    for d, y10, y2 in pairs:
+        rows += [_row("DGS10", d, y10), _row("DGS2", d, y2)]
+    return rows
+
+
+def test_inversion_episodes_split_on_resteepening():
+    spreads = [SpreadDef("T10Y2Y", "DGS10", "DGS2")]
+    rows = _spread_days([
+        ("2024-01-01", 4.0, 3.8),   # +0.2
+        ("2024-01-02", 4.0, 4.1),   # -0.1  episode 1 starts
+        ("2024-01-03", 4.0, 4.3),   # -0.3  trough
+        ("2024-01-04", 4.0, 4.2),   # -0.2
+        ("2024-01-05", 4.2, 4.1),   # +0.1  episode 1 ends here
+        ("2024-01-06", 4.0, 4.1),   # -0.1  episode 2 starts (new unique period)
+        ("2024-01-07", 4.3, 4.0),   # +0.3  episode 2 ends here
+    ])
+    eps = compute_spread_inversion_episodes(rows, spreads)
+    assert len(eps) == 2
+    e1, e2 = eps
+    assert (e1["episode_number"], e2["episode_number"]) == (1, 2)
+    assert e1["start_date"] == "2024-01-02"
+    assert e1["end_date"] == "2024-01-05"          # first non-negative print
+    assert e1["last_inverted_date"] == "2024-01-04"
+    assert e1["observation_count"] == 3
+    assert e1["calendar_days"] == 3                # Jan 2 -> Jan 5
+    assert e1["trough_value"] == pytest.approx(-0.3)
+    assert e1["trough_bps"] == pytest.approx(-30.0)
+    assert e1["trough_date"] == "2024-01-03"
+    assert e1["is_ongoing"] is False
+    assert e2["start_date"] == "2024-01-06" and e2["end_date"] == "2024-01-07"
+    assert e2["observation_count"] == 1
+
+
+def test_inversion_episode_ongoing_at_end_of_history():
+    spreads = [SpreadDef("T10Y2Y", "DGS10", "DGS2")]
+    rows = _spread_days([
+        ("2024-01-01", 4.0, 4.1),   # inverted from the first observation
+        ("2024-01-03", 4.0, 4.2),   # still inverted at end of history
+    ])
+    (ep,) = compute_spread_inversion_episodes(rows, spreads)
+    assert ep["start_date"] == "2024-01-01"
+    assert ep["end_date"] is None and ep["is_ongoing"] is True
+    assert ep["last_inverted_date"] == "2024-01-03"
+    assert ep["calendar_days"] == 2                # measured to last inverted obs
+    assert ep["observation_count"] == 2
+
+
+def test_inversion_episode_zero_is_not_inverted():
+    # value == 0 matches is_inverted (v < 0) elsewhere: it closes an episode.
+    spreads = [SpreadDef("T10Y2Y", "DGS10", "DGS2")]
+    rows = _spread_days([
+        ("2024-01-01", 4.0, 4.1),   # -0.1
+        ("2024-01-02", 4.0, 4.0),   #  0.0 -> episode ends
+        ("2024-01-03", 4.0, 4.1),   # -0.1 -> new episode, ongoing
+    ])
+    eps = compute_spread_inversion_episodes(rows, spreads)
+    assert [e["episode_number"] for e in eps] == [1, 2]
+    assert eps[0]["end_date"] == "2024-01-02"
+    assert eps[1]["is_ongoing"] is True
+
+
+def test_inversion_episodes_never_inverted_and_ratio_excluded():
+    spreads = [
+        SpreadDef("T10Y2Y", "DGS10", "DGS2"),
+        SpreadDef("RATIO", "DGS10", "DGS2", op="ratio"),
+    ]
+    rows = _spread_days([("2024-01-01", 4.2, 4.0), ("2024-01-02", 4.3, 4.0)])
+    assert compute_spread_inversion_episodes(rows, spreads) == []
+
+
+def test_inversion_episode_recession_overlap():
+    spreads = [SpreadDef("T10Y2Y", "DGS10", "DGS2")]
+    rows = _spread_days([
+        ("2020-02-15", 1.2, 1.3),   # inverted, pre-recession print unknown
+        ("2020-03-15", 1.0, 1.2),   # inverted, in recession
+        ("2020-04-15", 1.5, 1.0),   # re-steepens
+    ]) + [_row("USREC", "2020-03-01", 1.0)]
+    (ep,) = compute_spread_inversion_episodes(rows, spreads)
+    assert ep["recession_overlap"] is True
+    # without USREC ingested the overlap is unknown, not false
+    (ep2,) = compute_spread_inversion_episodes(
+        _spread_days([("2020-02-15", 1.2, 1.3), ("2020-04-15", 1.5, 1.0)]),
+        spreads,
+    )
+    assert ep2["recession_overlap"] is None
+
+
 # ---- local backend integration ------------------------------------------------
 
 def test_local_build_gold_populates_terminal_views(tmp_path, monkeypatch):
@@ -375,7 +468,7 @@ def test_local_build_gold_populates_terminal_views(tmp_path, monkeypatch):
     for key in ("dim_series", "dim_date", "macro_indicator_dashboard",
                 "macro_indicator_sparkline", "macro_category_summary",
                 "treasury_curve", "treasury_curve_metrics",
-                "curve_spread_daily"):
+                "curve_spread_daily", "spread_inversion_episode"):
         assert results[key] == "ok"
 
     (dash,) = wh.query("SELECT * FROM gold_macro_indicator_dashboard")
@@ -394,6 +487,11 @@ def test_local_build_gold_populates_terminal_views(tmp_path, monkeypatch):
         "SELECT * FROM gold_curve_spread_daily WHERE spread_name='T10Y2Y' "
         "ORDER BY observation_date")
     assert [r["inversion_run"] for r in spread] == [0, 1]
+    (ep,) = wh.query(
+        "SELECT * FROM gold_spread_inversion_episode "
+        "WHERE spread_name='T10Y2Y'")
+    assert ep["start_date"] == "2024-01-03"
+    assert ep["end_date"] is None and ep["is_ongoing"] == 1  # stored int
     # dim_date spans the observed range with month attributes
     days = wh.query("SELECT COUNT(*) AS n, MIN(date) AS lo, MAX(date) AS hi "
                     "FROM gold_dim_date")[0]
