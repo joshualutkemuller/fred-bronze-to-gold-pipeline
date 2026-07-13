@@ -17,6 +17,43 @@ inputs, and point-in-time macro features.
 
 ------------------------------------------------------------------------
 
+# Implementation Status (current)
+
+The original FRED-only spec below is fully realized and the pipeline has been
+generalized well past it. Current state:
+
+-   **Multi-source (8):** FRED, BLS, EIA, US Treasury, World Bank, BEA, Census,
+    SEC — a pluggable `SourceClient` layer (adding a source = one client module +
+    one registry entry). See **Multi-Source Ingestion**.
+-   **~2,380 series** across the FRED domain manifests + inactive demo manifests
+    for the seven other sources (incl. the NSA + SA **CPI-U baskets**).
+-   **Medallion with lineage:** `source` is part of the Silver natural key
+    `(source, series_id, observation_date, realtime_start)`; Bronze records
+    source + endpoint; replay is source-aware.
+-   **Loading:** full-on-first-run then restate-last-N incremental;
+    replay-from-Bronze; point-in-time (ALFRED) vintages.
+-   **Gold layer complete:** latest / point-in-time / daily feature matrix;
+    feature transforms; config-driven curve spreads; **frequency-aware N-leg
+    cross-series features** + a **leak-free point-in-time variant**; **governance**
+    (coverage/freshness view + cross-source reconciliation); **SEC company
+    financials** (standardized statements, ratios, cross-company ranks, with
+    quarterly/annual duration disambiguation incl. Q4 de-cumulation). All seven
+    Gold-roadmap items are implemented (see the roadmap section).
+-   **Engineering:** pure-core + lazy-Spark shell; Databricks/Delta **and** local
+    SQLite backends in parity; layered config (file/env/args/secret scope);
+    audit + data-quality profiles; Unity Catalog DDL; Asset Bundle (main +
+    per-source jobs); **~289 unit tests + a Spark/Delta integration job in CI**.
+-   **Docs:** this handoff, `README.md`, `docs/architecture.md`,
+    `data_dictionary.md`, `validation.md`, `adding_a_source.md`,
+    `deployment_runbook.md`, `incremental_loading.md`, `etl_build_spec.md`.
+
+**Open (non-blocking, documented):** go-live provisioning + live series-ID
+verification (`docs/deployment_runbook.md`); per-source metadata reconciliation
+for non-FRED sources (`reconcile`/`discover` are FRED-only); optional new sources
+(markets/OHLCV, the SDMX bundle) and a full SEC manifest generator.
+
+------------------------------------------------------------------------
+
 # Target Platform
 
 Use Databricks as the long-term home:
