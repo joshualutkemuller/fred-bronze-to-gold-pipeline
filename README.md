@@ -18,7 +18,9 @@ Census, and SEC (company financials) — see [Data sources](#data-sources).
 > rules and where to review/change them are in
 > [`docs/validation.md`](./docs/validation.md). A dataset-agnostic, reusable
 > build spec (usable as a prompt for standing up a *new* ETL like this one) is in
-> [`docs/etl_build_spec.md`](./docs/etl_build_spec.md).
+> [`docs/etl_build_spec.md`](./docs/etl_build_spec.md). To run with the
+> non-FRED sources (which API keys, activating series, exact commands), see
+> [`docs/running_multi_source.md`](./docs/running_multi_source.md).
 
 ## What it does
 
