@@ -490,6 +490,41 @@ reconciliation for non-FRED sources; optional new sources).
 
 ------------------------------------------------------------------------
 
+# Market Terminal Analytical Views (Power BI Gold plan)
+
+**Status: planned** — full spec in `docs/market_terminal_gold_views.md`.
+
+A separate project, `market_terminal` (a Bloomberg-style quant terminal),
+renders its macro analytics (ECON macro dashboard, INFL inflation explorer, CURV
+treasury-curve lab, BMRK benchmark rates, FUND funding tape, CRDT credit spreads,
+REGIME regime playbook, STAT/EDA stats) on the fly in TypeScript from a
+166-series FRED subset. The plan recreates those surfaces as **precomputed
+Gold-layer tables/views for Power BI**, gaining point-in-time correctness the
+terminal lacks.
+
+Key facts for whoever picks this up:
+- **Uses the existing catalog first.** The pipeline already ingests ~2,380
+  series — a superset of the terminal's 166 — including the official
+  financial-conditions/stress indices (`NFCI`, `ANFCI`, `STLFSI4`), sticky/
+  flexible/trimmed CPI, breakevens, the Fed balance sheet, and the SOFR complex.
+  Every planned Gold object draws from these; a new `config/series_catalog.yml`
+  (+ `gold.dim_series`) tags each into an `econ_category`, polarity, and default
+  transform.
+- **~15 free-FRED gaps only:** `DGS3/DGS7/DGS20`, `USREC`, the funding corridor
+  (`IORB/EFFR/OBFR/BGCR/TGCR/RRPONTSYD`), ICE BofA OAS (`BAMLH0A0HYM2`,
+  `BAMLC0A0CM`, rating/sector), `DPRIME/MORTGAGE30US`. PCE item level via the
+  already-wired BEA API; global CPI/policy via the free World Bank/OECD path. **No
+  paid feeds.**
+- **Same engineering pattern:** one pure-Python engine per metric shared by both
+  backends, YAML-driven config, PIT-safe rolling stats, provenance/staleness on
+  every row. New Gold objects are all additive (see the doc's §3 table).
+- Delivered in 6 phases (dimensions → ECON → INFL → curve → rates complex →
+  regime/stats → global + Power BI catalog). Four open questions for the user are
+  listed at the end of the doc (PCE scope, regime rule table, correlation scope,
+  `.pbix` delivery).
+
+------------------------------------------------------------------------
+
 # Multi-Source Ingestion
 
 **Status: implemented** (`src/fred_pipeline/sources/`,
