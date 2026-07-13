@@ -290,6 +290,38 @@ to `last_inverted_date` while ongoing), `trough_value`/`trough_bps`/
 `trough_date` (deepest inversion), `is_ongoing`, `recession_overlap` (any
 inverted date fell in an NBER recession; `NULL` until `USREC` is ingested).
 
+#### `gold.benchmark_rate_board`
+One row per rate configured in `config/benchmark_rates.yml` at its latest
+observation: `latest_value`/`prior_value`, `change_bps`, `trend`
+(rising/falling/flat — latest vs. `trend_window` observations ago with a ±1bp
+dead-band; `NULL` when history is shorter), `spread_to_benchmark_bps` (vs. the
+configured `benchmark_series`' last value on-or-before the rate's date),
+expanding `zscore`/`percentile`, `regime` (rising→`tightening`,
+falling→`easing`, flat→`stable`), `staleness_days` vs. the board's
+`as_of_date`. Rates whose series aren't ingested emit no row.
+
+#### `gold.funding_tape_daily`
+The FUND tape (`config/funding.yml`): one row per metric × date —
+`metric_type` `rate` (corridor), `balance` (Fed balance-sheet lines), or
+`spread` (long − short, emitted on dates both legs print) — with expanding
+(PIT-safe) `zscore`/`percentile`.
+
+#### `gold.funding_stress_daily`
+The 0–100 funding stress gauge: `composite_z` = weighted mean of the
+configured component spreads' expanding z-scores;
+`stress_score = clamp(50 + 20 × composite_z, 0, 100)`; `stress_bucket`
+calm (<40) / normal (<60) / elevated (<80) / stressed (≥80). Rows appear only
+on dates where **every** component spread has a value (`n_components` records
+how many were blended). An early observation whose expanding std is still 0
+contributes a neutral 0, not a gap.
+
+#### `gold.credit_spread_daily`
+OAS history per instrument in `config/credit.yml` (ICE BofA indices; FRED
+publishes percent — `oas_pct`, with `oas_bps` = ×100): `change_bps` vs. the
+prior print, expanding `zscore`/`percentile`, `is_stress_episode` (expanding
+percentile ≥ `stress_percentile`, default 0.90; `NULL` on the first
+observation), `is_recession` (NBER overlay, `NULL` until `USREC` is ingested).
+
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
 point_in_time_features(as_of)` return each series' value **as it was known** on

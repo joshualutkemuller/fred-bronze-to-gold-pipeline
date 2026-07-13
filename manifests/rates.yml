@@ -133,6 +133,34 @@ series:
     priority: 3
     tags: [rates, curve, treasury]
 
+  # Benchmark-board extras (gold.benchmark_rate_board, config/
+  # benchmark_rates.yml). Same verify-before-activating caveat as above.
+  - series_id: DPRIME
+    title: Bank Prime Loan Rate (daily)
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    downstream_use_case: benchmark_board
+    priority: 3
+    min_value: 0
+    max_value: 30
+    tags: [rates, lending, prime]
+
+  - series_id: MORTGAGE30US
+    title: 30-Year Fixed Rate Mortgage Average (weekly)
+    category: rates
+    frequency: w
+    units: Percent
+    active: false
+    vintage_enabled: false
+    downstream_use_case: benchmark_board
+    priority: 3
+    min_value: 0
+    max_value: 25
+    tags: [rates, lending, mortgage]
+
   - series_id: FEDFUNDS
     title: Federal Funds Effective Rate
     category: rates

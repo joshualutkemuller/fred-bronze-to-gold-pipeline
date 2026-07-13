@@ -199,6 +199,26 @@ CREATE TABLE IF NOT EXISTS gold_spread_inversion_episode (
     trough_value REAL, trough_bps REAL, trough_date TEXT,
     is_ongoing INTEGER, recession_overlap INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_benchmark_rate_board (
+    series_id TEXT, rate_label TEXT, rate_category TEXT,
+    benchmark_series TEXT, as_of_date TEXT, latest_date TEXT,
+    latest_value REAL, prior_value REAL, change_bps REAL, trend TEXT,
+    spread_to_benchmark_bps REAL, zscore REAL, percentile REAL,
+    regime TEXT, staleness_days INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_funding_tape_daily (
+    metric_name TEXT, metric_type TEXT, observation_date TEXT,
+    value REAL, zscore REAL, percentile REAL
+);
+CREATE TABLE IF NOT EXISTS gold_funding_stress_daily (
+    observation_date TEXT, composite_z REAL, stress_score REAL,
+    stress_bucket TEXT, n_components INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_credit_spread_daily (
+    instrument TEXT, series_id TEXT, category TEXT, observation_date TEXT,
+    oas_pct REAL, oas_bps REAL, change_bps REAL, zscore REAL,
+    percentile REAL, is_stress_episode INTEGER, is_recession INTEGER
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -560,7 +580,10 @@ class LocalWarehouse:
         from fred_pipeline.terminal_views import (
             build_dim_date,
             build_dim_series,
+            compute_benchmark_rate_board,
+            compute_credit_spread_daily,
             compute_curve_spread_daily,
+            compute_funding_features,
             compute_macro_dashboard,
             compute_spread_inversion_episodes,
             compute_treasury_curve,
@@ -602,6 +625,20 @@ class LocalWarehouse:
         self._insert("gold_spread_inversion_episode",
                      compute_spread_inversion_episodes(latest))
 
+        # Phase 4 rates complex: BMRK benchmark board, FUND funding tape +
+        # stress gauge, CRDT credit spreads (configs under config/).
+        self.conn.execute("DELETE FROM gold_benchmark_rate_board")
+        self._insert("gold_benchmark_rate_board",
+                     compute_benchmark_rate_board(latest))
+        funding = compute_funding_features(latest)
+        self.conn.execute("DELETE FROM gold_funding_tape_daily")
+        self._insert("gold_funding_tape_daily", funding["tape"])
+        self.conn.execute("DELETE FROM gold_funding_stress_daily")
+        self._insert("gold_funding_stress_daily", funding["stress"])
+        self.conn.execute("DELETE FROM gold_credit_spread_daily")
+        self._insert("gold_credit_spread_daily",
+                     compute_credit_spread_daily(latest))
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -615,6 +652,8 @@ class LocalWarehouse:
             "macro_category_summary",
             "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
             "spread_inversion_episode",
+            "benchmark_rate_board", "funding_tape_daily",
+            "funding_stress_daily", "credit_spread_daily",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

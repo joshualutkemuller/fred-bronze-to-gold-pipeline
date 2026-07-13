@@ -470,14 +470,32 @@ IMPLEMENTED**
   episode number, duration (obs + calendar days), trough value/date, ongoing
   flag, and recession overlap. Both backends + tests.
 
-**Phase 4 — Rates complex (BMRK + FUND + FCOST + CRDT).**
-- Balances/SOFR already ingested; add the small free-FRED corridor
-  (`fed_funding.yml`) and OAS set (`ice_credit.yml`) plus benchmark-rate
-  additions; configs `benchmark_rates.yml`, `funding.yml`, `credit.yml`; build
-  `gold.benchmark_rate_board`, `funding_tape_daily`, `funding_stress_daily`,
-  `credit_spread_daily`. **This phase adds the ~15 new free-FRED IDs** — flag all
-  new IDs "verify before activating" (egress is blocked in the build env; IDs
-  were assembled from documentation, not live-checked).
+**Phase 4 — Rates complex (BMRK + FUND + FCOST + CRDT). — IMPLEMENTED**
+- Configs `benchmark_rates.yml` (17-rate board, categories, benchmark pairs,
+  trend window), `funding.yml` (corridor + balances + spreads + weighted
+  stress components), `credit.yml` (9 OAS instruments, stress percentile);
+  loaders in `src/fred_pipeline/rates_complex_config.py`.
+- Engines in `terminal_views.py`: `compute_benchmark_rate_board` (change bps,
+  ±1bp-dead-band trend, spread-to-benchmark, expanding z/percentile,
+  tightening/easing/stable regime), `compute_funding_features` (tape with
+  expanding stats + the 0–100 gauge: `clamp(50 + 20·Σwᵢzᵢ/Σwᵢ, 0, 100)`,
+  bucketed calm/normal/elevated/stressed, emitted only when every component
+  prints), `compute_credit_spread_daily` (OAS pct+bps, change, expanding
+  stats, percentile-threshold stress episodes, recession overlay).
+- Tables `gold.benchmark_rate_board`, `funding_tape_daily`,
+  `funding_stress_daily`, `credit_spread_daily` in both backends.
+- New manifests `fed_funding.yml` (EFFR/IORB/OBFR/BGCR/TGCR/RRPONTSYD/
+  SOFR30DAYAVG) + `ice_credit.yml` (IG/HY headline + rating-curve OAS) +
+  `DPRIME`/`MORTGAGE30US` in `rates.yml` — **all inactive, verify before
+  activating** (egress is blocked in the build env; IDs were assembled from
+  documentation, not live-checked). Balances (WALCL/WRESBAL/WTREGEN) and SOFR
+  were already ingested; absent series simply emit no rows until activated.
+- Note one schema refinement vs. the original sketch: the stress gauge is
+  generic (`composite_z`/`stress_score`/`stress_bucket`/`n_components`) with
+  the component spreads living in the tape, rather than hard-coding one
+  column per spread — config edits don't change the table shape.
+- `GC−OIS`/`FRA−OIS` remain "needs external input" (no OIS on FRED); FCOST's
+  blended-cost decomposition is covered by the tape + spreads.
 
 **Phase 5 — Regime + Stats.**
 - `config/regime.yml`, `config/stats_pairs.yml`; build `gold.macro_regime_daily`,

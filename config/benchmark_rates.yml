@@ -1,0 +1,38 @@
+# Benchmark rate board (gold.benchmark_rate_board, terminal module BMRK).
+# Each rate gets latest/prior/change, a trend verdict (latest vs. trend_window
+# observations ago), an expanding z-score/percentile, a regime tag, and —
+# when 'benchmark' is set — a spread to that benchmark in bps.
+#
+# Only already-ingested series plus the fed_funding.yml / rates.yml additions
+# (inactive, verify-first) are referenced; rates whose series aren't ingested
+# yet simply emit no row until their manifest entries are activated.
+
+trend_window: 5
+
+rates:
+  # --- policy / corridor ---
+  - {series_id: FEDFUNDS, label: Fed Funds Effective (monthly), category: policy}
+  - {series_id: EFFR,     label: EFFR,                          category: policy, benchmark: IORB}
+  - {series_id: IORB,     label: Interest on Reserve Balances,  category: policy}
+  - {series_id: DPRIME,   label: Bank Prime Rate,               category: policy, benchmark: EFFR}
+
+  # --- secured overnight / repo ---
+  - {series_id: SOFR,  label: SOFR,  category: secured_overnight, benchmark: EFFR}
+  - {series_id: BGCR,  label: Broad General Collateral Rate, category: secured_overnight, benchmark: SOFR}
+  - {series_id: TGCR,  label: Tri-Party General Collateral Rate, category: secured_overnight, benchmark: SOFR}
+  - {series_id: OBFR,  label: Overnight Bank Funding Rate, category: unsecured_overnight, benchmark: EFFR}
+  - {series_id: SOFR30DAYAVG, label: 30-Day Average SOFR, category: term_reference, benchmark: SOFR}
+
+  # --- Treasury curve anchors ---
+  - {series_id: DGS3MO, label: 3M Treasury,  category: treasury, benchmark: EFFR}
+  - {series_id: DGS2,   label: 2Y Treasury,  category: treasury, benchmark: DGS3MO}
+  - {series_id: DGS10,  label: 10Y Treasury, category: treasury, benchmark: DGS2}
+  - {series_id: DGS30,  label: 30Y Treasury, category: treasury, benchmark: DGS10}
+
+  # --- real / inflation-linked ---
+  - {series_id: REAINTRATREARAT10Y, label: 10Y Real Rate, category: real, benchmark: DGS10}
+  - {series_id: T10YIE, label: 10Y Breakeven, category: inflation_linked}
+  - {series_id: T5YIE,  label: 5Y Breakeven,  category: inflation_linked}
+
+  # --- household / lending ---
+  - {series_id: MORTGAGE30US, label: 30Y Mortgage, category: lending, benchmark: DGS10}

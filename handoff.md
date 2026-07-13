@@ -492,7 +492,7 @@ reconciliation for non-FRED sources; optional new sources).
 
 # Market Terminal Analytical Views (Power BI Gold plan)
 
-**Status: Phases 0, 1, 3, and 3b implemented** (branch `EconGoldTerminalViews`) —
+**Status: Phases 0, 1, 3, 3b, and 4 implemented** (branch `EconGoldTerminalViews`) —
 full spec + per-phase status in `docs/market_terminal_gold_views.md`; column
 semantics in `docs/data_dictionary.md`.
 
@@ -504,13 +504,22 @@ polarity/transform), the ECON macro dashboard
 `treasury_curve_metrics` / `curve_spread_daily`, plus
 `gold.spread_inversion_episode` — one row per unique inversion period per
 spread, opening on the first negative print and closing when the spread turns
-non-negative), all via the shared
-pure-Python engines in `src/fred_pipeline/terminal_views.py` wired into both
-backends. New manifests ship inactive pending live-FRED verification:
-`macro_flags.yml` (`USREC`/`USRECD` — recession overlays are NULL until
-activated) and `DGS3/DGS7/DGS20` in `rates.yml`. Remaining: Phase 2 (Inflation
-Explorer), Phase 4 (rates complex), Phase 5 (regime + stats), Phase 6 (global +
-Power BI catalog).
+non-negative), and the Phase-4 rates complex — the BMRK benchmark board
+(`gold.benchmark_rate_board`: change/trend/spread-to-benchmark/regime per
+configured rate), the FUND funding tape + 0–100 stress gauge
+(`gold.funding_tape_daily` / `funding_stress_daily`), and CRDT credit spreads
+(`gold.credit_spread_daily`: ICE BofA OAS with percentile-threshold stress
+episodes) — all via the shared pure-Python engines in
+`src/fred_pipeline/terminal_views.py` wired into both backends, configured by
+`config/benchmark_rates.yml` / `funding.yml` / `credit.yml`. New manifests
+ship inactive pending live-FRED verification: `macro_flags.yml`
+(`USREC`/`USRECD` — recession overlays are NULL until activated),
+`fed_funding.yml` (EFFR/IORB/OBFR/BGCR/TGCR/RRPONTSYD/SOFR30DAYAVG),
+`ice_credit.yml` (9 OAS indices), and `DGS3/DGS7/DGS20` + `DPRIME`/
+`MORTGAGE30US` in `rates.yml`; absent series emit no Gold rows until
+activated, so the tables populate progressively. Remaining: Phase 2
+(Inflation Explorer), Phase 5 (regime + stats), Phase 6 (global + Power BI
+catalog).
 
 A separate project, `market_terminal` (a Bloomberg-style quant terminal),
 renders its macro analytics (ECON macro dashboard, INFL inflation explorer, CURV

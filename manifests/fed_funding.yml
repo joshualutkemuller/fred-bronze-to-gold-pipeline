@@ -1,0 +1,113 @@
+name: fed_funding
+description: >
+  The Fed funding corridor for the funding tape (gold.funding_tape_daily /
+  gold.funding_stress_daily, docs/market_terminal_gold_views.md §4.6): EFFR,
+  IORB, OBFR, and the repo reference rates (BGCR/TGCR), plus the overnight
+  reverse-repo facility balance and 30-day average SOFR. SOFR itself and the
+  balance-sheet lines (WALCL, WRESBAL, WTREGEN) are already ingested by other
+  manifests and are deliberately NOT repeated here (one manifest per series).
+
+  ⚠️ VERIFY BEFORE ACTIVATING: standard FRED ids, but assembled without live
+  FRED access from this environment — confirm each at
+  https://fred.stlouisfed.org before flipping active: true. A wrong id fails
+  only that one series (per-series isolation), not the run. Note IORB begins
+  2021-07 (it replaced IOER/IORR); BGCR/TGCR begin 2018.
+version: 1
+
+series:
+  - series_id: EFFR
+    title: Effective Federal Funds Rate (daily)
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false   # published market rate, not revised
+    validation_profile: standard
+    downstream_use_case: funding_tape
+    priority: 1
+    min_value: -1
+    max_value: 25
+    tags: [rates, funding, corridor, policy]
+
+  - series_id: IORB
+    title: Interest on Reserve Balances
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: funding_tape
+    priority: 1
+    min_value: -1
+    max_value: 25
+    tags: [rates, funding, corridor, policy]
+
+  - series_id: OBFR
+    title: Overnight Bank Funding Rate
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: funding_tape
+    priority: 2
+    min_value: -1
+    max_value: 25
+    tags: [rates, funding, unsecured]
+
+  - series_id: BGCR
+    title: Broad General Collateral Rate
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: funding_tape
+    priority: 2
+    min_value: -1
+    max_value: 25
+    tags: [rates, funding, repo]
+
+  - series_id: TGCR
+    title: Tri-Party General Collateral Rate
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: funding_tape
+    priority: 2
+    min_value: -1
+    max_value: 25
+    tags: [rates, funding, repo]
+
+  - series_id: RRPONTSYD
+    title: Overnight Reverse Repurchase Agreements (Treasury, daily)
+    category: money_banking
+    frequency: d
+    units: Billions of US Dollars
+    active: false
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: funding_tape
+    priority: 2
+    min_value: 0
+    tags: [funding, balance, rrp]
+
+  - series_id: SOFR30DAYAVG
+    title: 30-Day Average SOFR
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: funding_tape
+    priority: 3
+    min_value: -1
+    max_value: 25
+    tags: [rates, funding, sofr, term]
