@@ -492,7 +492,7 @@ reconciliation for non-FRED sources; optional new sources).
 
 # Market Terminal Analytical Views (Power BI Gold plan)
 
-**Status: Phases 0, 1, 2, 3, 3b, 3c, 4, and 5 implemented** (branch
+**Status: ALL PHASES (0–6) implemented** (branch
 `EconGoldTerminalViews`; 3c = rolling-window stats companions
 `gold.curve_spread_rolling` / `credit_spread_rolling` /
 `treasury_curve_rolling`, windows 1/5/10/21/63/126/252 obs; 5 = the regime
@@ -501,7 +501,11 @@ playbook `gold.macro_regime_daily` [five pillar scores from
 liquidity/credit] plus the statistical lab `gold.series_correlation` /
 `gold.series_lead_lag` [curated pairs in `config/stats_pairs.yml`,
 rolling/expanding Pearson, ±12-lag CCF, two-direction Granger F with
-pure-Python p-values]) —
+pure-Python p-values]; 6 = the global tables `gold.global_inflation` /
+`gold.global_policy_rates` [GCPI/GPOL, `config/global_series.yml`, US rows
+live off active series, World Bank/ECB entries inactive verify-first] plus
+`gold.powerbi_catalog`, the report author's manifest of every Gold object,
+kept current by a test) —
 full spec + per-phase status in `docs/market_terminal_gold_views.md`; column
 semantics in `docs/data_dictionary.md`.
 
@@ -532,10 +536,12 @@ Explorer (`gold.inflation_explorer` / `inflation_contribution`,
 at already-active `CPIAUCSL`/`PCEPI` so headline rows appear immediately; the
 CUUR/CUSR item drill-down fills in when the CPI basket manifests are
 activated, and the shipped group weights are approximate (refresh from the
-BLS relative-importance table). Remaining: Phase 6 (global GCPI/GPOL tables +
-the Power BI catalog view), plus the deferred PCE item-level (BEA) follow-up
-and the regime-threshold tuning pass once real history is loaded
-(`config/regime.yml` is config, not code).
+BLS relative-importance table). The build plan is complete; what remains is
+operational — verify + activate the inactive manifests (USREC, funding
+corridor, OAS, CPI baskets, DGS3/7/20, World Bank CPI, ECB rates), refresh
+the CPI weights, tune the regime thresholds once real history is loaded —
+plus two deferred code items: PCE item-level via BEA, and the optional
+starter `.pbix` (plan doc open question #4).
 
 A separate project, `market_terminal` (a Bloomberg-style quant terminal),
 renders its macro analytics (ECON macro dashboard, INFL inflation explorer, CURV

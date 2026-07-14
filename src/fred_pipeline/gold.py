@@ -930,6 +930,77 @@ def _build_regime_stats(config: PipelineConfig, spark: Any) -> None:
          "CAST(as_of_date AS DATE) AS as_of_date"])
 
 
+def _build_global_views(config: PipelineConfig, spark: Any) -> None:
+    """Build the Phase-6 global tables + the Power BI catalog
+    (``gold.global_inflation``, ``global_policy_rates``, ``powerbi_catalog``)
+    from the pure-Python engines in :mod:`fred_pipeline.global_views` — same
+    collect-and-compute pattern as the other terminal-view builders."""
+    from pyspark.sql.types import (
+        DoubleType, IntegerType, StringType, StructField, StructType,
+    )
+
+    from fred_pipeline.global_config import load_global_config
+    from fred_pipeline.global_views import (
+        compute_global_inflation,
+        compute_global_policy_rates,
+        powerbi_catalog_rows,
+    )
+
+    def _write(name: str, rows: list[dict[str, Any]], schema: Any, casts: list[str]) -> None:
+        spark.createDataFrame(rows, schema=schema).selectExpr(*casts).write.format(
+            "delta"
+        ).mode("overwrite").option("overwriteSchema", "true").saveAsTable(
+            config.table("gold", name)
+        )
+
+    cfg = load_global_config()
+    ids = sorted(
+        {d.series_id for d in cfg.inflation}
+        | {d.series_id for d in cfg.policy_rates}
+    )
+    rows_in = _collect_latest(config, spark, ids)
+    _write("global_inflation", compute_global_inflation(rows_in, cfg), StructType([
+        StructField("country", StringType()),
+        StructField("iso3", StringType()),
+        StructField("region", StringType()),
+        StructField("series_id", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("cpi_yoy_pct", DoubleType()),
+        StructField("change_pp", DoubleType()),
+        StructField("trend", StringType()),
+        StructField("streak", IntegerType()),
+        StructField("target_pct", DoubleType()),
+        StructField("vs_target_pp", DoubleType()),
+    ]), ["country", "iso3", "region", "series_id",
+         "CAST(observation_date AS DATE) AS observation_date", "cpi_yoy_pct",
+         "change_pp", "trend", "streak", "target_pct", "vs_target_pp"])
+    _write("global_policy_rates",
+           compute_global_policy_rates(rows_in, cfg), StructType([
+        StructField("country", StringType()),
+        StructField("iso3", StringType()),
+        StructField("region", StringType()),
+        StructField("series_id", StringType()),
+        StructField("observation_date", StringType()),
+        StructField("policy_rate_pct", DoubleType()),
+        StructField("change_bps", DoubleType()),
+        StructField("last_move_bps", DoubleType()),
+        StructField("stance", StringType()),
+        StructField("real_rate_pct", DoubleType()),
+    ]), ["country", "iso3", "region", "series_id",
+         "CAST(observation_date AS DATE) AS observation_date",
+         "policy_rate_pct", "change_bps", "last_move_bps", "stance",
+         "real_rate_pct"])
+    _write("powerbi_catalog", powerbi_catalog_rows(), StructType([
+        StructField("object_name", StringType()),
+        StructField("object_type", StringType()),
+        StructField("module", StringType()),
+        StructField("grain", StringType()),
+        StructField("intended_visual", StringType()),
+        StructField("description", StringType()),
+    ]), ["object_name", "object_type", "module", "grain", "intended_visual",
+         "description"])
+
+
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
     spark = get_spark(spark)
@@ -973,6 +1044,11 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     _build_regime_stats(config, spark)
     for name in (
         "macro_regime_daily", "series_correlation", "series_lead_lag",
+    ):
+        results[name] = "ok"
+    _build_global_views(config, spark)
+    for name in (
+        "global_inflation", "global_policy_rates", "powerbi_catalog",
     ):
         results[name] = "ok"
     return results

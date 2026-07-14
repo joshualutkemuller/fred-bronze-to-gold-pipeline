@@ -547,9 +547,27 @@ IMPLEMENTED**
 - Regime thresholds are config, not code — tune them in `regime.yml` once
   real history is loaded (open question #2).
 
-**Phase 6 — Global + Power BI catalog.**
-- `gold.global_inflation`, `gold.global_policy_rates` (gated on international
-  ingest); `gold.v_powerbi_catalog`; the Power BI `.pbix` starter model.
+**Phase 6 — Global + Power BI catalog. — IMPLEMENTED**
+- `config/global_series.yml` + loader (`global_config.py`): 12 countries
+  across AMER/EMEA/APAC with central-bank targets. The US rows run off
+  **already-active** series (`CPIAUCSL` via `yoy_from_index`, `FEDFUNDS`), so
+  both tables populate immediately; the World Bank `ISO3:FP.CPI.TOTL.ZG`
+  entries (annual YoY %, added to `worldbank_global.yml`) and the ECB rates
+  (new `manifests/global_policy.yml`) ship inactive, verify-first.
+- Engines in `global_views.py`: `compute_global_inflation` →
+  `gold.global_inflation` (GCPI: YoY %, change, accelerating/cooling/flat
+  trend with a ±0.05pp dead-band, signed consecutive-print streaks,
+  vs-target gap) and `compute_global_policy_rates` →
+  `gold.global_policy_rates` (GPOL: rate, change bps, last-move-carried
+  stance, ex-post real rate via an as-of join to the country's CPI prints).
+- `gold.powerbi_catalog`: the report author's manifest of every Gold object
+  (name, type, terminal module, grain, intended visual, description), driven
+  by one Python constant (`global_views.POWERBI_CATALOG`) — a **table**, not
+  the view the plan sketched, so the row list isn't hand-duplicated across
+  SQL dialects. A test fails if a `gold_*` table exists without a catalog
+  row, keeping it current.
+- The starter `.pbix` (open question #4) remains the only unshipped item —
+  awaiting the user's call.
 
 **Cross-cutting for every phase:** pure-Python engine function + unit tests
 (both backends assert identical output); SQLite `_SCHEMA` table + view;

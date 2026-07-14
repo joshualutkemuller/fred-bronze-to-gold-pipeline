@@ -386,6 +386,30 @@ order `granger_lags`) denormalized onto every row; `as_of_date` is the last
 common observation. p-values are exact F-distribution tails computed in pure
 Python (regularized incomplete beta — no SciPy).
 
+#### `gold.global_inflation`
+GCPI (`config/global_series.yml`): one row per country × print — CPI YoY in
+percent (`level` entries are already YoY rates, e.g. World Bank
+`FP.CPI.TOTL.ZG`; `yoy_from_index` computes it from a CPI index),
+`change_pp` vs. the prior print, `trend` (accelerating/cooling/flat, ±0.05pp
+dead-band), `streak` (signed consecutive prints: +n accelerating, −n
+cooling, flat resets), and `target_pct`/`vs_target_pp` (central-bank target
+gap). Slice by `region` (AMER/EMEA/APAC).
+
+#### `gold.global_policy_rates`
+GPOL: one row per country × print — `policy_rate_pct`, `change_bps` vs. the
+prior print, `last_move_bps` (most recent move >1bp, carried), `stance`
+(hiking/cutting from that move's sign; on-hold before any move), and
+`real_rate_pct` (policy − the country's latest CPI YoY print on-or-before
+the date, when an inflation entry for the same `iso3` is configured and at
+most ~400 days old).
+
+#### `gold.powerbi_catalog`
+The report author's manifest: one row per Gold object with `object_type`
+(dimension/fact/reference), the terminal `module` it serves, `grain`,
+`intended_visual`, and a description. Single source of truth is
+`fred_pipeline.global_views.POWERBI_CATALOG`; a test fails if a `gold_*`
+table is added without a catalog row.
+
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
 point_in_time_features(as_of)` return each series' value **as it was known** on

@@ -259,6 +259,20 @@ CREATE TABLE IF NOT EXISTS gold_series_lead_lag (
     granger_f_ab REAL, granger_p_ab REAL, granger_f_ba REAL,
     granger_p_ba REAL, as_of_date TEXT
 );
+CREATE TABLE IF NOT EXISTS gold_global_inflation (
+    country TEXT, iso3 TEXT, region TEXT, series_id TEXT,
+    observation_date TEXT, cpi_yoy_pct REAL, change_pp REAL, trend TEXT,
+    streak INTEGER, target_pct REAL, vs_target_pp REAL
+);
+CREATE TABLE IF NOT EXISTS gold_global_policy_rates (
+    country TEXT, iso3 TEXT, region TEXT, series_id TEXT,
+    observation_date TEXT, policy_rate_pct REAL, change_bps REAL,
+    last_move_bps REAL, stance TEXT, real_rate_pct REAL
+);
+CREATE TABLE IF NOT EXISTS gold_powerbi_catalog (
+    object_name TEXT PRIMARY KEY, object_type TEXT, module TEXT,
+    grain TEXT, intended_visual TEXT, description TEXT
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -717,6 +731,21 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_series_lead_lag")
         self._insert("gold_series_lead_lag", compute_series_lead_lag(latest))
 
+        # Phase 6: global inflation / policy rates + the Power BI catalog
+        # (config/global_series.yml; catalog from global_views.POWERBI_CATALOG).
+        from fred_pipeline.global_views import (
+            compute_global_inflation,
+            compute_global_policy_rates,
+            powerbi_catalog_rows,
+        )
+        self.conn.execute("DELETE FROM gold_global_inflation")
+        self._insert("gold_global_inflation", compute_global_inflation(latest))
+        self.conn.execute("DELETE FROM gold_global_policy_rates")
+        self._insert("gold_global_policy_rates",
+                     compute_global_policy_rates(latest))
+        self.conn.execute("DELETE FROM gold_powerbi_catalog")
+        self._insert("gold_powerbi_catalog", powerbi_catalog_rows())
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -736,6 +765,7 @@ class LocalWarehouse:
             "curve_spread_rolling", "credit_spread_rolling",
             "treasury_curve_rolling",
             "macro_regime_daily", "series_correlation", "series_lead_lag",
+            "global_inflation", "global_policy_rates", "powerbi_catalog",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

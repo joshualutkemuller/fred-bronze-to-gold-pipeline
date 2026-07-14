@@ -1,0 +1,31 @@
+# Global inflation + policy rates (gold.global_inflation /
+# gold.global_policy_rates, terminal modules GCPI / GPOL). See
+# src/fred_pipeline/global_config.py for field semantics.
+#
+# The US rows run off already-active series (CPIAUCSL via yoy_from_index;
+# FEDFUNDS), so both tables populate immediately. The World Bank entries
+# (ISO3:FP.CPI.TOTL.ZG — annual CPI inflation, already a YoY %) and the ECB
+# rates ship inactive in manifests/worldbank_global.yml /
+# manifests/global_policy.yml — verify + activate to fill in the map.
+# World Bank data is annual; for monthly per-country CPI swap in a monthly
+# mirror when you have one and set transform accordingly.
+#
+# target = the central bank's inflation target in percent (drives vs_target).
+
+inflation:
+  - {country: United States, iso3: USA, region: AMER, series_id: CPIAUCSL, transform: yoy_from_index, target: 2.0}
+  - {country: Euro Area,     iso3: EMU, region: EMEA, series_id: "EMU:FP.CPI.TOTL.ZG", target: 2.0}
+  - {country: United Kingdom, iso3: GBR, region: EMEA, series_id: "GBR:FP.CPI.TOTL.ZG", target: 2.0}
+  - {country: Japan,         iso3: JPN, region: APAC, series_id: "JPN:FP.CPI.TOTL.ZG", target: 2.0}
+  - {country: Canada,        iso3: CAN, region: AMER, series_id: "CAN:FP.CPI.TOTL.ZG", target: 2.0}
+  - {country: Mexico,        iso3: MEX, region: AMER, series_id: "MEX:FP.CPI.TOTL.ZG", target: 3.0}
+  - {country: Brazil,        iso3: BRA, region: AMER, series_id: "BRA:FP.CPI.TOTL.ZG", target: 3.0}
+  - {country: China,         iso3: CHN, region: APAC, series_id: "CHN:FP.CPI.TOTL.ZG", target: 3.0}
+  - {country: India,         iso3: IND, region: APAC, series_id: "IND:FP.CPI.TOTL.ZG", target: 4.0}
+  - {country: South Korea,   iso3: KOR, region: APAC, series_id: "KOR:FP.CPI.TOTL.ZG", target: 2.0}
+  - {country: Australia,     iso3: AUS, region: APAC, series_id: "AUS:FP.CPI.TOTL.ZG", target: 2.5}
+  - {country: Germany,       iso3: DEU, region: EMEA, series_id: "DEU:FP.CPI.TOTL.ZG", target: 2.0}
+
+policy_rates:
+  - {country: United States, iso3: USA, region: AMER, series_id: FEDFUNDS}
+  - {country: Euro Area,     iso3: EMU, region: EMEA, series_id: ECBDFR}

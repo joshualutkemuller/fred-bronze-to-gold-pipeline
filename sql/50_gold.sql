@@ -646,3 +646,64 @@ CREATE TABLE IF NOT EXISTS gold.series_lead_lag (
     as_of_date        DATE
 )
 USING DELTA;
+
+-- ============================================================================
+-- Phase 6 global tables + Power BI catalog (docs/market_terminal_gold_views
+-- .md §4.9 global modules). Computed by fred_pipeline.global_views (config:
+-- config/global_series.yml) and written by
+-- fred_pipeline.gold._build_global_views; DDL provisions shapes only.
+-- ============================================================================
+
+-- CPI YoY by country (GCPI): one row per country x print — the YoY rate in
+-- percent, change vs the prior print, a trend verdict (accelerating/cooling/
+-- flat, ±0.05pp dead-band), the signed consecutive-print streak (+n
+-- accelerating / -n cooling; flat resets), and the gap to the central-bank
+-- target. World Bank FP.CPI.TOTL.ZG entries are annual; the US runs off
+-- monthly CPIAUCSL (yoy_from_index).
+CREATE TABLE IF NOT EXISTS gold.global_inflation (
+    country          STRING,
+    iso3             STRING,
+    region           STRING,
+    series_id        STRING,
+    observation_date DATE,
+    cpi_yoy_pct      DOUBLE,
+    change_pp        DOUBLE,
+    trend            STRING,
+    streak           INT,
+    target_pct       DOUBLE,
+    vs_target_pp     DOUBLE
+)
+USING DELTA;
+
+-- Policy rates by country (GPOL): one row per country x print — the rate in
+-- percent, change vs prior print in bps, the most recent nonzero move
+-- (carried), the stance from that move's sign (hiking/cutting; on-hold
+-- before any move), and the ex-post real rate (policy − the country's
+-- latest CPI YoY print on-or-before the date, when configured and fresh).
+CREATE TABLE IF NOT EXISTS gold.global_policy_rates (
+    country          STRING,
+    iso3             STRING,
+    region           STRING,
+    series_id        STRING,
+    observation_date DATE,
+    policy_rate_pct  DOUBLE,
+    change_bps       DOUBLE,
+    last_move_bps    DOUBLE,
+    stance           STRING,
+    real_rate_pct    DOUBLE
+)
+USING DELTA;
+
+-- The report author's manifest of Gold objects: name, type, terminal module,
+-- grain, intended Power BI visual, description. Single source of truth is
+-- fred_pipeline.global_views.POWERBI_CATALOG (a table, not the view the plan
+-- sketched, so the row list isn't hand-duplicated across SQL dialects).
+CREATE TABLE IF NOT EXISTS gold.powerbi_catalog (
+    object_name     STRING,
+    object_type     STRING,
+    module          STRING,
+    grain           STRING,
+    intended_visual STRING,
+    description     STRING
+)
+USING DELTA;
