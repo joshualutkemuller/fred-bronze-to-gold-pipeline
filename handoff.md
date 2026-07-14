@@ -615,6 +615,16 @@ source-agnostic.
     filings are captured as point-in-time vintages. Demo
     `manifests/sec_financials.yml`; generate at scale via
     `sources.sec.build_sec_manifest`.
+-   **Stooq** (equity daily OHLCV) — `source: stooq`. **Keyless.** CSV, split-
+    adjusted close → price return. series_id encodes `<ticker>:<field>` (field
+    default `close`). Demo `manifests/equity_stooq.yml` (inactive). See the
+    equity sub-plan above.
+-   **iShares/State Street** (ETF holdings) — `source: ishares`. **Keyless.**
+    Fetches a fund's daily holdings CSV and explodes it into per-constituent
+    weight series `<ETF>:<constituent>`; URL resolved from
+    `sources.ishares.HOLDINGS_URLS`. Demo `manifests/etf_holdings.yml`
+    (inactive). Also the symbol-universe generator
+    (`sources.ishares.build_equity_manifest`).
 
 ## How it works
 
@@ -645,10 +655,14 @@ source-agnostic.
 
 # Equity Price & Total Return — Two-Source Sub-Plan (Stooq + Tiingo)
 
-**Status: planned** (not yet implemented). Adds an *equities* asset class —
-stock and broad-ETF price return and true total return — as two new
-`source:` clients plus a constituent-list ingester, reusing the existing
-Bronze → Silver → DQ → Gold → audit path unchanged.
+**Status: slice 1 of 2 implemented** — the **Stooq price-return + constituent**
+half is built (`sources/stooq.py`, `sources/ishares.py`,
+`build_equity_manifest`, `equity_views.py` → `gold.equity_return_daily` +
+`gold.index_constituents`, both backends, tests, inactive manifests
+`equity_stooq.yml` / `etf_holdings.yml`). The **Tiingo total-return** half
+(`gold.equity_total_return_index`) is the planned next slice. Adds an
+*equities* asset class reusing the existing Bronze → Silver → DQ → Gold →
+audit path unchanged.
 
 **Ownership decided: this repo owns the equity pipeline.** Equities are folded
 into *this* medallion pipeline (gaining PIT / DQ / audit / total-return-from-

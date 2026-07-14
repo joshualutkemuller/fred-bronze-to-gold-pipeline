@@ -707,3 +707,41 @@ CREATE TABLE IF NOT EXISTS gold.powerbi_catalog (
     description     STRING
 )
 USING DELTA;
+
+-- ============================================================================
+-- Equity slice (handoff.md "Equity Price & Total Return — Two-Source
+-- Sub-Plan"): Stooq price return + ETF constituents. Computed by
+-- fred_pipeline.equity_views from the scalar-explode Silver series
+-- (<ticker>:close, <ETF>:<constituent>) and written by
+-- fred_pipeline.gold._build_equity_views; DDL provisions shapes only. The
+-- Tiingo total-return table (equity_total_return_index) is the next slice.
+-- ============================================================================
+
+-- Daily price return per ticker from the split-adjusted Stooq close: the
+-- close, day-over-day change and simple return, and a cumulative
+-- price-return index (=100 at each ticker's first observation). Dividends
+-- excluded (that's the Tiingo total-return slice).
+CREATE TABLE IF NOT EXISTS gold.equity_return_daily (
+    ticker             STRING,
+    observation_date   DATE,
+    close              DOUBLE,
+    price_change       DOUBLE,
+    price_return       DOUBLE,
+    price_return_index DOUBLE
+)
+USING DELTA;
+
+-- ETF constituents exploded from the daily holdings file: one row per
+-- ETF x constituent x snapshot date, the weight (percent), the within-
+-- snapshot weight rank, and is_latest_snapshot on the most recent as-of date
+-- per ETF (filter to that for "current membership"). Snapshot history
+-- accumulates through the normal incremental path.
+CREATE TABLE IF NOT EXISTS gold.index_constituents (
+    index_etf          STRING,
+    constituent        STRING,
+    observation_date   DATE,
+    weight_pct         DOUBLE,
+    weight_rank        INT,
+    is_latest_snapshot BOOLEAN
+)
+USING DELTA;

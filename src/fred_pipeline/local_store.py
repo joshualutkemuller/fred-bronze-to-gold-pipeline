@@ -273,6 +273,14 @@ CREATE TABLE IF NOT EXISTS gold_powerbi_catalog (
     object_name TEXT PRIMARY KEY, object_type TEXT, module TEXT,
     grain TEXT, intended_visual TEXT, description TEXT
 );
+CREATE TABLE IF NOT EXISTS gold_equity_return_daily (
+    ticker TEXT, observation_date TEXT, close REAL, price_change REAL,
+    price_return REAL, price_return_index REAL
+);
+CREATE TABLE IF NOT EXISTS gold_index_constituents (
+    index_etf TEXT, constituent TEXT, observation_date TEXT,
+    weight_pct REAL, weight_rank INTEGER, is_latest_snapshot INTEGER
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -746,6 +754,19 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_powerbi_catalog")
         self._insert("gold_powerbi_catalog", powerbi_catalog_rows())
 
+        # Equity slice: Stooq price return + ETF constituents (scalar-explode
+        # <ticker>:close / <ETF>:<constituent> Silver series).
+        from fred_pipeline.equity_views import (
+            compute_equity_return_daily,
+            compute_index_constituents,
+        )
+        self.conn.execute("DELETE FROM gold_equity_return_daily")
+        self._insert("gold_equity_return_daily",
+                     compute_equity_return_daily(latest))
+        self.conn.execute("DELETE FROM gold_index_constituents")
+        self._insert("gold_index_constituents",
+                     compute_index_constituents(latest))
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -766,6 +787,7 @@ class LocalWarehouse:
             "treasury_curve_rolling",
             "macro_regime_daily", "series_correlation", "series_lead_lag",
             "global_inflation", "global_policy_rates", "powerbi_catalog",
+            "equity_return_daily", "index_constituents",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

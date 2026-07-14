@@ -27,6 +27,8 @@ Set environment variables (the recommended way — nothing lands in git):
 | SEC | `SEC_USER_AGENT` | Not a key — set to your **contact email**; SEC requires an identifying User-Agent | — |
 | US Treasury | — | Nothing needed (fully open) | — |
 | World Bank | — | Nothing needed (fully open) | — |
+| Stooq (equity prices) | — | Nothing needed (keyless CSV) | — |
+| iShares/SSGA (ETF holdings) | — | Nothing needed (keyless CSV) | — |
 
 ```bash
 export FRED_API_KEY="your-fred-key"
@@ -72,6 +74,8 @@ Manifests you may want to activate:
 | `bea_national_accounts.yml` | bea | NIPA tables |
 | `census_indicators.yml` | census | economic indicators |
 | `sec_financials.yml` | sec | company XBRL fundamentals |
+| `equity_stooq.yml` | stooq | broad ETFs + large-cap stocks (price return) |
+| `etf_holdings.yml` | ishares | ETF constituent weights (`gold.index_constituents`) |
 | `macro_flags.yml` | fred | `USREC` — lights up every `is_recession` column |
 | `fed_funding.yml` | fred | EFFR/IORB/OBFR/BGCR/TGCR/… — funding tape + stress gauge |
 | `ice_credit.yml` | fred | ICE BofA OAS — credit-spread table |

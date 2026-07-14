@@ -1001,6 +1001,72 @@ def _build_global_views(config: PipelineConfig, spark: Any) -> None:
          "description"])
 
 
+def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
+    """Build the equity slice (``gold.equity_return_daily``,
+    ``gold.index_constituents``) from the pure-Python engines in
+    :mod:`fred_pipeline.equity_views`. Collected input is bounded to the
+    exploded ``:close`` / holdings series (``source in ('stooq','ishares')``)."""
+    from pyspark.sql.types import (
+        BooleanType, DoubleType, IntegerType, StringType, StructField, StructType,
+    )
+
+    from fred_pipeline.equity_views import (
+        compute_equity_return_daily, compute_index_constituents,
+    )
+
+    latest = config.table("gold", "fred_latest_observation")
+    silver = config.table("silver", "fred_observation")
+    # equity_return_daily reads the latest-revised :close series; constituents
+    # read the holdings weight series from Silver (source='ishares').
+    close_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
+            f"value, is_missing FROM {latest} WHERE series_id LIKE '%:close'"
+        ).collect()
+    ]
+    holdings_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
+            f"value, is_missing FROM {silver} WHERE source = 'ishares'"
+        ).collect()
+    ]
+
+    spark.createDataFrame(
+        compute_equity_return_daily(close_rows),
+        schema=StructType([
+            StructField("ticker", StringType()),
+            StructField("observation_date", StringType()),
+            StructField("close", DoubleType()),
+            StructField("price_change", DoubleType()),
+            StructField("price_return", DoubleType()),
+            StructField("price_return_index", DoubleType()),
+        ]),
+    ).selectExpr(
+        "ticker", "CAST(observation_date AS DATE) AS observation_date", "close",
+        "price_change", "price_return", "price_return_index",
+    ).write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(config.table("gold", "equity_return_daily"))
+
+    spark.createDataFrame(
+        compute_index_constituents(holdings_rows),
+        schema=StructType([
+            StructField("index_etf", StringType()),
+            StructField("constituent", StringType()),
+            StructField("observation_date", StringType()),
+            StructField("weight_pct", DoubleType()),
+            StructField("weight_rank", IntegerType()),
+            StructField("is_latest_snapshot", BooleanType()),
+        ]),
+    ).selectExpr(
+        "index_etf", "constituent",
+        "CAST(observation_date AS DATE) AS observation_date", "weight_pct",
+        "weight_rank", "is_latest_snapshot",
+    ).write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(config.table("gold", "index_constituents"))
+
+
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
     spark = get_spark(spark)
@@ -1050,5 +1116,8 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     for name in (
         "global_inflation", "global_policy_rates", "powerbi_catalog",
     ):
+        results[name] = "ok"
+    _build_equity_views(config, spark)
+    for name in ("equity_return_daily", "index_constituents"):
         results[name] = "ok"
     return results

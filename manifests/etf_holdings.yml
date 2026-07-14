@@ -1,0 +1,27 @@
+name: etf_holdings
+description: >
+  ETF constituent holdings (source: ishares) for gold.index_constituents and
+  the equity symbol universe. Keyless. series_id is the ETF ticker; the client
+  resolves the download URL from fred_pipeline.sources.ishares.HOLDINGS_URLS
+  and explodes the daily holdings CSV into one weight row per constituent
+  (silver series_id '<ETF>:<constituent>'). Shipped inactive.
+
+  ⚠️ VERIFY BEFORE ACTIVATING: the holdings URLs in HOLDINGS_URLS are
+  product-specific and change over time — confirm each against the fund's page
+  first. SPY's file is XLSX (State Street); the CSV parser targets the iShares
+  CSV layout, so start with IVV and add SPY once its parser path is confirmed.
+version: 1
+
+series:
+  - series_id: IVV
+    title: iShares Core S&P 500 ETF — holdings
+    category: equity
+    frequency: d
+    units: Weight Percent
+    active: false
+    source: ishares
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: index_constituents
+    priority: 2
+    tags: [equity, etf, constituents, ishares]
