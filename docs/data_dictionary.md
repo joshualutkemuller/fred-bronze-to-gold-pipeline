@@ -410,6 +410,33 @@ The report author's manifest: one row per Gold object with `object_type`
 `fred_pipeline.global_views.POWERBI_CATALOG`; a test fails if a `gold_*`
 table is added without a catalog row.
 
+#### `gold.equity_return_daily`
+Equity price return (`source: stooq`; scalar-explode `<ticker>:close` Silver
+series): one row per ticker × date — the split-adjusted `close`,
+`price_change` and `price_return` (simple, day-over-day), and
+`price_return_index` (cumulative, =100 at each ticker's first observation).
+Dividends excluded — total return is the planned Tiingo slice
+(`gold.equity_total_return_index`).
+
+#### `gold.index_constituents`
+ETF membership (`source: ishares`; `<ETF>:<constituent>` weight series
+exploded from the daily holdings CSV): one row per ETF × constituent ×
+snapshot date — `weight_pct`, `weight_rank` within the snapshot, and
+`is_latest_snapshot` (filter to that for current membership). Snapshot
+history accumulates through the normal incremental path.
+
+#### `gold.equity_total_return_index`
+True total return (`source: tiingo`; scalar-explode `<ticker>:close`,
+`<ticker>:divCash`, `<ticker>:splitFactor`): one row per ticker × date with
+the raw `close`, `dividend`, `split_factor`; the daily `price_return` and
+`total_return` (split-adjusted, dividends reinvested —
+`(close_t + div_t)/close_{t−1} × split_t − 1`); the cumulative
+`price_return_index` and `total_return_index` (=100 at each ticker's first
+date; their gap is reinvested income); and `trailing_12m_dividend` /
+`dividend_yield_pct`. Reconstructed from the **raw** inputs rather than
+Tiingo's `adjClose`, so it can be rebuilt and diffed when a dividend is
+restated.
+
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
 point_in_time_features(as_of)` return each series' value **as it was known** on

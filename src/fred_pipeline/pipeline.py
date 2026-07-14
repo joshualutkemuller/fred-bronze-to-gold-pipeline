@@ -26,7 +26,10 @@ from fred_pipeline.sources.bls import BLSClient
 from fred_pipeline.sources.census import CensusClient
 from fred_pipeline.sources.eia import EIAClient
 from fred_pipeline.sources.fred import FredClient
+from fred_pipeline.sources.ishares import ISharesClient
 from fred_pipeline.sources.sec import SECClient
+from fred_pipeline.sources.stooq import StooqClient
+from fred_pipeline.sources.tiingo import TiingoClient
 from fred_pipeline.sources.treasury import TreasuryClient
 from fred_pipeline.sources.worldbank import WorldBankClient
 from fred_pipeline.transform import assign_revision_numbers, normalize_observations
@@ -112,6 +115,31 @@ def _make_sec(config: PipelineConfig) -> SourceClient:
     )
 
 
+def _make_stooq(config: PipelineConfig) -> SourceClient:
+    # Stooq is keyless daily OHLCV (equity price return).
+    return StooqClient(
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
+def _make_ishares(config: PipelineConfig) -> SourceClient:
+    # Keyless ETF-holdings CSV (index constituents / symbol universe).
+    return ISharesClient(
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
+def _make_tiingo(config: PipelineConfig) -> SourceClient:
+    # Tiingo requires a (free) key; TiingoClient raises if one isn't configured.
+    return TiingoClient(
+        api_key=getattr(config, "tiingo_api_key", "") or "",
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+    )
+
+
 # Registry of source name -> client factory. Adding a source is one entry here
 # plus its client module under fred_pipeline.sources.
 SOURCE_FACTORIES = {
@@ -123,15 +151,19 @@ SOURCE_FACTORIES = {
     "bea": _make_bea,
     "census": _make_census,
     "sec": _make_sec,
+    "stooq": _make_stooq,
+    "ishares": _make_ishares,
+    "tiingo": _make_tiingo,
 }
 
 # Sources that require an API key to call, mapped to the PipelineConfig
 # attribute holding it. Sources not listed can run keyless (BLS, Census,
-# Treasury, World Bank, SEC).
+# Treasury, World Bank, SEC, Stooq, iShares).
 SOURCE_KEY_REQUIREMENTS = {
     "fred": "fred_api_key",
     "eia": "eia_api_key",
     "bea": "bea_api_key",
+    "tiingo": "tiingo_api_key",
 }
 
 

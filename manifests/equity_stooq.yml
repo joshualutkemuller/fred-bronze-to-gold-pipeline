@@ -1,0 +1,34 @@
+name: equity_stooq
+description: >
+  Demo equity price manifest (source: stooq) — broad ETFs plus a few large-cap
+  constituents, daily split-adjusted close for price return. Keyless. series_id
+  is '<ticker>:<field>' (field default close; open/high/low/volume also
+  supported); the client appends Stooq's '.us' market suffix. Shipped inactive.
+
+  For the full S&P 500 constituent universe, generate a manifest from an ETF
+  holdings CSV with fred_pipeline.sources.ishares.build_equity_manifest rather
+  than hand-listing 500 tickers.
+
+  ⚠️ VERIFY BEFORE ACTIVATING: tickers were listed from memory, not checked
+  against Stooq from this environment. A wrong/unlisted symbol returns an empty
+  body and fails only its own series (per-series isolation), not the run.
+version: 1
+
+series:
+  # --- broad / sector ETFs ---
+  - {series_id: "SPY:close", title: SPDR S&P 500 ETF,           category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 1, min_value: 0, tags: [equity, etf, close, stooq]}
+  - {series_id: "VTI:close", title: Vanguard Total Market ETF,  category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 2, min_value: 0, tags: [equity, etf, close, stooq]}
+  - {series_id: "QQQ:close", title: Invesco QQQ (Nasdaq 100),   category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 2, min_value: 0, tags: [equity, etf, close, stooq]}
+  - {series_id: "IWM:close", title: iShares Russell 2000 ETF,   category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 2, min_value: 0, tags: [equity, etf, close, stooq]}
+  - {series_id: "EFA:close", title: iShares MSCI EAFE ETF,      category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 3, min_value: 0, tags: [equity, etf, close, stooq]}
+  - {series_id: "EEM:close", title: iShares MSCI Emerging Mkts, category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 3, min_value: 0, tags: [equity, etf, close, stooq]}
+  - {series_id: "AGG:close", title: iShares Core US Aggregate Bond, category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 3, min_value: 0, tags: [equity, etf, bond, close, stooq]}
+  - {series_id: "TLT:close", title: iShares 20+ Year Treasury,  category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 3, min_value: 0, tags: [equity, etf, bond, close, stooq]}
+  - {series_id: "HYG:close", title: iShares iBoxx HY Corp Bond, category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 3, min_value: 0, tags: [equity, etf, credit, close, stooq]}
+  - {series_id: "GLD:close", title: SPDR Gold Shares,           category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 3, min_value: 0, tags: [equity, etf, commodity, close, stooq]}
+
+  # --- a few large-cap constituents (demo; use build_equity_manifest for the full set) ---
+  - {series_id: "AAPL:close",  title: Apple Inc,       category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 2, min_value: 0, tags: [equity, stock, close, stooq]}
+  - {series_id: "MSFT:close",  title: Microsoft Corp,  category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 2, min_value: 0, tags: [equity, stock, close, stooq]}
+  - {series_id: "NVDA:close",  title: NVIDIA Corp,     category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 2, min_value: 0, tags: [equity, stock, close, stooq]}
+  - {series_id: "AMZN:close",  title: Amazon.com Inc,  category: equity, frequency: d, units: USD, active: false, source: stooq, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_price_return, priority: 2, min_value: 0, tags: [equity, stock, close, stooq]}

@@ -154,8 +154,16 @@ class HTTPSource:
     # ---- transport ------------------------------------------------------
 
     def _request(
-        self, endpoint: str, params: dict[str, Any], *, method: str = "GET"
-    ) -> dict[str, Any]:
+        self,
+        endpoint: str,
+        params: dict[str, Any],
+        *,
+        method: str = "GET",
+        as_text: bool = False,
+    ) -> Any:
+        """Fetch with retry + rate limiting. Returns parsed JSON by default; with
+        ``as_text=True`` returns the raw response body as a string (for CSV
+        sources like Stooq / ETF-holdings files)."""
         url = f"{self.base_url}/{endpoint}"
         query = {**params, **self._default_query()}
 
@@ -171,7 +179,7 @@ class HTTPSource:
 
             status = getattr(resp, "status_code", 200)
             if status == 200:
-                return resp.json()
+                return resp.text if as_text else resp.json()
             if status in self.retryable_status and attempt < self.max_retries:
                 last_exc = self.error_cls(
                     f"HTTP {status} from {endpoint}", status
