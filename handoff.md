@@ -764,10 +764,11 @@ like every other Gold table:
     scalar-explode — see above).
 3.  **Tiingo symbol budget** — trim the core list under the ~500/month cap, or
     accept Yahoo overflow for the tail (and its fragility/ToS risk).
-4.  **Commercial use** — if this is commercial, Tiingo's free tier doesn't
-    cover it; decide paid Tiingo vs. Stooq-only (price return only). Gates the
-    Tiingo half only — the Stooq client and constituent ingester are
-    unaffected and can be built first.
+4.  **Commercial use** — ✅ **Decided: personal use.** Tiingo's free tier
+    covers this, so the total-return path is unblocked and no paid plan is
+    needed. (If usage ever turns commercial, revisit — the free tier would no
+    longer apply and the total-return path would need paid Tiingo or a
+    different dividend source.)
 
 ------------------------------------------------------------------------
 
