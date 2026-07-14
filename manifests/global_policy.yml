@@ -1,0 +1,42 @@
+name: global_policy
+description: >
+  Non-US central-bank policy rates for gold.global_policy_rates (GPOL; see
+  config/global_series.yml). The US row runs off already-active FEDFUNDS —
+  only the ECB rates live here. FRED mirrors many central-bank rates, but a
+  number of the OECD-sourced ones were discontinued in 2024; extend this
+  manifest (and config/global_series.yml) only with ids you have verified.
+
+  ⚠️ VERIFY BEFORE ACTIVATING: standard FRED ids for the ECB rates, but
+  assembled without live FRED access from this environment — confirm at
+  https://fred.stlouisfed.org before flipping active: true. A wrong id fails
+  only that one series (per-series isolation), not the run.
+version: 1
+
+series:
+  - series_id: ECBDFR
+    title: ECB Deposit Facility Rate
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: global_policy_rates
+    priority: 2
+    min_value: -2
+    max_value: 25
+    tags: [rates, policy, ecb, international]
+
+  - series_id: ECBMRRFR
+    title: ECB Main Refinancing Operations Rate (fixed rate)
+    category: rates
+    frequency: d
+    units: Percent
+    active: false
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: global_policy_rates
+    priority: 3
+    min_value: -2
+    max_value: 25
+    tags: [rates, policy, ecb, international]

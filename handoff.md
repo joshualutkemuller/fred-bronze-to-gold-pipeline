@@ -492,10 +492,20 @@ reconciliation for non-FRED sources; optional new sources).
 
 # Market Terminal Analytical Views (Power BI Gold plan)
 
-**Status: Phases 0, 1, 2, 3, 3b, 3c, and 4 implemented** (branch
+**Status: ALL PHASES (0–6) implemented** (branch
 `EconGoldTerminalViews`; 3c = rolling-window stats companions
 `gold.curve_spread_rolling` / `credit_spread_rolling` /
-`treasury_curve_rolling`, windows 1/5/10/21/63/126/252 obs) —
+`treasury_curve_rolling`, windows 1/5/10/21/63/126/252 obs; 5 = the regime
+playbook `gold.macro_regime_daily` [five pillar scores from
+`config/regime.yml`, ordered rule table, official conditions indices driving
+liquidity/credit] plus the statistical lab `gold.series_correlation` /
+`gold.series_lead_lag` [curated pairs in `config/stats_pairs.yml`,
+rolling/expanding Pearson, ±12-lag CCF, two-direction Granger F with
+pure-Python p-values]; 6 = the global tables `gold.global_inflation` /
+`gold.global_policy_rates` [GCPI/GPOL, `config/global_series.yml`, US rows
+live off active series, World Bank/ECB entries inactive verify-first] plus
+`gold.powerbi_catalog`, the report author's manifest of every Gold object,
+kept current by a test) —
 full spec + per-phase status in `docs/market_terminal_gold_views.md`; column
 semantics in `docs/data_dictionary.md`.
 
@@ -526,8 +536,12 @@ Explorer (`gold.inflation_explorer` / `inflation_contribution`,
 at already-active `CPIAUCSL`/`PCEPI` so headline rows appear immediately; the
 CUUR/CUSR item drill-down fills in when the CPI basket manifests are
 activated, and the shipped group weights are approximate (refresh from the
-BLS relative-importance table). Remaining: Phase 5 (regime + stats), Phase 6
-(global + Power BI catalog), plus the deferred PCE item-level (BEA) follow-up.
+BLS relative-importance table). The build plan is complete; what remains is
+operational — verify + activate the inactive manifests (USREC, funding
+corridor, OAS, CPI baskets, DGS3/7/20, World Bank CPI, ECB rates), refresh
+the CPI weights, tune the regime thresholds once real history is loaded —
+plus two deferred code items: PCE item-level via BEA, and the optional
+starter `.pbix` (plan doc open question #4).
 
 A separate project, `market_terminal` (a Bloomberg-style quant terminal),
 renders its macro analytics (ECON macro dashboard, INFL inflation explorer, CURV
@@ -626,6 +640,135 @@ source-agnostic.
 -   Quant sign-off on which non-FRED series to activate.
 -   A live check of the demo series IDs once API keys are configured (blocked in
     the build environment by egress policy; IDs are structurally verified).
+
+------------------------------------------------------------------------
+
+# Equity Price & Total Return — Two-Source Sub-Plan (Stooq + Tiingo)
+
+**Status: planned** (not yet implemented). Adds an *equities* asset class —
+stock and broad-ETF price return and true total return — as two new
+`source:` clients plus a constituent-list ingester, reusing the existing
+Bronze → Silver → DQ → Gold → audit path unchanged.
+
+**Ownership decided: this repo owns the equity pipeline.** Equities are folded
+into *this* medallion pipeline (gaining PIT / DQ / audit / total-return-from-
+raw-inputs); the `market_terminal` project and its `market_data_pipeline`
+(Yahoo/DuckDB) stay a **separate** system. No dependency runs between them —
+if `market_terminal` ever needs these series it reads the published Gold
+tables, exactly as it would any other consumer.
+
+> ⚠️ **Verify before building.** Free-tier terms in market data shift often
+> and could not be checked live from this environment. Confirm current quotas
+> **and licensing** on each provider's site first. In particular, **Tiingo's
+> free tier is personal / non-commercial** — commercial use needs a paid
+> plan; that is a licensing decision, not an engineering one.
+
+## Why two sources
+
+No single free API gives both breadth *and* the dividend data needed for
+total return. Split the job:
+
+-   **Stooq — breadth (price return).** Keyless, no account, effectively
+    unlimited; publishes a **bulk EOD ZIP of the entire US market** plus
+    per-ticker daily CSV. **Split-adjusted close only — no dividends**, so it
+    yields *price* return for thousands of tickers at near-zero API cost. This
+    is the wide net.
+-   **Tiingo — depth (total return).** Free with a (free) account + key;
+    metered (~1,000 req/day, ~50/hr, and the binding limit **~500 unique
+    symbols/month**). Its daily endpoint returns, per ticker, `close`,
+    **`adjClose`, `divCash`, and `splitFactor` in one call** — the only free
+    tier that hands you dividend cash amounts, so Gold can compute true total
+    return. Reserve it for the core list: S&P 500 constituents + the broad
+    ETFs (SPY/VTI/QQQ/IWM/EFA/EEM/AGG/TLT/HYG/GLD…). ~530 symbols brushes the
+    500/month cap — trim to top weights + ETFs, or let Yahoo (fragile,
+    unofficial) cover overflow.
+
+**Design bias — store inputs, derive returns.** Prefer the raw
+`close`/`divCash`/`splitFactor` over a pre-adjusted number: computing total
+return in Gold from raw inputs (below) is reproducible and survives dividend
+restatements, exactly the Bronze-verbatim → Gold-derived principle the rest
+of the pipeline follows. Pre-adjusted feeds (Yahoo's `Adj Close`) can't be
+rebuilt when a dividend is corrected.
+
+## Constituent list — daily ETF-holdings CSV (the hard part, solved freely)
+
+Index *membership* is licensed data with no good free API. The free,
+defensible workaround: **iShares and State Street publish full ETF holdings
+as daily CSV/XLSX** (e.g. iShares **IVV** "Detailed Holdings and Analytics"
+CSV; State Street **SPY** holdings file). Ingest that file to get, per day,
+the constituent tickers **and their weights**. It serves two roles:
+
+1.  It *is* the symbol universe — `build_equity_manifest(holdings_csv)`
+    generates the ticker manifest Stooq/Tiingo pull (mirrors
+    `sources.sec.build_sec_manifest`), so the pull list tracks index changes
+    automatically instead of being hand-maintained.
+2.  It feeds `gold.index_constituents` (ticker × weight × as-of × index),
+    the weight source for any index-reconstruction or attribution Gold table.
+
+This is a scraper/CSV-puller, not a JSON API, but it still fits `HTTPSource`
+(fetch bytes → normalize); the daily holdings file is captured verbatim in
+Bronze and exploded in Silver.
+
+## How it fits the existing abstraction
+
+-   **New `source:` values `stooq`, `tiingo`, `ishares` (holdings).** Each is
+    **one client module + one `SOURCE_FACTORIES` entry** (`sources/stooq.py`
+    ~ the size of `census.py` since it's CSV-over-HTTP; `sources/tiingo.py` ~
+    `eia.py`; `sources/ishares.py` for holdings). Nothing in Bronze/Silver/
+    Gold moves. `source` is already in the Silver natural key.
+-   **Scalar-explode to fit the existing single-`value` Silver, recommended.**
+    Silver is a scalar `(source, series_id, observation_date, value, …)`
+    model; a stock bar is multi-field. Encode `series_id = <ticker>:<field>`
+    (e.g. `AAPL:close`, `AAPL:adjClose`, `AAPL:divCash`, `AAPL:splitFactor`,
+    `AAPL:volume`) — the same composite-id convention Treasury
+    (`<dataset>:<field>`) and World Bank (`<country>:<indicator>`) already
+    use. This keeps **every** downstream mechanism (DQ, replay, PIT, the Gold
+    transforms) working with zero schema change; the trade-off is more series
+    rows. *Alternative:* a dedicated wide `silver_equity_bar` table — more
+    natural for OHLCV but breaks the one-path principle and needs its own
+    Gold; only adopt it if true bar semantics are needed downstream.
+-   **Not revised → `vintage_enabled: false`, blank `realtime_start`** (same
+    as `rates.yml` market data). Incremental restate-last-N still applies:
+    pull the last ~5 observations each run to catch late split/dividend
+    corrections.
+-   **Keys**: `tiingo_api_key` config setting / `TIINGO_API_KEY` env var /
+    Databricks secret scope, exactly like `eia_api_key`; Stooq and the
+    holdings CSV are keyless. The CLI only demands the key when a `tiingo`
+    series is active.
+
+## New Gold objects
+
+Computed by the shared-Python-engine pattern (one function, both backends),
+like every other Gold table:
+
+-   **`gold.equity_total_return_index`** — the payoff of this whole plan.
+    `TR_t = TR_{t−1} × (P_t + D_t) / P_{t−1}` from raw `close` + `divCash`
+    (dividends reinvested), indexed to 100 at each series' start. One row per
+    ticker × date. Rebuildable when a dividend is restated.
+-   **`gold.equity_return_daily`** — price return from `adjClose` (already
+    split-adjusted) and total return day-over-day, per ticker × date; MoM/YoY/
+    trailing-window horizons reuse the existing transform + rolling-window
+    engines directly.
+-   **`gold.index_constituents`** — ticker × weight × shares × as-of × index,
+    exploded from the holdings CSV.
+-   **Free reuse:** point Stooq's and Tiingo's `close` for the same ticker at
+    the existing **cross-source reconciliation** engine
+    (`config/reconciliations.yml`) to flag price disagreements — no new code.
+
+## Open decisions (for the user)
+
+1.  **Which repo owns equities.** ✅ **Decided: this repo.** Equities live in
+    this medallion pipeline; `market_terminal` stays separate (see the
+    Ownership note above).
+2.  **Scalar-explode vs. a wide `silver_equity_bar`** (recommendation:
+    scalar-explode — see above).
+3.  **Tiingo symbol budget** — trim the core list under the ~500/month cap, or
+    accept Yahoo overflow for the tail (and its fragility/ToS risk).
+4.  **Commercial use** — ✅ **Decided: personal use.** Tiingo's free tier
+    covers this, so the total-return path is unblocked and no paid plan is
+    needed. (If usage ever turns commercial, revisit — the free tier would no
+    longer apply and the total-return path would need paid Tiingo or a
+    different dividend source.)
 
 ------------------------------------------------------------------------
 

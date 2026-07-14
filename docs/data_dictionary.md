@@ -356,6 +356,60 @@ is **fully populated** (no partial-window stats), and all stats are
 trailing-only, so they are point-in-time safe. In Power BI, put `window` on
 a slicer and one visual serves all horizons.
 
+#### `gold.macro_regime_daily`
+The REGIME playbook (`config/regime.yml`): one row per emission date (the
+union of the pillar inputs' post-transform dates, once every pillar is live).
+The five pillar scores are weighted means of direction-adjusted **expanding**
+z-scores of their input series, carried as-of within `max_staleness_days`
+(an input staler than the cap drops out; a pillar with no live input
+suppresses the row). Score semantics: growth high = strong, inflation high =
+hot, liquidity high = loose, credit high = stressed, policy high =
+tightening. `composite_score` is the `composite_weight`-signed mean (higher
+= friendlier macro mix). `regime_name` comes from the ordered rule table
+(first match wins, else the default); `regime_confidence` is the smallest
+z-margin by which the matched rule's conditions clear (`NULL` for the
+default regime).
+
+#### `gold.series_correlation`
+The STAT lab (`config/stats_pairs.yml`): Pearson correlation per pair ×
+`window` × date over transformed (default first-differenced), date-aligned
+series. `window` 0 = expanding full sample to date (from the 3rd common
+observation); rolling windows emit only once fully populated. `correlation`
+is `NULL` when either window is constant.
+
+#### `gold.series_lead_lag`
+The EDA lead-lag lab: full-sample cross-correlation at lags
+−`max_lag`..+`max_lag` per pair (**positive lag = `series_a` leads
+`series_b`**), with `best_lag` (largest |CCF|) and both Granger F-test
+directions (`granger_f_ab`/`granger_p_ab` = "does a help predict b?", lag
+order `granger_lags`) denormalized onto every row; `as_of_date` is the last
+common observation. p-values are exact F-distribution tails computed in pure
+Python (regularized incomplete beta — no SciPy).
+
+#### `gold.global_inflation`
+GCPI (`config/global_series.yml`): one row per country × print — CPI YoY in
+percent (`level` entries are already YoY rates, e.g. World Bank
+`FP.CPI.TOTL.ZG`; `yoy_from_index` computes it from a CPI index),
+`change_pp` vs. the prior print, `trend` (accelerating/cooling/flat, ±0.05pp
+dead-band), `streak` (signed consecutive prints: +n accelerating, −n
+cooling, flat resets), and `target_pct`/`vs_target_pp` (central-bank target
+gap). Slice by `region` (AMER/EMEA/APAC).
+
+#### `gold.global_policy_rates`
+GPOL: one row per country × print — `policy_rate_pct`, `change_bps` vs. the
+prior print, `last_move_bps` (most recent move >1bp, carried), `stance`
+(hiking/cutting from that move's sign; on-hold before any move), and
+`real_rate_pct` (policy − the country's latest CPI YoY print on-or-before
+the date, when an inflation entry for the same `iso3` is configured and at
+most ~400 days old).
+
+#### `gold.powerbi_catalog`
+The report author's manifest: one row per Gold object with `object_type`
+(dimension/fact/reference), the terminal `module` it serves, `grain`,
+`intended_visual`, and a description. Single source of truth is
+`fred_pipeline.global_views.POWERBI_CATALOG`; a test fails if a `gold_*`
+table is added without a catalog row.
+
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
 point_in_time_features(as_of)` return each series' value **as it was known** on

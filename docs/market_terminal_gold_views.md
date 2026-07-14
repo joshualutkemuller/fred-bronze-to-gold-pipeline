@@ -525,14 +525,49 @@ IMPLEMENTED**
 - `GC−OIS`/`FRA−OIS` remain "needs external input" (no OIS on FRED); FCOST's
   blended-cost decomposition is covered by the tape + spreads.
 
-**Phase 5 — Regime + Stats.**
-- `config/regime.yml`, `config/stats_pairs.yml`; build `gold.macro_regime_daily`,
-  `gold.series_correlation`, `gold.series_lead_lag`. Regime depends on Phase 3/4
-  inputs.
+**Phase 5 — Regime + Stats. — IMPLEMENTED**
+- `config/regime.yml`: five fixed pillars (growth/inflation/liquidity/credit/
+  policy), each a weighted blend of direction-adjusted **expanding** z-scores
+  of its inputs (transform: level/diff/mom/yoy), carried as-of with a
+  staleness cap; a `composite_weight`-signed composite; and an **ordered rule
+  table** naming the regime (first match wins, default `Neutral`), with
+  `regime_confidence` = the smallest z-margin the matched rule clears. The
+  liquidity/credit pillars run off the official indices (NFCI/ANFCI/STLFSI4/
+  NFCICREDIT) as planned; inactive-manifest inputs (BAMLH0A0HYM2, EFFR) join
+  the blend automatically on activation. Engine
+  `regime_stats.compute_macro_regime` → `gold.macro_regime_daily`.
+- `config/stats_pairs.yml`: 8 curated pairs (per open question #3 — curated,
+  not N²), per-leg transforms defaulting to `diff` (level correlations on
+  trending series are spurious), windows 63/252/expanding, ±12-lag CCF,
+  Granger lag order 4. Engines `compute_series_correlation` (prefix-sum
+  rolling Pearson) → `gold.series_correlation` and `compute_series_lead_lag`
+  (CCF + two-direction Granger F with an exact pure-Python p-value via the
+  regularized incomplete beta — no SciPy; ridge fallback keeps the F defined
+  under exact collinearity) → `gold.series_lead_lag`.
+- Regime thresholds are config, not code — tune them in `regime.yml` once
+  real history is loaded (open question #2).
 
-**Phase 6 — Global + Power BI catalog.**
-- `gold.global_inflation`, `gold.global_policy_rates` (gated on international
-  ingest); `gold.v_powerbi_catalog`; the Power BI `.pbix` starter model.
+**Phase 6 — Global + Power BI catalog. — IMPLEMENTED**
+- `config/global_series.yml` + loader (`global_config.py`): 12 countries
+  across AMER/EMEA/APAC with central-bank targets. The US rows run off
+  **already-active** series (`CPIAUCSL` via `yoy_from_index`, `FEDFUNDS`), so
+  both tables populate immediately; the World Bank `ISO3:FP.CPI.TOTL.ZG`
+  entries (annual YoY %, added to `worldbank_global.yml`) and the ECB rates
+  (new `manifests/global_policy.yml`) ship inactive, verify-first.
+- Engines in `global_views.py`: `compute_global_inflation` →
+  `gold.global_inflation` (GCPI: YoY %, change, accelerating/cooling/flat
+  trend with a ±0.05pp dead-band, signed consecutive-print streaks,
+  vs-target gap) and `compute_global_policy_rates` →
+  `gold.global_policy_rates` (GPOL: rate, change bps, last-move-carried
+  stance, ex-post real rate via an as-of join to the country's CPI prints).
+- `gold.powerbi_catalog`: the report author's manifest of every Gold object
+  (name, type, terminal module, grain, intended visual, description), driven
+  by one Python constant (`global_views.POWERBI_CATALOG`) — a **table**, not
+  the view the plan sketched, so the row list isn't hand-duplicated across
+  SQL dialects. A test fails if a `gold_*` table exists without a catalog
+  row, keeping it current.
+- The starter `.pbix` (open question #4) remains the only unshipped item —
+  awaiting the user's call.
 
 **Cross-cutting for every phase:** pure-Python engine function + unit tests
 (both backends assert identical output); SQLite `_SCHEMA` table + view;

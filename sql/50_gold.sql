@@ -581,3 +581,129 @@ CREATE TABLE IF NOT EXISTS gold.treasury_curve_rolling (
     zscore           DOUBLE
 )
 USING DELTA;
+
+-- ============================================================================
+-- Phase 5 regime playbook + statistical lab (docs/market_terminal_gold_views
+-- .md §4.8–4.9). Computed by fred_pipeline.regime_stats (configs:
+-- config/regime.yml / stats_pairs.yml) and written by
+-- fred_pipeline.gold._build_regime_stats; DDL provisions shapes only.
+-- ============================================================================
+
+-- One row per emission date (union of pillar-input dates, once every pillar
+-- is live): the five pillar scores (weighted, direction-adjusted expanding
+-- z-scores of config/regime.yml inputs, carried as-of within
+-- max_staleness_days), the composite (composite_weight-signed mean; higher =
+-- friendlier macro mix), the named regime (ordered rule table, first match
+-- wins, else default), and regime_confidence (smallest z-margin by which the
+-- matched rule's conditions clear; NULL for the default regime).
+CREATE TABLE IF NOT EXISTS gold.macro_regime_daily (
+    observation_date  DATE,
+    growth_score      DOUBLE,
+    inflation_score   DOUBLE,
+    liquidity_score   DOUBLE,
+    credit_score      DOUBLE,
+    policy_score      DOUBLE,
+    composite_score   DOUBLE,
+    regime_name       STRING,
+    regime_confidence DOUBLE
+)
+USING DELTA;
+
+-- Pearson correlation per configured pair × window × date over transformed
+-- (default first-differenced), date-aligned series. window 0 = expanding
+-- full sample to date (from the 3rd common obs); rolling windows emit only
+-- once fully populated.
+CREATE TABLE IF NOT EXISTS gold.series_correlation (
+    series_a         STRING,
+    series_b         STRING,
+    transform_a      STRING,
+    transform_b      STRING,
+    window           INT,
+    observation_date DATE,
+    correlation      DOUBLE,
+    n_obs            INT
+)
+USING DELTA;
+
+-- Cross-correlation at lags -max_lag..+max_lag per configured pair
+-- (positive lag = series_a LEADS series_b), with the pair's best_lag
+-- (largest |CCF|) and both Granger F-test directions (granger_*_ab = does a
+-- help predict b?) denormalized onto every row. p-values are exact
+-- F-distribution tails (pure-Python incomplete beta, no SciPy).
+CREATE TABLE IF NOT EXISTS gold.series_lead_lag (
+    series_a          STRING,
+    series_b          STRING,
+    transform_a       STRING,
+    transform_b       STRING,
+    lag               INT,
+    cross_correlation DOUBLE,
+    n_obs             INT,
+    best_lag          INT,
+    granger_f_ab      DOUBLE,
+    granger_p_ab      DOUBLE,
+    granger_f_ba      DOUBLE,
+    granger_p_ba      DOUBLE,
+    as_of_date        DATE
+)
+USING DELTA;
+
+-- ============================================================================
+-- Phase 6 global tables + Power BI catalog (docs/market_terminal_gold_views
+-- .md §4.9 global modules). Computed by fred_pipeline.global_views (config:
+-- config/global_series.yml) and written by
+-- fred_pipeline.gold._build_global_views; DDL provisions shapes only.
+-- ============================================================================
+
+-- CPI YoY by country (GCPI): one row per country x print — the YoY rate in
+-- percent, change vs the prior print, a trend verdict (accelerating/cooling/
+-- flat, ±0.05pp dead-band), the signed consecutive-print streak (+n
+-- accelerating / -n cooling; flat resets), and the gap to the central-bank
+-- target. World Bank FP.CPI.TOTL.ZG entries are annual; the US runs off
+-- monthly CPIAUCSL (yoy_from_index).
+CREATE TABLE IF NOT EXISTS gold.global_inflation (
+    country          STRING,
+    iso3             STRING,
+    region           STRING,
+    series_id        STRING,
+    observation_date DATE,
+    cpi_yoy_pct      DOUBLE,
+    change_pp        DOUBLE,
+    trend            STRING,
+    streak           INT,
+    target_pct       DOUBLE,
+    vs_target_pp     DOUBLE
+)
+USING DELTA;
+
+-- Policy rates by country (GPOL): one row per country x print — the rate in
+-- percent, change vs prior print in bps, the most recent nonzero move
+-- (carried), the stance from that move's sign (hiking/cutting; on-hold
+-- before any move), and the ex-post real rate (policy − the country's
+-- latest CPI YoY print on-or-before the date, when configured and fresh).
+CREATE TABLE IF NOT EXISTS gold.global_policy_rates (
+    country          STRING,
+    iso3             STRING,
+    region           STRING,
+    series_id        STRING,
+    observation_date DATE,
+    policy_rate_pct  DOUBLE,
+    change_bps       DOUBLE,
+    last_move_bps    DOUBLE,
+    stance           STRING,
+    real_rate_pct    DOUBLE
+)
+USING DELTA;
+
+-- The report author's manifest of Gold objects: name, type, terminal module,
+-- grain, intended Power BI visual, description. Single source of truth is
+-- fred_pipeline.global_views.POWERBI_CATALOG (a table, not the view the plan
+-- sketched, so the row list isn't hand-duplicated across SQL dialects).
+CREATE TABLE IF NOT EXISTS gold.powerbi_catalog (
+    object_name     STRING,
+    object_type     STRING,
+    module          STRING,
+    grain           STRING,
+    intended_visual STRING,
+    description     STRING
+)
+USING DELTA;

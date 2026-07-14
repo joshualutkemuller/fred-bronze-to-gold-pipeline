@@ -1,0 +1,27 @@
+# Statistical lab pairs (gold.series_correlation / gold.series_lead_lag,
+# terminal modules STAT/EDA). A curated list, not the full N² matrix — Gold
+# precomputes, so every pair listed here costs rows; add what you actually
+# chart. Transforms default to diff (correlating trending LEVELS is spurious
+# more often than not); use level deliberately (e.g. mean-reverting indices).
+#
+# windows: rolling-correlation windows in observations; 0 = expanding.
+# max_lag: cross-correlation computed at lags -max_lag..+max_lag (positive
+#   lag = series_a leads series_b).
+# granger_lags: lag order of the Granger F-test (both directions).
+
+windows: [63, 252, 0]
+max_lag: 12
+granger_lags: 4
+
+pairs:
+  # rates complex
+  - {series_a: DGS2,  series_b: DGS10}                      # front vs long end
+  - {series_a: DGS10, series_b: DTWEXBGS}                   # rates vs dollar
+  - {series_a: T10YIE, series_b: DGS10}                     # breakevens vs nominals
+  # macro lead-lag
+  - {series_a: CFNAI,  series_b: UNRATE, transform_a: level}  # activity leads labor
+  - {series_a: NFCI,   series_b: UNRATE, transform_a: level}  # conditions lead labor
+  - {series_a: PERMIT, series_b: HOUST}                       # permits lead starts
+  - {series_a: T10YIE, series_b: CPILFESL, transform_b: yoy}  # expectations vs core
+  # conditions vs markets
+  - {series_a: STLFSI4, series_b: DGS10, transform_a: level}
