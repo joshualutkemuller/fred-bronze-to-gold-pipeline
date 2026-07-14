@@ -1011,25 +1011,29 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
     )
 
     from fred_pipeline.equity_views import (
-        compute_equity_return_daily, compute_index_constituents,
+        compute_equity_return_daily,
+        compute_equity_total_return_index,
+        compute_index_constituents,
     )
 
-    latest = config.table("gold", "fred_latest_observation")
     silver = config.table("silver", "fred_observation")
-    # equity_return_daily reads the latest-revised :close series; constituents
-    # read the holdings weight series from Silver (source='ishares').
-    close_rows = [
-        r.asDict() for r in spark.sql(
-            f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
-            f"value, is_missing FROM {latest} WHERE series_id LIKE '%:close'"
-        ).collect()
-    ]
-    holdings_rows = [
-        r.asDict() for r in spark.sql(
-            f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
-            f"value, is_missing FROM {silver} WHERE source = 'ishares'"
-        ).collect()
-    ]
+
+    def _rows(source: str) -> list[dict[str, Any]]:
+        # Read raw Silver by source — equity data is non-vintage (one row per
+        # (series_id, date)), so no latest-revision reduction is needed, and
+        # source-filtering keeps Stooq's and Tiingo's shared <ticker>:close
+        # namespaces from colliding (which the merged latest table would).
+        return [
+            r.asDict() for r in spark.sql(
+                f"SELECT series_id, "
+                f"CAST(observation_date AS STRING) AS observation_date, "
+                f"value, is_missing FROM {silver} WHERE source = '{source}'"
+            ).collect()
+        ]
+
+    close_rows = _rows("stooq")
+    holdings_rows = _rows("ishares")
+    tiingo_rows = _rows("tiingo")
 
     spark.createDataFrame(
         compute_equity_return_daily(close_rows),
@@ -1065,6 +1069,30 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
     ).write.format("delta").mode("overwrite").option(
         "overwriteSchema", "true"
     ).saveAsTable(config.table("gold", "index_constituents"))
+
+    spark.createDataFrame(
+        compute_equity_total_return_index(tiingo_rows),
+        schema=StructType([
+            StructField("ticker", StringType()),
+            StructField("observation_date", StringType()),
+            StructField("close", DoubleType()),
+            StructField("dividend", DoubleType()),
+            StructField("split_factor", DoubleType()),
+            StructField("price_return", DoubleType()),
+            StructField("total_return", DoubleType()),
+            StructField("price_return_index", DoubleType()),
+            StructField("total_return_index", DoubleType()),
+            StructField("trailing_12m_dividend", DoubleType()),
+            StructField("dividend_yield_pct", DoubleType()),
+        ]),
+    ).selectExpr(
+        "ticker", "CAST(observation_date AS DATE) AS observation_date", "close",
+        "dividend", "split_factor", "price_return", "total_return",
+        "price_return_index", "total_return_index", "trailing_12m_dividend",
+        "dividend_yield_pct",
+    ).write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(config.table("gold", "equity_total_return_index"))
 
 
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
@@ -1118,6 +1146,9 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     ):
         results[name] = "ok"
     _build_equity_views(config, spark)
-    for name in ("equity_return_daily", "index_constituents"):
+    for name in (
+        "equity_return_daily", "index_constituents",
+        "equity_total_return_index",
+    ):
         results[name] = "ok"
     return results

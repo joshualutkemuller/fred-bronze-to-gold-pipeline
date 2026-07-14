@@ -1,25 +1,30 @@
 """Equity Gold engines (pure Python), shared by both backends.
 
-First slice of the equity sub-plan (handoff.md → "Equity Price & Total Return
-— Two-Source Sub-Plan"): the licensing-free Stooq price-return and the ETF
-constituent tables. The Tiingo total-return path
-(``gold.equity_total_return_index``) is the planned second slice.
+Equity sub-plan (handoff.md → "Equity Price & Total Return — Two-Source
+Sub-Plan"):
 
   * :func:`compute_equity_return_daily` → ``gold.equity_return_daily``: daily
-    price return per ticker from the exploded ``<ticker>:close`` Silver series
-    (Stooq close is split-adjusted, so this is a clean price return).
+    price return per ticker from the exploded Stooq ``<ticker>:close`` series
+    (split-adjusted close → clean price return).
   * :func:`compute_index_constituents` → ``gold.index_constituents``: the
-    per-snapshot constituent weights exploded from ``<ETF>:<constituent>``
-    holdings series, with each ETF's latest snapshot flagged.
+    per-snapshot ETF constituent weights from ``<ETF>:<constituent>`` series.
+  * :func:`compute_equity_total_return_index` →
+    ``gold.equity_total_return_index``: true total return per ticker from the
+    Tiingo raw inputs (``close`` + ``divCash`` + ``splitFactor``), dividends
+    reinvested — derived from raw so it survives dividend restatements.
 
-Both read the scalar Silver directly — the ``<ticker>:<field>`` /
-``<ETF>:<constituent>`` composite-id convention lets equity bars and holdings
-lists fit the single-``value`` schema with no new tables in Bronze/Silver.
+**Source isolation.** Stooq and Tiingo both name a ``<ticker>:close`` series,
+so the callers pass **source-filtered** Silver rows (Stooq → price return,
+Tiingo → total return, iShares → constituents) rather than the merged
+latest-observation table — which would otherwise collapse the two ``:close``
+sources for the same ticker/date onto one row. The engines themselves stay
+source-agnostic (they just consume the rows handed to them).
 """
 
 from __future__ import annotations
 
-from datetime import date
+from bisect import bisect_left
+from datetime import date, timedelta
 from typing import Any, Iterable
 
 from fred_pipeline.features import _parse, _pct_change
@@ -120,4 +125,95 @@ def compute_index_constituents(
                     "weight_rank": rank,
                     "is_latest_snapshot": obs_date == latest_date,
                 })
+    return out
+
+
+# ---- Tiingo total return ---------------------------------------------------
+
+def _field_maps(
+    tiingo_rows: Iterable[dict[str, Any]]
+) -> dict[str, dict[str, dict[date, float]]]:
+    """Group exploded Tiingo rows into ``ticker -> field -> {date: value}``
+    for the ``close`` / ``divCash`` / ``splitFactor`` fields."""
+    wanted = {"close", "divCash", "splitFactor"}
+    out: dict[str, dict[str, dict[date, float]]] = {}
+    for r in tiingo_rows:
+        if r.get("is_missing") or r.get("value") is None:
+            continue
+        ticker, sep, field = r.get("series_id", "").partition(":")
+        if not sep or field not in wanted:
+            continue
+        d = _parse(r.get("observation_date"))
+        if d is None:
+            continue
+        out.setdefault(ticker, {}).setdefault(field, {})[d] = float(r["value"])
+    return out
+
+
+def compute_equity_total_return_index(
+    tiingo_rows: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """``gold.equity_total_return_index``: true total return per ticker × date
+    reconstructed from the Tiingo raw inputs (``close`` + ``divCash`` +
+    ``splitFactor``), dividends reinvested.
+
+    Per day, using the split-adjusted convention (``close`` is the raw close;
+    ``splitFactor`` is that day's split ratio; ``divCash`` the per-share cash
+    dividend):
+
+        price_return_t = close_t / close_{t-1} × splitFactor_t − 1
+        total_return_t = (close_t + divCash_t) / close_{t-1} × splitFactor_t − 1
+
+    A split day (price halves, factor 2) nets ~0; a dividend day adds
+    ``div/close_{t-1}``. ``total_return_index`` / ``price_return_index`` are
+    cumulative (=100 at each ticker's first date); their gap is the reinvested
+    income. ``trailing_12m_dividend`` sums ``divCash`` over the trailing 365
+    days and ``dividend_yield_pct`` divides it by the close. Deriving from raw
+    inputs (not Tiingo's ``adjClose``) means the series can be rebuilt and
+    diffed when a dividend is restated. Same-day split+dividend (rare) uses the
+    formula as written.
+    """
+    maps = _field_maps(tiingo_rows)
+    out: list[dict[str, Any]] = []
+    for ticker in sorted(maps):
+        closes = maps[ticker].get("close")
+        if not closes:
+            continue
+        divs = maps[ticker].get("divCash", {})
+        splits = maps[ticker].get("splitFactor", {})
+        dates = sorted(closes)
+        div_dates = sorted(divs)
+        tr_index = pr_index = 100.0
+        prev_close: float | None = None
+        for d in dates:
+            close = closes[d]
+            div = divs.get(d, 0.0)
+            split = splits.get(d, 1.0) or 1.0
+            if prev_close and prev_close > 0:
+                pr = close / prev_close * split - 1.0
+                tr = (close + div) / prev_close * split - 1.0
+                pr_index *= 1.0 + pr
+                tr_index *= 1.0 + tr
+            else:
+                pr = tr = None
+            # trailing-365d dividend sum (inclusive), via the sorted div dates.
+            cutoff = d - timedelta(days=365)
+            ttm_div = sum(
+                divs[dd] for dd in div_dates[bisect_left(div_dates, cutoff):]
+                if dd <= d
+            )
+            out.append({
+                "ticker": ticker,
+                "observation_date": d.isoformat(),
+                "close": close,
+                "dividend": div,
+                "split_factor": split,
+                "price_return": pr,
+                "total_return": tr,
+                "price_return_index": pr_index,
+                "total_return_index": tr_index,
+                "trailing_12m_dividend": ttm_div,
+                "dividend_yield_pct": (ttm_div / close * 100.0) if close else None,
+            })
+            prev_close = close
     return out

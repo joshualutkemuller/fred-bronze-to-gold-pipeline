@@ -281,6 +281,12 @@ CREATE TABLE IF NOT EXISTS gold_index_constituents (
     index_etf TEXT, constituent TEXT, observation_date TEXT,
     weight_pct REAL, weight_rank INTEGER, is_latest_snapshot INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_equity_total_return_index (
+    ticker TEXT, observation_date TEXT, close REAL, dividend REAL,
+    split_factor REAL, price_return REAL, total_return REAL,
+    price_return_index REAL, total_return_index REAL,
+    trailing_12m_dividend REAL, dividend_yield_pct REAL
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -754,18 +760,27 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_powerbi_catalog")
         self._insert("gold_powerbi_catalog", powerbi_catalog_rows())
 
-        # Equity slice: Stooq price return + ETF constituents (scalar-explode
-        # <ticker>:close / <ETF>:<constituent> Silver series).
+        # Equity slice: price return (Stooq), constituents (iShares), total
+        # return (Tiingo). Fed source-filtered Silver rows so the shared
+        # <ticker>:close namespace can't collapse Stooq and Tiingo onto one row
+        # (equity data is non-vintage → one row per (series_id, date) already).
         from fred_pipeline.equity_views import (
             compute_equity_return_daily,
+            compute_equity_total_return_index,
             compute_index_constituents,
         )
+        stooq_rows = [r for r in silver if r.get("source") == "stooq"]
+        ishares_rows = [r for r in silver if r.get("source") == "ishares"]
+        tiingo_rows = [r for r in silver if r.get("source") == "tiingo"]
         self.conn.execute("DELETE FROM gold_equity_return_daily")
         self._insert("gold_equity_return_daily",
-                     compute_equity_return_daily(latest))
+                     compute_equity_return_daily(stooq_rows))
         self.conn.execute("DELETE FROM gold_index_constituents")
         self._insert("gold_index_constituents",
-                     compute_index_constituents(latest))
+                     compute_index_constituents(ishares_rows))
+        self.conn.execute("DELETE FROM gold_equity_total_return_index")
+        self._insert("gold_equity_total_return_index",
+                     compute_equity_total_return_index(tiingo_rows))
 
         self.conn.commit()
         return {k: "ok" for k in (
@@ -788,6 +803,7 @@ class LocalWarehouse:
             "macro_regime_daily", "series_correlation", "series_lead_lag",
             "global_inflation", "global_policy_rates", "powerbi_catalog",
             "equity_return_daily", "index_constituents",
+            "equity_total_return_index",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

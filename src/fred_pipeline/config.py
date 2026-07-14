@@ -51,6 +51,7 @@ _SETTING_FIELDS = (
     "bea_api_key",
     "census_api_key",
     "sec_user_agent",
+    "tiingo_api_key",
     "secret_scope",
     "secret_key",
     "request_timeout_seconds",
@@ -73,6 +74,7 @@ _ENV_OVERRIDES = {
     "bea_api_key": "BEA_API_KEY",
     "census_api_key": "CENSUS_API_KEY",
     "sec_user_agent": "SEC_USER_AGENT",
+    "tiingo_api_key": "TIINGO_API_KEY",
     "secret_scope": "FRED_SECRET_SCOPE",
     "secret_key": "FRED_SECRET_KEY",
     "request_timeout_seconds": "FRED_REQUEST_TIMEOUT_SECONDS",
@@ -199,6 +201,7 @@ class PipelineConfig:
     bea_api_key: str = field(repr=False, default="")
     census_api_key: str = field(repr=False, default="")
     sec_user_agent: str = "fred-bronze-to-gold-pipeline (set SEC_USER_AGENT to your contact)"
+    tiingo_api_key: str = field(repr=False, default="")  # equity total return
     secret_scope: str = "fred"
     secret_key: str = "api_key"
     request_timeout_seconds: int = 30

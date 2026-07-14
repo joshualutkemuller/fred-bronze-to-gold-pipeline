@@ -745,3 +745,25 @@ CREATE TABLE IF NOT EXISTS gold.index_constituents (
     is_latest_snapshot BOOLEAN
 )
 USING DELTA;
+
+-- Equity total return (source: tiingo; scalar-explode <ticker>:close/divCash/
+-- splitFactor). One row per ticker x date: raw close, dividend, split factor;
+-- daily price and total return (split-adjusted, dividends reinvested);
+-- cumulative price- and total-return indices (=100 at each ticker's first
+-- date; their gap is reinvested income); trailing-12m dividend and yield.
+-- Derived from RAW inputs (not Tiingo adjClose) so it survives dividend
+-- restatements. Written by fred_pipeline.gold._build_equity_views.
+CREATE TABLE IF NOT EXISTS gold.equity_total_return_index (
+    ticker                STRING,
+    observation_date      DATE,
+    close                 DOUBLE,
+    dividend              DOUBLE,
+    split_factor          DOUBLE,
+    price_return          DOUBLE,
+    total_return          DOUBLE,
+    price_return_index    DOUBLE,
+    total_return_index    DOUBLE,
+    trailing_12m_dividend DOUBLE,
+    dividend_yield_pct    DOUBLE
+)
+USING DELTA;

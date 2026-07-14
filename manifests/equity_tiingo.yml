@@ -1,0 +1,30 @@
+name: equity_tiingo
+description: >
+  Demo equity total-return manifest (source: tiingo) — broad ETFs + large-cap
+  constituents. Tiingo needs a free account key (set TIINGO_API_KEY /
+  tiingo_api_key); personal-use free tier. series_id is the BARE TICKER (e.g.
+  AAPL): one fetch explodes into <ticker>:close/divCash/splitFactor/adjClose
+  Silver series, from which gold.equity_total_return_index reconstructs true
+  total return. Shipped inactive.
+
+  Quota note: the free tier caps UNIQUE SYMBOLS per month (~500) and daily
+  requests (~1,000) — one ticker = one request here, so keep the active set
+  within budget (broad ETFs + a trimmed constituent list). Generate a fuller
+  list from an ETF holdings CSV with sources.ishares.build_equity_manifest
+  (pass source='tiingo', field is ignored for Tiingo — the ticker is bare).
+
+  ⚠️ VERIFY BEFORE ACTIVATING: tickers listed from memory, not checked against
+  Tiingo from this environment. A wrong symbol fails only its own series.
+version: 1
+
+series:
+  - {series_id: SPY,  title: SPDR S&P 500 ETF,          category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 1, min_value: 0, tags: [equity, etf, tiingo, total_return]}
+  - {series_id: VTI,  title: Vanguard Total Market ETF,  category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, etf, tiingo, total_return]}
+  - {series_id: QQQ,  title: Invesco QQQ (Nasdaq 100),   category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, etf, tiingo, total_return]}
+  - {series_id: IWM,  title: iShares Russell 2000 ETF,   category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, etf, tiingo, total_return]}
+  - {series_id: AGG,  title: iShares Core US Aggregate Bond, category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 3, min_value: 0, tags: [equity, etf, bond, tiingo, total_return]}
+  - {series_id: TLT,  title: iShares 20+ Year Treasury,  category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 3, min_value: 0, tags: [equity, etf, bond, tiingo, total_return]}
+  - {series_id: HYG,  title: iShares iBoxx HY Corp Bond, category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 3, min_value: 0, tags: [equity, etf, credit, tiingo, total_return]}
+  - {series_id: AAPL, title: Apple Inc,      category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, stock, tiingo, total_return]}
+  - {series_id: MSFT, title: Microsoft Corp, category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, stock, tiingo, total_return]}
+  - {series_id: JNJ,  title: Johnson & Johnson (dividend payer), category: equity, frequency: d, units: USD, active: false, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, stock, dividend, tiingo, total_return]}

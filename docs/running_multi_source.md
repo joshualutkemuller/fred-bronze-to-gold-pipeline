@@ -25,6 +25,7 @@ Set environment variables (the recommended way — nothing lands in git):
 | BLS | `BLS_API_KEY` | Optional — keyless works at a lower daily quota | https://data.bls.gov/registrationEngine/ |
 | Census | `CENSUS_API_KEY` | Optional — keyless works | https://api.census.gov/data/key_signup.html |
 | SEC | `SEC_USER_AGENT` | Not a key — set to your **contact email**; SEC requires an identifying User-Agent | — |
+| Tiingo (equity total return) | `TIINGO_API_KEY` | **Required** for `tiingo` series — free account key (personal use) | https://www.tiingo.com |
 | US Treasury | — | Nothing needed (fully open) | — |
 | World Bank | — | Nothing needed (fully open) | — |
 | Stooq (equity prices) | — | Nothing needed (keyless CSV) | — |
@@ -76,6 +77,7 @@ Manifests you may want to activate:
 | `sec_financials.yml` | sec | company XBRL fundamentals |
 | `equity_stooq.yml` | stooq | broad ETFs + large-cap stocks (price return) |
 | `etf_holdings.yml` | ishares | ETF constituent weights (`gold.index_constituents`) |
+| `equity_tiingo.yml` | tiingo | broad ETFs + stocks total return (needs `TIINGO_API_KEY`) |
 | `macro_flags.yml` | fred | `USREC` — lights up every `is_recession` column |
 | `fed_funding.yml` | fred | EFFR/IORB/OBFR/BGCR/TGCR/… — funding tape + stress gauge |
 | `ice_credit.yml` | fred | ICE BofA OAS — credit-spread table |

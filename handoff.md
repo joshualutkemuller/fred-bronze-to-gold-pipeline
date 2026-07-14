@@ -625,6 +625,11 @@ source-agnostic.
     `sources.ishares.HOLDINGS_URLS`. Demo `manifests/etf_holdings.yml`
     (inactive). Also the symbol-universe generator
     (`sources.ishares.build_equity_manifest`).
+-   **Tiingo** (equity total return) — `source: tiingo`. **Key required**
+    (free tier, personal use). series_id is the bare ticker; one fetch
+    explodes into `<ticker>:close/divCash/splitFactor/adjClose`. Feeds
+    `gold.equity_total_return_index`. Demo `manifests/equity_tiingo.yml`
+    (inactive).
 
 ## How it works
 
@@ -655,14 +660,24 @@ source-agnostic.
 
 # Equity Price & Total Return — Two-Source Sub-Plan (Stooq + Tiingo)
 
-**Status: slice 1 of 2 implemented** — the **Stooq price-return + constituent**
-half is built (`sources/stooq.py`, `sources/ishares.py`,
-`build_equity_manifest`, `equity_views.py` → `gold.equity_return_daily` +
-`gold.index_constituents`, both backends, tests, inactive manifests
-`equity_stooq.yml` / `etf_holdings.yml`). The **Tiingo total-return** half
-(`gold.equity_total_return_index`) is the planned next slice. Adds an
-*equities* asset class reusing the existing Bronze → Silver → DQ → Gold →
-audit path unchanged.
+**Status: implemented (both slices).** The equity asset class is built end to
+end, reusing the existing Bronze → Silver → DQ → Gold → audit path unchanged:
+- **Stooq price return + constituents** — `sources/stooq.py`,
+  `sources/ishares.py`, `build_equity_manifest` → `gold.equity_return_daily`
+  + `gold.index_constituents`; manifests `equity_stooq.yml` / `etf_holdings.yml`.
+- **Tiingo total return** — `sources/tiingo.py` (keyed) →
+  `gold.equity_total_return_index`, dividends reinvested, reconstructed from
+  the **raw** `close` + `divCash` + `splitFactor` (not Tiingo's `adjClose`), so
+  it survives dividend restatements; manifest `equity_tiingo.yml`. Config key
+  `tiingo_api_key` / `TIINGO_API_KEY` (gated only when a `tiingo` series is
+  active).
+
+Both backends, `equity_views.py`, DDL, Power BI catalog rows, and tests are in
+place; all manifests ship inactive (verify-first). **Source isolation:** Stooq
+and Tiingo both name a `<ticker>:close` series, so the Gold equity builders
+read **source-filtered** Silver (Stooq→price, Tiingo→total, iShares→
+constituents) instead of the merged latest table, which would otherwise
+collapse the two `:close` sources onto one row.
 
 **Ownership decided: this repo owns the equity pipeline.** Equities are folded
 into *this* medallion pipeline (gaining PIT / DQ / audit / total-return-from-
