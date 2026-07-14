@@ -492,10 +492,16 @@ reconciliation for non-FRED sources; optional new sources).
 
 # Market Terminal Analytical Views (Power BI Gold plan)
 
-**Status: Phases 0, 1, 2, 3, 3b, 3c, and 4 implemented** (branch
+**Status: Phases 0, 1, 2, 3, 3b, 3c, 4, and 5 implemented** (branch
 `EconGoldTerminalViews`; 3c = rolling-window stats companions
 `gold.curve_spread_rolling` / `credit_spread_rolling` /
-`treasury_curve_rolling`, windows 1/5/10/21/63/126/252 obs) —
+`treasury_curve_rolling`, windows 1/5/10/21/63/126/252 obs; 5 = the regime
+playbook `gold.macro_regime_daily` [five pillar scores from
+`config/regime.yml`, ordered rule table, official conditions indices driving
+liquidity/credit] plus the statistical lab `gold.series_correlation` /
+`gold.series_lead_lag` [curated pairs in `config/stats_pairs.yml`,
+rolling/expanding Pearson, ±12-lag CCF, two-direction Granger F with
+pure-Python p-values]) —
 full spec + per-phase status in `docs/market_terminal_gold_views.md`; column
 semantics in `docs/data_dictionary.md`.
 
@@ -526,8 +532,10 @@ Explorer (`gold.inflation_explorer` / `inflation_contribution`,
 at already-active `CPIAUCSL`/`PCEPI` so headline rows appear immediately; the
 CUUR/CUSR item drill-down fills in when the CPI basket manifests are
 activated, and the shipped group weights are approximate (refresh from the
-BLS relative-importance table). Remaining: Phase 5 (regime + stats), Phase 6
-(global + Power BI catalog), plus the deferred PCE item-level (BEA) follow-up.
+BLS relative-importance table). Remaining: Phase 6 (global GCPI/GPOL tables +
+the Power BI catalog view), plus the deferred PCE item-level (BEA) follow-up
+and the regime-threshold tuning pass once real history is loaded
+(`config/regime.yml` is config, not code).
 
 A separate project, `market_terminal` (a Bloomberg-style quant terminal),
 renders its macro analytics (ECON macro dashboard, INFL inflation explorer, CURV

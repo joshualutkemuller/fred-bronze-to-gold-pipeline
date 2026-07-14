@@ -581,3 +581,68 @@ CREATE TABLE IF NOT EXISTS gold.treasury_curve_rolling (
     zscore           DOUBLE
 )
 USING DELTA;
+
+-- ============================================================================
+-- Phase 5 regime playbook + statistical lab (docs/market_terminal_gold_views
+-- .md §4.8–4.9). Computed by fred_pipeline.regime_stats (configs:
+-- config/regime.yml / stats_pairs.yml) and written by
+-- fred_pipeline.gold._build_regime_stats; DDL provisions shapes only.
+-- ============================================================================
+
+-- One row per emission date (union of pillar-input dates, once every pillar
+-- is live): the five pillar scores (weighted, direction-adjusted expanding
+-- z-scores of config/regime.yml inputs, carried as-of within
+-- max_staleness_days), the composite (composite_weight-signed mean; higher =
+-- friendlier macro mix), the named regime (ordered rule table, first match
+-- wins, else default), and regime_confidence (smallest z-margin by which the
+-- matched rule's conditions clear; NULL for the default regime).
+CREATE TABLE IF NOT EXISTS gold.macro_regime_daily (
+    observation_date  DATE,
+    growth_score      DOUBLE,
+    inflation_score   DOUBLE,
+    liquidity_score   DOUBLE,
+    credit_score      DOUBLE,
+    policy_score      DOUBLE,
+    composite_score   DOUBLE,
+    regime_name       STRING,
+    regime_confidence DOUBLE
+)
+USING DELTA;
+
+-- Pearson correlation per configured pair × window × date over transformed
+-- (default first-differenced), date-aligned series. window 0 = expanding
+-- full sample to date (from the 3rd common obs); rolling windows emit only
+-- once fully populated.
+CREATE TABLE IF NOT EXISTS gold.series_correlation (
+    series_a         STRING,
+    series_b         STRING,
+    transform_a      STRING,
+    transform_b      STRING,
+    window           INT,
+    observation_date DATE,
+    correlation      DOUBLE,
+    n_obs            INT
+)
+USING DELTA;
+
+-- Cross-correlation at lags -max_lag..+max_lag per configured pair
+-- (positive lag = series_a LEADS series_b), with the pair's best_lag
+-- (largest |CCF|) and both Granger F-test directions (granger_*_ab = does a
+-- help predict b?) denormalized onto every row. p-values are exact
+-- F-distribution tails (pure-Python incomplete beta, no SciPy).
+CREATE TABLE IF NOT EXISTS gold.series_lead_lag (
+    series_a          STRING,
+    series_b          STRING,
+    transform_a       STRING,
+    transform_b       STRING,
+    lag               INT,
+    cross_correlation DOUBLE,
+    n_obs             INT,
+    best_lag          INT,
+    granger_f_ab      DOUBLE,
+    granger_p_ab      DOUBLE,
+    granger_f_ba      DOUBLE,
+    granger_p_ba      DOUBLE,
+    as_of_date        DATE
+)
+USING DELTA;

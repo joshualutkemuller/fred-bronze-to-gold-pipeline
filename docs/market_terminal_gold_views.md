@@ -525,10 +525,27 @@ IMPLEMENTED**
 - `GC−OIS`/`FRA−OIS` remain "needs external input" (no OIS on FRED); FCOST's
   blended-cost decomposition is covered by the tape + spreads.
 
-**Phase 5 — Regime + Stats.**
-- `config/regime.yml`, `config/stats_pairs.yml`; build `gold.macro_regime_daily`,
-  `gold.series_correlation`, `gold.series_lead_lag`. Regime depends on Phase 3/4
-  inputs.
+**Phase 5 — Regime + Stats. — IMPLEMENTED**
+- `config/regime.yml`: five fixed pillars (growth/inflation/liquidity/credit/
+  policy), each a weighted blend of direction-adjusted **expanding** z-scores
+  of its inputs (transform: level/diff/mom/yoy), carried as-of with a
+  staleness cap; a `composite_weight`-signed composite; and an **ordered rule
+  table** naming the regime (first match wins, default `Neutral`), with
+  `regime_confidence` = the smallest z-margin the matched rule clears. The
+  liquidity/credit pillars run off the official indices (NFCI/ANFCI/STLFSI4/
+  NFCICREDIT) as planned; inactive-manifest inputs (BAMLH0A0HYM2, EFFR) join
+  the blend automatically on activation. Engine
+  `regime_stats.compute_macro_regime` → `gold.macro_regime_daily`.
+- `config/stats_pairs.yml`: 8 curated pairs (per open question #3 — curated,
+  not N²), per-leg transforms defaulting to `diff` (level correlations on
+  trending series are spurious), windows 63/252/expanding, ±12-lag CCF,
+  Granger lag order 4. Engines `compute_series_correlation` (prefix-sum
+  rolling Pearson) → `gold.series_correlation` and `compute_series_lead_lag`
+  (CCF + two-direction Granger F with an exact pure-Python p-value via the
+  regularized incomplete beta — no SciPy; ridge fallback keeps the F defined
+  under exact collinearity) → `gold.series_lead_lag`.
+- Regime thresholds are config, not code — tune them in `regime.yml` once
+  real history is loaded (open question #2).
 
 **Phase 6 — Global + Power BI catalog.**
 - `gold.global_inflation`, `gold.global_policy_rates` (gated on international

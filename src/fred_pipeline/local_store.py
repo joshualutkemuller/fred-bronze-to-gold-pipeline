@@ -244,6 +244,21 @@ CREATE TABLE IF NOT EXISTS gold_treasury_curve_rolling (
     observation_date TEXT, window INTEGER,
     yield_pct REAL, change REAL, pct_change REAL, zscore REAL
 );
+CREATE TABLE IF NOT EXISTS gold_macro_regime_daily (
+    observation_date TEXT, growth_score REAL, inflation_score REAL,
+    liquidity_score REAL, credit_score REAL, policy_score REAL,
+    composite_score REAL, regime_name TEXT, regime_confidence REAL
+);
+CREATE TABLE IF NOT EXISTS gold_series_correlation (
+    series_a TEXT, series_b TEXT, transform_a TEXT, transform_b TEXT,
+    window INTEGER, observation_date TEXT, correlation REAL, n_obs INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_series_lead_lag (
+    series_a TEXT, series_b TEXT, transform_a TEXT, transform_b TEXT,
+    lag INTEGER, cross_correlation REAL, n_obs INTEGER, best_lag INTEGER,
+    granger_f_ab REAL, granger_p_ab REAL, granger_f_ba REAL,
+    granger_p_ba REAL, as_of_date TEXT
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -687,6 +702,21 @@ class LocalWarehouse:
         self._insert("gold_treasury_curve_rolling",
                      compute_treasury_curve_rolling(latest))
 
+        # Phase 5: regime playbook + statistical lab (config/regime.yml,
+        # config/stats_pairs.yml).
+        from fred_pipeline.regime_stats import (
+            compute_macro_regime,
+            compute_series_correlation,
+            compute_series_lead_lag,
+        )
+        self.conn.execute("DELETE FROM gold_macro_regime_daily")
+        self._insert("gold_macro_regime_daily", compute_macro_regime(latest))
+        self.conn.execute("DELETE FROM gold_series_correlation")
+        self._insert("gold_series_correlation",
+                     compute_series_correlation(latest))
+        self.conn.execute("DELETE FROM gold_series_lead_lag")
+        self._insert("gold_series_lead_lag", compute_series_lead_lag(latest))
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -705,6 +735,7 @@ class LocalWarehouse:
             "inflation_explorer", "inflation_contribution",
             "curve_spread_rolling", "credit_spread_rolling",
             "treasury_curve_rolling",
+            "macro_regime_daily", "series_correlation", "series_lead_lag",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

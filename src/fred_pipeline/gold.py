@@ -844,6 +844,92 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
          "rank_in_month", "is_headline_total"])
 
 
+def _build_regime_stats(config: PipelineConfig, spark: Any) -> None:
+    """Build the Phase-5 regime playbook + statistical lab tables
+    (``gold.macro_regime_daily``, ``series_correlation``, ``series_lead_lag``)
+    by reusing the pure-Python engines in :mod:`fred_pipeline.regime_stats` —
+    same collect-and-compute pattern as :func:`_build_terminal_views`.
+    Collected input is bounded to the pillar-input and pair series."""
+    from pyspark.sql.types import (
+        DoubleType, IntegerType, StringType, StructField, StructType,
+    )
+
+    from fred_pipeline.regime_stats import (
+        compute_macro_regime,
+        compute_series_correlation,
+        compute_series_lead_lag,
+    )
+    from fred_pipeline.regime_stats_config import (
+        load_regime_config, load_stats_config,
+    )
+
+    def _write(name: str, rows: list[dict[str, Any]], schema: Any, casts: list[str]) -> None:
+        spark.createDataFrame(rows, schema=schema).selectExpr(*casts).write.format(
+            "delta"
+        ).mode("overwrite").option("overwriteSchema", "true").saveAsTable(
+            config.table("gold", name)
+        )
+
+    regime_cfg = load_regime_config()
+    regime_ids = sorted(
+        {i.series_id for p in regime_cfg.pillars for i in p.inputs}
+    )
+    regime_rows = compute_macro_regime(
+        _collect_latest(config, spark, regime_ids), regime_cfg
+    )
+    _write("macro_regime_daily", regime_rows, StructType([
+        StructField("observation_date", StringType()),
+        StructField("growth_score", DoubleType()),
+        StructField("inflation_score", DoubleType()),
+        StructField("liquidity_score", DoubleType()),
+        StructField("credit_score", DoubleType()),
+        StructField("policy_score", DoubleType()),
+        StructField("composite_score", DoubleType()),
+        StructField("regime_name", StringType()),
+        StructField("regime_confidence", DoubleType()),
+    ]), ["CAST(observation_date AS DATE) AS observation_date", "growth_score",
+         "inflation_score", "liquidity_score", "credit_score", "policy_score",
+         "composite_score", "regime_name", "regime_confidence"])
+
+    stats_cfg = load_stats_config()
+    stats_ids = sorted(
+        {s for p in stats_cfg.pairs for s in (p.series_a, p.series_b)}
+    )
+    stats_input = _collect_latest(config, spark, stats_ids)
+    _write("series_correlation",
+           compute_series_correlation(stats_input, stats_cfg), StructType([
+        StructField("series_a", StringType()),
+        StructField("series_b", StringType()),
+        StructField("transform_a", StringType()),
+        StructField("transform_b", StringType()),
+        StructField("window", IntegerType()),
+        StructField("observation_date", StringType()),
+        StructField("correlation", DoubleType()),
+        StructField("n_obs", IntegerType()),
+    ]), ["series_a", "series_b", "transform_a", "transform_b", "window",
+         "CAST(observation_date AS DATE) AS observation_date", "correlation",
+         "n_obs"])
+    _write("series_lead_lag",
+           compute_series_lead_lag(stats_input, stats_cfg), StructType([
+        StructField("series_a", StringType()),
+        StructField("series_b", StringType()),
+        StructField("transform_a", StringType()),
+        StructField("transform_b", StringType()),
+        StructField("lag", IntegerType()),
+        StructField("cross_correlation", DoubleType()),
+        StructField("n_obs", IntegerType()),
+        StructField("best_lag", IntegerType()),
+        StructField("granger_f_ab", DoubleType()),
+        StructField("granger_p_ab", DoubleType()),
+        StructField("granger_f_ba", DoubleType()),
+        StructField("granger_p_ba", DoubleType()),
+        StructField("as_of_date", StringType()),
+    ]), ["series_a", "series_b", "transform_a", "transform_b", "lag",
+         "cross_correlation", "n_obs", "best_lag", "granger_f_ab",
+         "granger_p_ab", "granger_f_ba", "granger_p_ba",
+         "CAST(as_of_date AS DATE) AS as_of_date"])
+
+
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
     spark = get_spark(spark)
@@ -882,6 +968,11 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "inflation_explorer", "inflation_contribution",
         "curve_spread_rolling", "credit_spread_rolling",
         "treasury_curve_rolling",
+    ):
+        results[name] = "ok"
+    _build_regime_stats(config, spark)
+    for name in (
+        "macro_regime_daily", "series_correlation", "series_lead_lag",
     ):
         results[name] = "ok"
     return results

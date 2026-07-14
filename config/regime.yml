@@ -1,0 +1,70 @@
+# Macro Regime Playbook (gold.macro_regime_daily, terminal module REGIME).
+# See src/fred_pipeline/regime_stats_config.py for field semantics.
+#
+# Each pillar score = weighted mean of its inputs' direction-adjusted,
+# EXPANDING (point-in-time safe) z-scores, carried as-of on each emission
+# date (an input staler than max_staleness_days drops out; a pillar needs at
+# least one live input for the row to emit). Score semantics:
+#   growth    high = strong growth        liquidity high = loose/abundant
+#   inflation high = hot inflation        credit    high = stressed/tight
+#   policy    high = tightening
+# composite_score = Σ composite_weight × pillar / Σ|weights| — signed so that
+# higher composite = friendlier (risk-on) macro mix.
+#
+# Rules are ORDERED — first match wins; anything unmatched is default_regime.
+# The names mirror the market_terminal playbook. Thresholds are z-scores;
+# tune them here (config, not code) once real history is loaded.
+#
+# Inputs marked (inactive) reference manifests shipped inactive — they join
+# the blend automatically once verified + activated; every pillar also has
+# already-active inputs, so the table populates with current data.
+
+max_staleness_days: 200
+default_regime: Neutral
+
+pillars:
+  growth:
+    composite_weight: 1.0
+    inputs:
+      - {series_id: CFNAI,  transform: level, direction: 1}
+      - {series_id: INDPRO, transform: yoy,   direction: 1}
+      - {series_id: PAYEMS, transform: yoy,   direction: 1}
+  inflation:
+    composite_weight: -1.0
+    inputs:
+      - {series_id: CPILFESL,              transform: yoy,   direction: 1}
+      - {series_id: CORESTICKM159SFRBATL,  transform: level, direction: 1}
+      - {series_id: T10YIE,                transform: level, direction: 1}
+  liquidity:
+    composite_weight: 1.0
+    inputs:
+      - {series_id: NFCI,    transform: level, direction: -1}  # tighter NFCI = less liquidity
+      - {series_id: ANFCI,   transform: level, direction: -1}
+      - {series_id: WRESBAL, transform: yoy,   direction: 1}
+  credit:
+    composite_weight: -1.0
+    inputs:
+      - {series_id: STLFSI4,      transform: level, direction: 1}
+      - {series_id: NFCICREDIT,   transform: level, direction: 1}
+      - {series_id: BAMLH0A0HYM2, transform: level, direction: 1}  # (inactive)
+  policy:
+    composite_weight: -1.0
+    inputs:
+      - {series_id: FEDFUNDS, transform: diff, direction: 1}
+      - {series_id: DGS3MO,   transform: diff, direction: 1}
+      - {series_id: EFFR,     transform: diff, direction: 1}  # (inactive)
+
+rules:
+  # Liquidity stress dominates everything else.
+  - name: Liquidity-Squeeze
+    when: {liquidity: "< -1.0"}
+  - name: Stagflation
+    when: {growth: "< -0.25", inflation: "> 0.5"}
+  - name: Growth-Scare
+    when: {growth: "< -0.75"}
+  - name: Policy-Easing
+    when: {policy: "< -0.5"}
+  - name: Reflation
+    when: {growth: "> 0.25", inflation: "> 0.25"}
+  - name: Goldilocks
+    when: {growth: "> 0.25", inflation: "< 0"}
