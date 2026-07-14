@@ -650,6 +650,13 @@ stock and broad-ETF price return and true total return — as two new
 `source:` clients plus a constituent-list ingester, reusing the existing
 Bronze → Silver → DQ → Gold → audit path unchanged.
 
+**Ownership decided: this repo owns the equity pipeline.** Equities are folded
+into *this* medallion pipeline (gaining PIT / DQ / audit / total-return-from-
+raw-inputs); the `market_terminal` project and its `market_data_pipeline`
+(Yahoo/DuckDB) stay a **separate** system. No dependency runs between them —
+if `market_terminal` ever needs these series it reads the published Gold
+tables, exactly as it would any other consumer.
+
 > ⚠️ **Verify before building.** Free-tier terms in market data shift often
 > and could not be checked live from this environment. Confirm current quotas
 > **and licensing** on each provider's site first. In particular, **Tiingo's
@@ -750,17 +757,17 @@ like every other Gold table:
 
 ## Open decisions (for the user)
 
-1.  **Which repo owns equities.** The companion `market_terminal` project
-    already has a `market_data_pipeline` (FRED + Yahoo, DuckDB/Parquet/Polars)
-    that owns the Yahoo/equity lane. Deliberately choose: fold equities into
-    *this* medallion pipeline (gains PIT/DQ/audit/total-return-from-inputs), or
-    keep them there and let this pipeline stay macro-only.
+1.  **Which repo owns equities.** ✅ **Decided: this repo.** Equities live in
+    this medallion pipeline; `market_terminal` stays separate (see the
+    Ownership note above).
 2.  **Scalar-explode vs. a wide `silver_equity_bar`** (recommendation:
     scalar-explode — see above).
 3.  **Tiingo symbol budget** — trim the core list under the ~500/month cap, or
     accept Yahoo overflow for the tail (and its fragility/ToS risk).
 4.  **Commercial use** — if this is commercial, Tiingo's free tier doesn't
-    cover it; decide paid Tiingo vs. Stooq-only (price return only).
+    cover it; decide paid Tiingo vs. Stooq-only (price return only). Gates the
+    Tiingo half only — the Stooq client and constituent ingester are
+    unaffected and can be built first.
 
 ------------------------------------------------------------------------
 
