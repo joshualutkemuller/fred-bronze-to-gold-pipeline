@@ -292,6 +292,25 @@ CREATE TABLE IF NOT EXISTS gold_equity_price_reconciliation (
     stooq_close REAL, tiingo_adj_close REAL,
     abs_diff REAL, pct_diff REAL, diverged INTEGER NOT NULL DEFAULT 0
 );
+
+-- ML pipeline (handoff.md "ML Extensions Sub-Plan"):
+-- ML-0 feature matrix, ML-2 PCA factor scores/loadings, ML-4 anomaly scores.
+CREATE TABLE IF NOT EXISTS gold_ml_feature_matrix (
+    observation_date TEXT, feature_name TEXT, series_id TEXT,
+    transform TEXT, value REAL
+);
+CREATE TABLE IF NOT EXISTS gold_macro_factor_scores (
+    observation_date TEXT, factor INTEGER, score REAL,
+    explained_variance_ratio REAL, cumulative_variance_ratio REAL, n_obs INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_macro_factor_loadings (
+    observation_date TEXT, factor INTEGER, feature_name TEXT, loading REAL
+);
+CREATE TABLE IF NOT EXISTS gold_macro_anomaly_scores (
+    observation_date TEXT, mahalanobis_d2 REAL, chi2_df INTEGER,
+    p_value REAL, is_anomaly INTEGER NOT NULL DEFAULT 0, n_factors_used INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -607,7 +626,12 @@ class LocalWarehouse:
         insert("gold_fred_macro_feature_daily", build_daily_matrix(latest))
 
         self.conn.execute("DELETE FROM gold_fred_feature_transforms")
-        insert("gold_fred_feature_transforms", build_transforms(latest))
+        _ft_result = build_transforms(latest)
+        insert("gold_fred_feature_transforms", _ft_result)
+        # Capture as list[dict] for the ML feature-matrix engine (ML-0).
+        feature_transform_rows: list[dict] = (
+            _ft_result.to_dicts() if mode == "polars" else list(_ft_result)
+        )
         self.conn.execute("DELETE FROM gold_fred_curve_spread")
         insert("gold_fred_curve_spread", build_spreads(latest))
 
@@ -791,6 +815,36 @@ class LocalWarehouse:
         self._insert("gold_equity_price_reconciliation",
                      compute_equity_price_reconciliation(stooq_rows, tiingo_rows))
 
+        # ML pipeline: ML-0 feature matrix → ML-2 PCA scores/loadings → ML-4 anomaly.
+        from fred_pipeline.ml_features import compute_ml_feature_matrix
+        from fred_pipeline.macro_pca import compute_macro_factor_scores
+        from fred_pipeline.anomaly import compute_macro_anomaly_scores
+        ml_cfg = None  # load from repo config/ml_features.yml
+        try:
+            from fred_pipeline.ml_features import load_ml_feature_config
+            ml_cfg = load_ml_feature_config()
+        except Exception:
+            pass
+        ml_matrix = compute_ml_feature_matrix(feature_transform_rows, ml_cfg)
+        self.conn.execute("DELETE FROM gold_ml_feature_matrix")
+        self._insert("gold_ml_feature_matrix", ml_matrix)
+
+        n_comp = ml_cfg.n_components if ml_cfg else 5
+        pca = compute_macro_factor_scores(ml_matrix, n_components=n_comp)
+        self.conn.execute("DELETE FROM gold_macro_factor_scores")
+        self._insert("gold_macro_factor_scores", pca["scores"])
+        self.conn.execute("DELETE FROM gold_macro_factor_loadings")
+        self._insert("gold_macro_factor_loadings", pca["loadings"])
+
+        anom_thresh = ml_cfg.anomaly_threshold if ml_cfg else 0.99
+        self.conn.execute("DELETE FROM gold_macro_anomaly_scores")
+        self._insert(
+            "gold_macro_anomaly_scores",
+            compute_macro_anomaly_scores(
+                pca["scores"], anomaly_threshold=anom_thresh
+            ),
+        )
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -813,6 +867,9 @@ class LocalWarehouse:
             "global_inflation", "global_policy_rates", "powerbi_catalog",
             "equity_return_daily", "index_constituents",
             "equity_total_return_index", "equity_price_reconciliation",
+            "ml_feature_matrix",
+            "macro_factor_scores", "macro_factor_loadings",
+            "macro_anomaly_scores",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

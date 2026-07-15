@@ -786,3 +786,58 @@ CREATE TABLE IF NOT EXISTS gold.equity_price_reconciliation (
     diverged          BOOLEAN NOT NULL
 )
 USING DELTA;
+
+-- ============================================================================
+-- ML pipeline (handoff.md "ML Extensions Sub-Plan"):
+-- ML-0 feature matrix, ML-2 PCA factor scores/loadings, ML-4 anomaly scores.
+-- Computed by fred_pipeline.ml_features / macro_pca / anomaly (pure Python).
+-- ============================================================================
+
+-- Tidy (long-format) ML feature matrix: one row per (observation_date,
+-- feature_name), selecting the configured transform column from
+-- gold.fred_feature_transforms. Input to the PCA and anomaly engines.
+CREATE TABLE IF NOT EXISTS gold.ml_feature_matrix (
+    observation_date  DATE,
+    feature_name      STRING,
+    series_id         STRING,
+    transform         STRING,
+    value             DOUBLE
+)
+USING DELTA;
+
+-- Expanding monthly PCA factor scores: one row per snapshot date × factor.
+-- n_obs is the number of monthly snapshots seen before this date (expanding
+-- Welford estimate). explained_variance_ratio and cumulative_variance_ratio
+-- come from the eigenvalue / total variance ratio.
+CREATE TABLE IF NOT EXISTS gold.macro_factor_scores (
+    observation_date            DATE,
+    factor                      INT,
+    score                       DOUBLE,
+    explained_variance_ratio    DOUBLE,
+    cumulative_variance_ratio   DOUBLE,
+    n_obs                       INT
+)
+USING DELTA;
+
+-- PCA factor loadings: one row per snapshot date × factor × feature. The
+-- sign is anchored so the max-abs loading component is always positive.
+CREATE TABLE IF NOT EXISTS gold.macro_factor_loadings (
+    observation_date  DATE,
+    factor            INT,
+    feature_name      STRING,
+    loading           DOUBLE
+)
+USING DELTA;
+
+-- Mahalanobis D² anomaly scores in PCA factor space: one row per snapshot
+-- date. D² = Σ_k ((score_k − μ_k) / σ_k)² with expanding per-factor stats.
+-- p_value = P(χ²(chi2_df) > D²); is_anomaly = 1 when p_value < 0.01.
+CREATE TABLE IF NOT EXISTS gold.macro_anomaly_scores (
+    observation_date  DATE,
+    mahalanobis_d2    DOUBLE,
+    chi2_df           INT,
+    p_value           DOUBLE,
+    is_anomaly        BOOLEAN NOT NULL,
+    n_factors_used    INT
+)
+USING DELTA;

@@ -248,6 +248,18 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "generic line", "MoM/diff/YoY/expanding-z transforms per series."),
     _entry("powerbi_catalog", "reference", "ALL", "1 / gold object",
            "documentation page", "This catalog."),
+    _entry("ml_feature_matrix", "fact", "ML", "1 / date x feature",
+           "generic table / heatmap",
+           "Tidy ML feature matrix: one row per (date, feature_name) with the configured transform value, feeding the PCA and anomaly engines."),
+    _entry("macro_factor_scores", "fact", "ML", "1 / date x factor",
+           "line (factor scores over time)",
+           "Expanding monthly PCA factor scores: score, explained/cumulative variance ratio, and training-obs count per factor."),
+    _entry("macro_factor_loadings", "fact", "ML", "1 / date x factor x feature",
+           "heatmap (latest loadings) / animated loading bar chart",
+           "PCA factor loadings per snapshot: feature contributions to each factor, sign-anchored for stability."),
+    _entry("macro_anomaly_scores", "fact", "ML", "1 / date",
+           "line + anomaly markers",
+           "Mahalanobis D² in PCA factor space with χ²(k) p-value; is_anomaly flags the top-1% statistical outliers."),
 )
 
 
