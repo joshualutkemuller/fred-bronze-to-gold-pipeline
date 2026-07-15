@@ -121,6 +121,18 @@ CREATE TABLE IF NOT EXISTS gold_fred_feature_transforms (
     series_id TEXT, observation_date TEXT, value REAL,
     mom REAL, diff REAL, yoy REAL, zscore REAL
 );
+CREATE TABLE IF NOT EXISTS gold_fred_series_zscore_rolling (
+    series_id TEXT, observation_date TEXT, window INTEGER,
+    value REAL, change REAL, pct_change REAL, zscore REAL, percentile REAL
+);
+CREATE TABLE IF NOT EXISTS gold_zscore_heatmap (
+    series_id TEXT, observation_date TEXT, value REAL,
+    zscore_expanding REAL, percentile_expanding REAL,
+    zscore_12 REAL, percentile_12 REAL,
+    zscore_36 REAL, percentile_36 REAL,
+    zscore_60 REAL, percentile_60 REAL,
+    zscore_120 REAL, percentile_120 REAL
+);
 CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
     spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT, value REAL
 );
@@ -675,6 +687,19 @@ class LocalWarehouse:
         feature_transform_rows: list[dict] = (
             _ft_result.to_dicts() if mode == "polars" else list(_ft_result)
         )
+
+        # Historical z-score analysis (ML-adjacent: reads feature_transform_rows).
+        from fred_pipeline.zscore_views import (
+            compute_fred_series_zscore_rolling,
+            compute_zscore_heatmap,
+        )
+        self.conn.execute("DELETE FROM gold_fred_series_zscore_rolling")
+        self._insert("gold_fred_series_zscore_rolling",
+                     compute_fred_series_zscore_rolling(feature_transform_rows))
+        self.conn.execute("DELETE FROM gold_zscore_heatmap")
+        self._insert("gold_zscore_heatmap",
+                     compute_zscore_heatmap(feature_transform_rows))
+
         self.conn.execute("DELETE FROM gold_fred_curve_spread")
         insert("gold_fred_curve_spread", build_spreads(latest))
 
@@ -921,6 +946,7 @@ class LocalWarehouse:
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
             "fred_macro_feature_daily", "fred_feature_transforms",
+            "fred_series_zscore_rolling", "zscore_heatmap",
             "fred_curve_spread", "fred_cross_series_feature",
             "fred_cross_series_feature_pit", "fred_source_reconciliation",
             "fred_company_fundamentals", "fred_company_ratios",

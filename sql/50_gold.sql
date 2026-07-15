@@ -117,6 +117,44 @@ SELECT series_id, observation_date, value,
          THEN (value - mean_v) / std_v END AS zscore
 FROM ya;
 
+-- Historical rolling z-score and percentile companions to fred_feature_transforms.
+-- Long-format: one row per (series_id, observation_date, window).
+-- Observation-count windows: 12≈1y / 36≈3y / 60≈5y / 120≈10y (monthly cadence).
+-- Computed by fred_pipeline.zscore_views (pure Python, shared with Spark backend).
+CREATE TABLE IF NOT EXISTS gold.fred_series_zscore_rolling (
+    series_id         STRING,
+    observation_date  DATE,
+    window            INT,
+    value             DOUBLE,
+    change            DOUBLE,
+    pct_change        DOUBLE,
+    zscore            DOUBLE,
+    percentile        DOUBLE
+)
+USING DELTA;
+
+-- Wide-format cross-series z-score snapshot: one row per (series_id, date).
+-- Combines the expanding z-score from fred_feature_transforms with rolling-window
+-- z-scores and percentile ranks at 12 / 36 / 60 / 120 observations.
+-- Filter to any date for a cross-category heatmap; filter to one series for
+-- a multi-window fan chart. Computed by fred_pipeline.zscore_views.
+CREATE TABLE IF NOT EXISTS gold.zscore_heatmap (
+    series_id              STRING,
+    observation_date       DATE,
+    value                  DOUBLE,
+    zscore_expanding       DOUBLE,
+    percentile_expanding   DOUBLE,
+    zscore_12              DOUBLE,
+    percentile_12          DOUBLE,
+    zscore_36              DOUBLE,
+    percentile_36          DOUBLE,
+    zscore_60              DOUBLE,
+    percentile_60          DOUBLE,
+    zscore_120             DOUBLE,
+    percentile_120         DOUBLE
+)
+USING DELTA;
+
 -- Cross-series spreads/ratios. The Python job (fred_pipeline.gold /
 -- spread_config.load_spread_defs) reads these from config/spreads.yml so a
 -- reviewer can add pairs without touching SQL or Python; this VALUES list

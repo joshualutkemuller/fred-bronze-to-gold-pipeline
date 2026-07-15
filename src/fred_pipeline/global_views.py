@@ -227,6 +227,18 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
     _entry("macro_regime_daily", "fact", "REGIME", "1 / date",
            "regime ribbon + pillar small multiples",
            "Five pillar z-scores, signed composite, named regime with confidence."),
+    _entry("fred_series_zscore_rolling", "fact", "STAT", "1 / series x date x window",
+           "multi-window fan chart / z-score band",
+           "Rolling z-score and percentile rank for every FRED macro series at 12 / 36 / 60 / 120 "
+           "observation windows (≈ 1 / 3 / 5 / 10 years). Fan-chart: filter to one series and "
+           "overlay each window band to gauge how extreme the current reading is on different "
+           "historical horizons."),
+    _entry("zscore_heatmap", "fact", "STAT", "1 / series x date",
+           "heatmap (filter to date) / fan chart (filter to series)",
+           "Wide-format cross-series z-score snapshot: expanding z-score plus rolling z-scores and "
+           "percentile ranks at 12 / 36 / 60 / 120 observations per (series_id, date). "
+           "Filter to a single date for a cross-category heat matrix; filter to one series for "
+           "a multi-window z-score fan chart over time."),
     _entry("series_correlation", "fact", "STAT", "1 / pair x window x date",
            "heatmap (latest) / rolling line", "Rolling & expanding Pearson correlation for curated pairs."),
     _entry("series_lead_lag", "fact", "EDA", "1 / pair x lag",
