@@ -16,8 +16,14 @@ from fred_pipeline.sources.stooq import (
     normalize_stooq_observations,
 )
 from fred_pipeline.equity_views import (
+    compute_equity_price_reconciliation,
     compute_equity_return_daily,
     compute_index_constituents,
+)
+from fred_pipeline.equity_reconciliation_config import (
+    EquityReconciliationConfig,
+    EquityReconciliationConfigError,
+    load_equity_reconciliation_config,
 )
 
 
@@ -258,4 +264,139 @@ def test_equity_local_build_gold(tmp_path):
     cons = wh.query("SELECT * FROM gold_index_constituents "
                     "WHERE is_latest_snapshot = 1 ORDER BY weight_rank")
     assert [r["constituent"] for r in cons] == ["AAPL", "MSFT"]
+    wh.close()
+
+
+# ---- equity price reconciliation -------------------------------------------
+
+def _stooq_close(ticker, date, close):
+    return {"source": "stooq", "series_id": f"{ticker}:close",
+            "observation_date": date, "value": close, "is_missing": False}
+
+def _tiingo_adj_close(ticker, date, adj_close):
+    return {"source": "tiingo", "series_id": f"{ticker}:adjClose",
+            "observation_date": date, "value": adj_close, "is_missing": False}
+
+
+def _recon_cfg(*tickers, tol=2.0):
+    return EquityReconciliationConfig(tickers=tuple(tickers), tolerance_pct=tol)
+
+
+def test_equity_recon_agrees():
+    sq = [_stooq_close("AAPL", "2024-01-02", 193.0),
+          _stooq_close("AAPL", "2024-01-03", 195.0)]
+    tg = [_tiingo_adj_close("AAPL", "2024-01-02", 192.5),
+          _tiingo_adj_close("AAPL", "2024-01-03", 194.6)]
+    out = compute_equity_price_reconciliation(sq, tg, _recon_cfg("AAPL"))
+    assert len(out) == 2
+    r = out[0]
+    assert r["ticker"] == "AAPL" and r["observation_date"] == "2024-01-02"
+    assert r["stooq_close"] == pytest.approx(193.0)
+    assert r["tiingo_adj_close"] == pytest.approx(192.5)
+    assert r["abs_diff"] == pytest.approx(0.5)
+    assert r["pct_diff"] == pytest.approx(0.5 / 192.5)
+    # |pct_diff| * 100 ~= 0.26% < 2% -> not diverged
+    assert not r["diverged"]
+    assert not out[1]["diverged"]
+
+
+def test_equity_recon_flags_divergence():
+    sq = [_stooq_close("SPY", "2024-03-01", 500.0)]
+    # Tiingo has a clearly wrong price on this date
+    tg = [_tiingo_adj_close("SPY", "2024-03-01", 400.0)]
+    out = compute_equity_price_reconciliation(sq, tg, _recon_cfg("SPY", tol=2.0))
+    assert len(out) == 1
+    assert out[0]["diverged"]
+    assert out[0]["pct_diff"] == pytest.approx((500.0 - 400.0) / 400.0)
+
+
+def test_equity_recon_skips_missing_source():
+    # Tiingo has no data -> no rows
+    sq = [_stooq_close("AAPL", "2024-01-02", 193.0)]
+    assert compute_equity_price_reconciliation(sq, [], _recon_cfg("AAPL")) == []
+    # Stooq has no data -> no rows
+    tg = [_tiingo_adj_close("AAPL", "2024-01-02", 192.5)]
+    assert compute_equity_price_reconciliation([], tg, _recon_cfg("AAPL")) == []
+
+
+def test_equity_recon_filters_to_cfg_tickers():
+    sq = [_stooq_close("AAPL", "2024-01-02", 193.0),
+          _stooq_close("MSFT", "2024-01-02", 375.0)]
+    tg = [_tiingo_adj_close("AAPL", "2024-01-02", 192.5),
+          _tiingo_adj_close("MSFT", "2024-01-02", 374.0)]
+    # Only AAPL in config -> MSFT rows silently excluded
+    out = compute_equity_price_reconciliation(sq, tg, _recon_cfg("AAPL"))
+    assert [r["ticker"] for r in out] == ["AAPL"]
+
+
+def test_equity_recon_skips_is_missing():
+    sq = [{"source": "stooq", "series_id": "AAPL:close",
+           "observation_date": "2024-01-02", "value": 193.0, "is_missing": True}]
+    tg = [_tiingo_adj_close("AAPL", "2024-01-02", 192.5)]
+    assert compute_equity_price_reconciliation(sq, tg, _recon_cfg("AAPL")) == []
+
+
+def test_equity_recon_config_loader_missing(tmp_path):
+    cfg = load_equity_reconciliation_config(str(tmp_path / "nope.yml"))
+    assert cfg.tickers == () and cfg.tolerance_pct == 2.0
+
+
+def test_equity_recon_config_loader_repo_file():
+    cfg = load_equity_reconciliation_config("config/equity_reconciliations.yml")
+    assert "SPY" in cfg.tickers and "AAPL" in cfg.tickers
+    assert cfg.tolerance_pct == pytest.approx(2.0)
+
+
+def test_equity_recon_config_loader_rejects_malformed(tmp_path):
+    bad = tmp_path / "bad.yml"
+    # negative tolerance
+    bad.write_text("equity_reconciliations:\n  tolerance_pct: -1\n  tickers: [AAPL]\n")
+    with pytest.raises(EquityReconciliationConfigError):
+        load_equity_reconciliation_config(str(bad))
+    # unknown key
+    bad.write_text("equity_reconciliations:\n  tickers: [AAPL]\n  bogus: 1\n")
+    with pytest.raises(EquityReconciliationConfigError):
+        load_equity_reconciliation_config(str(bad))
+    # duplicate tickers
+    bad.write_text("equity_reconciliations:\n  tickers: [AAPL, AAPL]\n")
+    with pytest.raises(EquityReconciliationConfigError):
+        load_equity_reconciliation_config(str(bad))
+
+
+def test_equity_recon_end_to_end(tmp_path):
+    from fred_pipeline.config import Environment, PipelineConfig
+    from fred_pipeline.local_store import LocalWarehouse
+
+    wh = LocalWarehouse(
+        PipelineConfig(environment=Environment.DEV, fred_api_key="k"),
+        db_path=str(tmp_path / "recon.db"),
+    )
+    silver = []
+    for i, (sq, adj) in enumerate([(193.0, 192.5), (195.0, 194.0)]):
+        silver.append({
+            "source": "stooq", "series_id": "AAPL:close",
+            "observation_date": f"2024-01-0{i + 2}", "realtime_start": "",
+            "realtime_end": "", "value": sq, "raw_value": str(sq),
+            "is_missing": 0, "row_hash": f"sq{i}", "revision_number": 1,
+            "ingested_at": "2024-02-01T00:00:00", "run_id": "r1",
+        })
+        silver.append({
+            "source": "tiingo", "series_id": "AAPL:adjClose",
+            "observation_date": f"2024-01-0{i + 2}", "realtime_start": "",
+            "realtime_end": "", "value": adj, "raw_value": str(adj),
+            "is_missing": 0, "row_hash": f"tg{i}", "revision_number": 1,
+            "ingested_at": "2024-02-01T00:00:00", "run_id": "r1",
+        })
+    wh.merge_silver(silver)
+    results = wh.build_gold()
+    assert results["equity_price_reconciliation"] == "ok"
+
+    rows = wh.query(
+        "SELECT * FROM gold_equity_price_reconciliation ORDER BY observation_date"
+    )
+    # AAPL is in the default config
+    assert len(rows) == 2
+    assert rows[0]["stooq_close"] == pytest.approx(193.0)
+    assert rows[0]["tiingo_adj_close"] == pytest.approx(192.5)
+    assert not rows[0]["diverged"]
     wh.close()

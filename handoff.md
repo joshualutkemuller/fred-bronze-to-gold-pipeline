@@ -801,6 +801,483 @@ like every other Gold table:
 
 ------------------------------------------------------------------------
 
+# ML Extensions Sub-Plan
+
+**Status: PLANNED — not started.** This section is the build spec for an
+ML/statistical-inference tier on top of the existing Gold layer. All six
+phases are independent of one another except where the dependency graph
+notes otherwise; they can be picked up in any order by whoever has the
+bandwidth, but the recommended sequence is ML-0 → ML-1 → ML-2 → ML-3 →
+ML-4 → ML-5 → ML-6.
+
+## Design principles
+
+These carry over from the rest of the pipeline and must not be relaxed:
+
+1. **Train on point-in-time data only.** Every model reads
+   `gold.fred_point_in_time` or the expanding-z variants, never
+   `gold.fred_latest_observation`. Look-ahead bias via future revisions is
+   not acceptable even in development.
+
+2. **Expanding estimation window.** Parameters are re-estimated with all
+   data available through each date — same discipline as the existing
+   expanding z-score in `gold.fred_feature_transforms`. No look-forward
+   calibration, no train/test split that crosses time.
+
+3. **Pure Python; scipy-optional.** Match the `regime_stats.py` pattern
+   (its own F-distribution, OLS, and CCF — all pure Python). Where scipy
+   is genuinely needed for speed (e.g. curve fitting at startup over 5,000
+   dates), wrap behind `try/except ImportError` with a pure-Python fallback.
+   Do not make scipy a hard dependency.
+
+4. **Config-driven inputs.** Each model's input series list and
+   hyperparameters live in a YAML config file (like `config/stats_pairs.yml`
+   or `config/regime.yml`). Adding a feature = editing YAML, not Python.
+
+5. **Model metadata on every row.** `model_vintage` (date parameters were
+   last estimated), `n_obs` (training sample size), and `is_backfilled`
+   (True when fewer than `min_obs` points are available — early-history rows
+   that a consumer should treat cautiously). These belong in the output table
+   as columns, not as separate audit tables.
+
+6. **Power BI catalog guard stays green.** Add a `gold.powerbi_catalog` entry
+   for each new Gold table at implementation time — the
+   `test_powerbi_catalog_covers_gold_tables` test will fail otherwise.
+
+7. **Additive only.** No existing Gold tables are renamed or schema-changed.
+
+---
+
+## Dependency graph
+
+```
+ML-0  Feature Matrix ──► ML-2  PCA Factor Scores ──► ML-5  Equity Factor Attribution
+                                                  ──► ML-4  Macro Anomaly Detection
+ML-1  Nelson-Siegel  ──► ML-3  Recession Probability
+                     ──► ML-6  Inflation Forecasting (auxiliary input)
+```
+
+ML-0 and ML-1 are the foundation. Everything else layers on top of one or
+both. ML-5 additionally requires `gold.equity_return_daily` (already built).
+
+---
+
+## Phase ML-0: ML Feature Matrix (~1 day)
+
+**New table: `gold.ml_feature_matrix`**  
+**New config: `config/ml_features.yml`**
+
+A single wide table aligned to a daily date grid: one row per date, one
+column per selected feature, sourced from the existing Gold views. All
+downstream ML phases read from this rather than joining multiple tables
+themselves.
+
+### What it pulls together
+
+| Source Gold table | Features |
+|---|---|
+| `gold.fred_feature_transforms` | Expanding z-scores for DGS10, UNRATE, PAYEMS, CPIAUCSL, PCEPILFE, INDPRO, RSAFS, HOUST, PERMIT, GDP, T10YIE |
+| `gold.treasury_curve_metrics` | `level`, `slope_10y2y`, `slope_10y3m`, `curvature_2_5_10`, `butterfly_2_10_30` |
+| `gold.credit_spread_daily` | OAS z-score (IG and HY, separately) |
+| `gold.funding_stress_daily` | Composite stress gauge (0–100) |
+| `gold.macro_regime_daily` | `composite_score` and per-pillar scores |
+| `gold.equity_return_daily` | SPY and QQQ trailing-21d return (optional; set aside if equity data inactive) |
+
+### Config schema (`config/ml_features.yml`)
+
+```yaml
+ml_features:
+  date_grid: daily
+  forward_fill_days: 31     # max gap to fill; beyond this a row is NULL
+  min_features_required: 10  # rows with fewer live features are excluded
+
+  features:
+    - name: dgs10_z
+      source_table: fred_feature_transforms
+      series_id: DGS10
+      column: zscore
+    - name: unrate_z
+      source_table: fred_feature_transforms
+      series_id: UNRATE
+      column: zscore
+    # ... (quant sign-off required on full list — see Open Decisions)
+```
+
+### Output columns
+
+`observation_date`, `[feature_name]` × N, `n_features_live`
+(count of features sourced directly, not filled), `n_features_filled`
+(count forward-filled), `n_features_null` (count still null after filling).
+
+### Engineering notes
+
+The main complexity is mixed-frequency alignment: treasury curve and
+macro z-scores are daily; CPI/PCE and GDP are monthly/quarterly. Use the
+same `_downsample_asof` logic already in `features.py` — forward-fill
+to daily within the `forward_fill_days` window, carry the last known
+quarterly value forward up to 31 days. Beyond that, the slot is NULL
+(don't impute). The `fill_pct` column on each row tells the consumer what
+fraction of features are live vs. carried forward.
+
+---
+
+## Phase ML-1: Nelson-Siegel Yield Curve Fitting (~2 days)
+
+**New table: `gold.yield_curve_ns_factors`**  
+**New module: `src/fred_pipeline/ns_model.py`**
+
+Fits the Nelson-Siegel (1987) parametric model to the Treasury curve each
+day. Goes beyond the discrete metrics already in `gold.treasury_curve_metrics`
+(ad-hoc level/slope/curvature differences) by giving a *parametric,
+internally-consistent* description of the full curve:
+
+```
+y(τ) = β₀ + β₁ · L(τ,λ) + β₂ · C(τ,λ)
+
+where:
+  L(τ,λ) = (1 − e^{−τ/λ}) / (τ/λ)          [slope loading]
+  C(τ,λ) = L(τ,λ) − e^{−τ/λ}               [curvature loading]
+```
+
+**Economic meaning of the three factors:**
+
+- **β₀** — long-run level (all maturities converge here as τ → ∞)
+- **β₁** — slope / short-rate spread (negative when normal curve; β₁ < 0 means 10y > 1m)
+- **β₂** — curvature / hump (positive when the medium is richer than the extremes)
+- **λ** — decay speed (set to a fixed value ≈ 1.6–2.5 for US Treasuries, or grid-searched)
+
+### Input
+
+`gold.treasury_curve` — the 8 observed tenors: `1m`, `3m`, `6m`, `1y`,
+`2y`, `5y`, `10y`, `30y`. Requires ≥ 4 non-null tenors per date for a valid
+fit (`fit_valid = True`).
+
+### Implementation approach
+
+Two-step: (1) fix λ at 1.7 (the Diebold-Li value that maximises the
+loadings' variance at medium tenors — a standard calibration; no estimation
+needed), then (2) run a closed-form linear regression for (β₀, β₁, β₂) as
+a function of the loading matrix. This makes the fit trivially pure-Python —
+just 3×3 OLS per date. The optional step: grid-search λ ∈ [0.5, 5.0] (step
+0.1) for the daily λ that minimises RMSE, if the fixed-λ RMSE exceeds a
+threshold. Emit `lambda_estimated = True/False`.
+
+### Output columns
+
+`observation_date`, `beta0`, `beta1`, `beta2`, `lambda`, `lambda_estimated`,
+`fit_rmse`, `n_tenors`, `fit_valid`.
+
+### Why it matters downstream
+
+- **ML-2 (PCA)**: β₀/β₁/β₂ are compact, orthogonal-ish curve features that
+  replace the 8 raw tenors in the feature matrix.
+- **ML-3 (Recession)**: β₁ (slope) is the Estrella-Mishkin recession
+  predictor — cleaner than the ad-hoc 10y–3m spread.
+- **Power BI**: the NS factors can be plotted as a 3-panel time series; the
+  fitted curve can be visualised at any tenor not directly observed.
+
+---
+
+## Phase ML-2: Macro PCA Factor Scores (~3 days)
+
+**New tables: `gold.macro_factor_scores`, `gold.macro_factor_loadings`**  
+**New module: `src/fred_pipeline/macro_pca.py`**
+
+Extracts latent macro factors from the standardized feature matrix via
+principal-component analysis. Produces 3–5 orthogonal factors with
+established economic interpretations:
+
+- **PC1 ("growth cycle")**: typically loads positively on activity
+  (INDPRO, PAYEMS) and negatively on credit spreads and unemployment
+- **PC2 ("monetary / inflation")**: loads on rates, breakeven inflation, CPI
+- **PC3 ("liquidity / stress")**: loads on HY OAS, funding spreads, NFCI
+
+This replicates the well-documented macro factor decomposition (Bernanke,
+Boivin & Eliasz 2005; Ang & Piazzesi 2003 for the rate curve) but derived
+from the live pipeline data with PIT-safe expanding estimation.
+
+### Input
+
+`gold.ml_feature_matrix` (Phase ML-0). The ~20 standardized features
+(already z-scored) make PCA scale-invariant without an extra step.
+
+### Implementation approach
+
+**Expanding PCA via incremental eigendecomposition.** At each date:
+1. Maintain the expanding sample covariance matrix Σ_t (rank update: O(p²)
+   per new observation, where p = number of features).
+2. Extract top-K eigenvectors via power iteration (K=5, up to 50 iterations
+   to convergence — typically ~10). Pure NumPy, ~30 lines.
+3. Sign-anchor: ensure the loading on the first feature in each PC is always
+   positive (swap sign if not). This prevents the arbitrary sign flips that
+   occur when the eigenspace shifts.
+4. Project the current feature vector onto the K eigenvectors → PC scores.
+
+For the **loadings table**: re-estimate monthly (not daily) — daily
+re-estimation creates noise in the loadings without adding information.
+Emit a `model_vintage` column so consumers can tell when the factor
+definition last changed.
+
+### Output columns
+
+`gold.macro_factor_scores`: `observation_date`, `pc1`..`pc5`,
+`pc1_var_explained`..`pc5_var_explained`, `cumulative_var_5pc`,
+`n_features`, `model_vintage`.
+
+`gold.macro_factor_loadings`: `model_vintage`, `feature_name`,
+`pc1_loading`..`pc5_loading`. Updated monthly.
+
+### Decision needed
+
+**Factor rotation.** Raw PCA factors can be hard to interpret because each
+eigenvector loads on many features. Options: (a) sign-anchoring only
+[recommended — simplest, no ambiguity in direction], (b) varimax rotation
+[more interpretable but harder to implement incrementally and breaks
+orthogonality], (c) promax [oblique, allows correlated factors]. Recommend
+(a) for the first implementation; revisit if the loadings are noisy.
+
+---
+
+## Phase ML-3: Recession Probability Model (~3 days)
+
+**New table: `gold.recession_probability_daily`**  
+**New module: `src/fred_pipeline/recession_model.py`**
+
+Estimates the real-time probability of being in an NBER recession at each
+date using logistic regression on leading macro indicators. The Estrella-Mishkin
+(1998) and Wright (2006) curve-slope models are the standard benchmarks; this
+extends them with additional predictors available in the pipeline.
+
+### Input features
+
+| Feature | Source | Economic rationale |
+|---|---|---|
+| NS slope factor (β₁) | `gold.yield_curve_ns_factors` | Estrella-Mishkin core predictor |
+| Unemployment 3m change | `gold.fred_feature_transforms` (mom) | Leading indicator of slowdown |
+| INDPRO 6m change | same | Manufacturing cycle |
+| HY OAS z-score | `gold.credit_spread_daily` | Credit stress / financing conditions |
+| Funding stress gauge | `gold.funding_stress_daily` | Systemic risk |
+| Composite regime score | `gold.macro_regime_daily` | Multi-pillar signal |
+
+### Target variable
+
+`USREC` from FRED (binary: 1 = NBER recession month, 0 = expansion). The
+`macro_flags.yml` manifest ships it inactive — **must be activated before
+this phase can produce real estimates**. Development and testing can use
+synthetic labels (e.g. 1 for dates matching known recessions from the NBER
+website, hardcoded in the test fixture).
+
+### Implementation approach
+
+**Expanding logistic regression via IRLS (Iteratively Reweighted Least
+Squares).** IRLS converges to the MLE of the logistic model in ~10–20
+iterations and is implementable in ~40 lines of NumPy — no sklearn or
+scipy needed. Re-estimate at each date using all available labeled history
+through that date.
+
+Regularization: `L2` ridge with λ = 0.01 (prevents divergence on small
+samples and near-multicollinear features). Tune on the first 20 years of
+USREC history; hold out the rest.
+
+Early history rows (fewer than `min_obs = 60` labeled months) get
+`is_backfilled = True` — the logit is estimated but the consumer should
+treat these as unreliable. Emit the training sample size (`n_obs`) so the
+consumer can apply their own threshold.
+
+### Output columns
+
+`observation_date`, `recession_prob` (0–1), `logit_score` (the raw
+log-odds), `model_vintage`, `n_obs_training`, `is_backfilled`.
+
+### Enhancement (Phase ML-3b): Horizon forecasts
+
+Separate logistic models for P(recession starting in next 3m / 6m / 12m),
+using the same features lagged by the horizon. The 12m-ahead model is the
+most useful for asset allocation. Adds three extra columns to the same
+table: `prob_recession_3m`, `prob_recession_6m`, `prob_recession_12m`.
+
+---
+
+## Phase ML-4: Macro Anomaly Detection (~2 days)
+
+**New table: `gold.macro_anomaly_scores`**  
+**New module: `src/fred_pipeline/anomaly.py`**
+
+Computes a multivariate outlier score for each date: the Mahalanobis
+distance of the factor-score vector from the expanding-window distribution.
+Complements the rule-based regime system — flags dates where the overall
+macro state is statistically unusual regardless of which named regime applies.
+
+Known anomaly dates should show the highest scores: GFC 2008–2009, COVID
+March 2020, 1987 Black Monday (equity factor), 1994 bond market crash
+(curve factor).
+
+### Input
+
+`gold.macro_factor_scores` PC1..PC3 (a 3D space is sufficient and
+numerically stable; Σ is 3×3, trivially invertible). Alternatively, use the
+full `gold.ml_feature_matrix` for a higher-dimensional version (more
+sensitive but numerically noisier — use the ridge stabilizer from
+`regime_stats.py`).
+
+### Implementation
+
+```
+D²_t = (x_t − μ_t)ᵀ Σ_t⁻¹ (x_t − μ_t)
+```
+
+where μ_t and Σ_t are the expanding mean and covariance through date t.
+Invert Σ with the same ridge fallback used in the Granger OLS
+(`λ = 1e-8 × trace/k` — already tested in `regime_stats.py`). Under
+multivariate normality, D² ~ χ²(k); the p-value from the χ² CDF
+gives the anomaly probability. A pure-Python regularized incomplete gamma
+function (same approach as the F-distribution in `regime_stats.py`) avoids
+any scipy dependency.
+
+### Output columns
+
+`observation_date`, `mahal_distance`, `chi2_pct` (χ²(k) percentile of D²,
+0–1), `is_anomaly` (True when `chi2_pct > 0.99`), `n_features_used`,
+`model_vintage`.
+
+### Downstream uses
+
+1. **Governance gate**: flag the current date in a Power BI alert tile if
+   `is_anomaly = True` — something statistically unusual is happening.
+2. **Research**: anomaly dates are natural breakpoints for regime-conditional
+   backtests.
+3. **Data quality**: a sudden spike on a date with no macro news likely
+   indicates a feed error (especially useful for equity data).
+
+---
+
+## Phase ML-5: Equity Factor Attribution (~3 days)
+
+**New table: `gold.equity_factor_attribution`**  
+**New module: `src/fred_pipeline/equity_factor.py`**
+
+Decomposes each equity ticker's realized daily returns into exposures to
+the macro factors from Phase ML-2, using rolling OLS. Produces a
+Fama-French-style attribution but driven by macro factors rather than
+style — appropriate for understanding _why_ a ticker moved in the context of
+the macro cycle.
+
+### Input
+
+- `gold.equity_return_daily` — the daily `price_return` per ticker
+- `gold.macro_factor_scores` — PC1..PC3 as the explanatory variables
+  (frequency-aligned to daily; factor scores are already at daily grain)
+
+### Implementation
+
+Rolling OLS over a configurable window (default 252 trading days) per
+ticker. For each window ending at date t:
+
+```
+r_ticker = α + β₁·PC1 + β₂·PC2 + β₃·PC3 + ε
+```
+
+The OLS normal equations (XᵀX)β = Xᵀy are solved in pure Python with
+partial-pivoting Gaussian elimination (already proven in `regime_stats.py`
+for the Granger test). Add the same ridge regularizer for near-singular
+windows.
+
+Emit one row per `(ticker, window_end_date)` for each configured window
+length (default: [63, 126, 252] days).
+
+### Output columns
+
+`ticker`, `window_end_date`, `window_days`, `alpha`, `beta_pc1`, `beta_pc2`,
+`beta_pc3`, `r_squared`, `residual_vol`, `information_ratio`
+(`alpha / residual_vol × √252`), `n_obs`.
+
+### Enhancement (Phase ML-5b): Factor-implied return
+
+Add a `gold.equity_factor_implied_return` table: for each date × ticker,
+multiply the current factor scores by the ticker's trailing betas → factor-
+implied return. Compare to realized → residual "idiosyncratic alpha."
+One row per ticker per date (forward-filled betas, current factor scores).
+
+---
+
+## Phase ML-6: Short-Horizon Inflation Forecasting (~3 days)
+
+**New table: `gold.inflation_forecast`**  
+**New module: `src/fred_pipeline/inflation_model.py`**
+
+Generates 1m / 3m / 6m / 12m ahead CPI and PCE forecasts from
+autoregressive and VAR models estimated on the existing inflation data.
+The first deliverable for "forward-looking" macro analytics — complements
+the backward-looking `gold.inflation_explorer`.
+
+### Input
+
+- `gold.inflation_explorer` — per-item MoM changes for CPI-U SA, CPI-U
+  NSA, and PCE (component breakdown available when BLS basket is activated)
+- `gold.fred_feature_transforms` — energy prices (EIA), PPI (if active),
+  and the breakeven inflation series (T5YIE / T10YIE)
+- `gold.macro_factor_scores` (from ML-2) — PC2 (inflation/monetary factor)
+  as an exogenous predictor
+
+### Implementation
+
+**AR(p) per series.** Select lag order p by BIC (expanding window, from
+p=1 to p=12 monthly lags). Forecast h months ahead by recursive
+substitution. Confidence intervals from bootstrapped residuals
+(500 draws, pure Python `random` module — no scipy needed for this).
+
+**VAR(p) for joint CPI + PCE.** Treating them as a bivariate system captures
+the common monetary policy signal. Same expanding estimation; same BIC lag
+selection. The 2×2 companion matrix is invertible in pure Python.
+
+Both models emit a `model_vintage` column (date of last re-estimation;
+re-estimate monthly to avoid daily refitting cost).
+
+### Output columns
+
+`series_id` (e.g. `CPIAUCSL`, `PCEPI`), `forecast_date` (as-of),
+`horizon_months` (1/3/6/12), `forecast_value`, `lower_80`, `upper_80`,
+`lower_95`, `upper_95`, `model_type` (`ar` / `var`), `lag_order`,
+`model_vintage`, `n_obs_training`.
+
+---
+
+## Open decisions
+
+1. **USREC activation (blocks ML-3 live estimates).** The `macro_flags.yml`
+   manifest ships inactive — activate it (with FRED API key configured) to
+   get real recession labels. The model skeleton and tests can use synthetic
+   labels first.
+
+2. **scipy as optional dependency.** The plan keeps scipy entirely optional.
+   If the pure-Python NS fitting (ML-1) proves too slow over the full
+   historical range at startup, allow `scipy.optimize.minimize` with a hard
+   `try/except` wrapper. Do not add scipy to `requirements.txt` without
+   confirming it doesn't conflict with Databricks Runtime version.
+
+3. **Feature selection sign-off (config/ml_features.yml).** The ~20-series
+   starting set above is a suggestion. A quant should approve the list before
+   ML-2 factor loadings are considered interpretable. The config-driven design
+   means this is a YAML edit, not a code change.
+
+4. **Factor rotation convention (ML-2).** Recommendation: sign-anchoring
+   (flip sign so the dominant loading is always positive). Revisit with varimax
+   if the raw PCA factors are hard to interpret once real data is loaded.
+
+5. **Equity universe for ML-5.** Rolling OLS over 252 days × N tickers ×
+   3 factors runs in ~1ms per ticker; at 500 tickers that's ~30s per build.
+   Acceptable, but set `active: false` on equity manifests and gate ML-5
+   behind an `equity_factors_enabled` config flag until the Tiingo key is set.
+
+6. **Databricks MLflow integration (optional).** The pure-Python model
+   outputs land in Gold Delta tables — no MLflow dependency. If the team
+   wants experiment tracking or registered models, the same engine functions
+   can be wrapped with `mlflow.log_params` / `mlflow.log_metrics` calls added
+   _around_ the engine (not inside it), maintaining the separation between
+   pure analytics and infrastructure.
+
+------------------------------------------------------------------------
+
 # Engineering Handoff Checklist
 
 > Actionable, checkbox form with commands and per-item owners:

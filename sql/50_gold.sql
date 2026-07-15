@@ -767,3 +767,22 @@ CREATE TABLE IF NOT EXISTS gold.equity_total_return_index (
     dividend_yield_pct    DOUBLE
 )
 USING DELTA;
+
+-- Cross-source equity price reconciliation: Stooq split-adjusted close vs
+-- Tiingo adjClose (fully adjusted) per ticker x date. Rows emitted only when
+-- both sources carry a value for the same (ticker, date) and the ticker is
+-- listed in config/equity_reconciliations.yml. abs_diff and pct_diff measure
+-- the gap; diverged flags dates where |pct_diff| > tolerance_pct (default 2%).
+-- Minor divergence (~1%) is expected due to different adjustment conventions
+-- (Stooq: splits only; Tiingo adjClose: splits + dividends). Written by
+-- fred_pipeline.equity_views.compute_equity_price_reconciliation.
+CREATE TABLE IF NOT EXISTS gold.equity_price_reconciliation (
+    ticker            STRING,
+    observation_date  DATE,
+    stooq_close       DOUBLE,
+    tiingo_adj_close  DOUBLE,
+    abs_diff          DOUBLE,
+    pct_diff          DOUBLE,
+    diverged          BOOLEAN NOT NULL
+)
+USING DELTA;

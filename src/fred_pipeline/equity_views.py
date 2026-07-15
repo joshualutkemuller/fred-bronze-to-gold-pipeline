@@ -12,6 +12,10 @@ Sub-Plan"):
     ``gold.equity_total_return_index``: true total return per ticker from the
     Tiingo raw inputs (``close`` + ``divCash`` + ``splitFactor``), dividends
     reinvested — derived from raw so it survives dividend restatements.
+  * :func:`compute_equity_price_reconciliation` →
+    ``gold.equity_price_reconciliation``: cross-vendor close comparison for
+    governance — Stooq split-adjusted close vs Tiingo ``adjClose`` per ticker,
+    flagging dates where both sources diverge beyond a tolerance.
 
 **Source isolation.** Stooq and Tiingo both name a ``<ticker>:close`` series,
 so the callers pass **source-filtered** Silver rows (Stooq → price return,
@@ -27,6 +31,10 @@ from bisect import bisect_left
 from datetime import date, timedelta
 from typing import Any, Iterable
 
+from fred_pipeline.equity_reconciliation_config import (
+    EquityReconciliationConfig,
+    load_equity_reconciliation_config,
+)
 from fred_pipeline.features import _parse, _pct_change
 
 # Silver series_id suffix carrying the (split-adjusted) close.
@@ -216,4 +224,78 @@ def compute_equity_total_return_index(
                 "dividend_yield_pct": (ttm_div / close * 100.0) if close else None,
             })
             prev_close = close
+    return out
+
+
+# ---- Cross-source price reconciliation ------------------------------------
+
+def compute_equity_price_reconciliation(
+    stooq_rows: Iterable[dict[str, Any]],
+    tiingo_rows: Iterable[dict[str, Any]],
+    cfg: EquityReconciliationConfig | None = None,
+) -> list[dict[str, Any]]:
+    """``gold.equity_price_reconciliation``: per-ticker daily diff between
+    Stooq's split-adjusted close and Tiingo's ``adjClose`` (split+div adjusted).
+
+    Both vendor adjustments diverge over time by the cumulative dividend
+    component; ``tolerance_pct`` (default 2 %) is wide enough to absorb that
+    drift while still catching genuine data errors (wrong prices, stale feeds).
+
+    Rows are emitted only when both sources carry a value for the same
+    (ticker, date); tickers not listed in ``cfg`` are silently skipped so the
+    table only covers the curated reconciliation universe.
+    """
+    if cfg is None:
+        cfg = load_equity_reconciliation_config()
+
+    wanted: frozenset[str] = frozenset(cfg.tickers)
+
+    # Stooq: <ticker>:close -> {ticker: {date: close}}
+    stooq_by_ticker: dict[str, dict[str, float]] = {}
+    for r in stooq_rows:
+        if r.get("is_missing") or r.get("value") is None:
+            continue
+        sid = r.get("series_id", "")
+        ticker, sep, field = sid.partition(":")
+        if not sep or field != "close" or ticker.upper() not in wanted:
+            continue
+        d = _parse(r.get("observation_date"))
+        if d is None:
+            continue
+        stooq_by_ticker.setdefault(ticker.upper(), {})[d.isoformat()] = float(r["value"])
+
+    # Tiingo: <ticker>:adjClose -> {ticker: {date: adjClose}}
+    tiingo_adj_by_ticker: dict[str, dict[str, float]] = {}
+    for r in tiingo_rows:
+        if r.get("is_missing") or r.get("value") is None:
+            continue
+        sid = r.get("series_id", "")
+        ticker, sep, field = sid.partition(":")
+        if not sep or field != "adjClose" or ticker.upper() not in wanted:
+            continue
+        d = _parse(r.get("observation_date"))
+        if d is None:
+            continue
+        tiingo_adj_by_ticker.setdefault(ticker.upper(), {})[d.isoformat()] = float(r["value"])
+
+    out: list[dict[str, Any]] = []
+    for ticker in sorted(wanted):
+        stooq_dates = stooq_by_ticker.get(ticker, {})
+        tiingo_dates = tiingo_adj_by_ticker.get(ticker, {})
+        common = sorted(set(stooq_dates) & set(tiingo_dates))
+        for obs_date in common:
+            va = stooq_dates[obs_date]
+            vb = tiingo_dates[obs_date]
+            abs_diff = va - vb
+            pct_diff = (abs_diff / vb) if vb != 0.0 else None
+            diverged = pct_diff is not None and abs(pct_diff) * 100.0 > cfg.tolerance_pct
+            out.append({
+                "ticker": ticker,
+                "observation_date": obs_date,
+                "stooq_close": va,
+                "tiingo_adj_close": vb,
+                "abs_diff": abs_diff,
+                "pct_diff": pct_diff,
+                "diverged": diverged,
+            })
     return out

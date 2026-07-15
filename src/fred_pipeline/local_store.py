@@ -287,6 +287,11 @@ CREATE TABLE IF NOT EXISTS gold_equity_total_return_index (
     price_return_index REAL, total_return_index REAL,
     trailing_12m_dividend REAL, dividend_yield_pct REAL
 );
+CREATE TABLE IF NOT EXISTS gold_equity_price_reconciliation (
+    ticker TEXT, observation_date TEXT,
+    stooq_close REAL, tiingo_adj_close REAL,
+    abs_diff REAL, pct_diff REAL, diverged INTEGER NOT NULL DEFAULT 0
+);
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -765,6 +770,7 @@ class LocalWarehouse:
         # <ticker>:close namespace can't collapse Stooq and Tiingo onto one row
         # (equity data is non-vintage → one row per (series_id, date) already).
         from fred_pipeline.equity_views import (
+            compute_equity_price_reconciliation,
             compute_equity_return_daily,
             compute_equity_total_return_index,
             compute_index_constituents,
@@ -781,6 +787,9 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_equity_total_return_index")
         self._insert("gold_equity_total_return_index",
                      compute_equity_total_return_index(tiingo_rows))
+        self.conn.execute("DELETE FROM gold_equity_price_reconciliation")
+        self._insert("gold_equity_price_reconciliation",
+                     compute_equity_price_reconciliation(stooq_rows, tiingo_rows))
 
         self.conn.commit()
         return {k: "ok" for k in (
@@ -803,7 +812,7 @@ class LocalWarehouse:
             "macro_regime_daily", "series_correlation", "series_lead_lag",
             "global_inflation", "global_policy_rates", "powerbi_catalog",
             "equity_return_daily", "index_constituents",
-            "equity_total_return_index",
+            "equity_total_return_index", "equity_price_reconciliation",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

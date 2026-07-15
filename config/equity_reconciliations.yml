@@ -1,0 +1,28 @@
+# Equity cross-source price reconciliation.
+#
+# Pairs Stooq's split-adjusted close with Tiingo's fully-adjusted close
+# (adjClose) for each listed ticker. Deviations beyond tolerance_pct flag
+# vendor data errors or unexpected methodology drift; minor differences (~1%)
+# are expected because Stooq back-adjusts splits only while Tiingo back-
+# adjusts both splits and dividends.
+#
+# The engine emits one row per (ticker, date) when BOTH sources have a value.
+# Rows where only one source is loaded are silently skipped.
+
+equity_reconciliations:
+  tolerance_pct: 2.0   # |pct_diff| threshold; per-ticker overrides not yet supported
+
+  tickers:
+    # Broad-market ETFs (highest liquidity, data quality reference)
+    - SPY
+    - QQQ
+    - IWM
+    - EFA
+    - AGG
+    # Mega-cap single names
+    - AAPL
+    - MSFT
+    - NVDA
+    - AMZN
+    - GOOGL
+    - META
