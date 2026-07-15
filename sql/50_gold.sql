@@ -917,3 +917,20 @@ CREATE TABLE IF NOT EXISTS gold.macro_anomaly_scores (
     n_factors_used    INT
 )
 USING DELTA;
+
+-- ML-3: Expanding IRLS logistic recession probability — one row per USREC date.
+-- Separate forward-horizon models for P(recession in next 3 / 6 / 12 months).
+-- is_backfilled=true for early rows with fewer than min_obs training examples.
+CREATE TABLE IF NOT EXISTS gold.recession_probability_daily (
+    observation_date    DATE,
+    recession_prob      DOUBLE,
+    prob_recession_3m   DOUBLE,
+    prob_recession_6m   DOUBLE,
+    prob_recession_12m  DOUBLE,
+    logit_score         DOUBLE,
+    n_features          INT,
+    n_obs_training      INT,
+    model_vintage       DATE,
+    is_backfilled       BOOLEAN NOT NULL
+)
+USING DELTA;

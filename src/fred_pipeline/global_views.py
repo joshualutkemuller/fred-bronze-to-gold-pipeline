@@ -267,6 +267,11 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
     _entry("macro_anomaly_scores", "fact", "ML", "1 / date",
            "line + anomaly markers",
            "Mahalanobis D² in PCA factor space with χ²(k) p-value; is_anomaly flags the top-1% statistical outliers."),
+    _entry("recession_probability_daily", "fact", "ML", "1 / date",
+           "probability fan chart + recession shading",
+           "Expanding IRLS logistic recession probability: P(recession in next 3/6/12m) "
+           "re-estimated at each USREC print; logit score, feature count, training-obs count, "
+           "and backfill flag for early dates below the min-obs threshold."),
 )
 
 

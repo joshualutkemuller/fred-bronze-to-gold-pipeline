@@ -347,6 +347,12 @@ CREATE TABLE IF NOT EXISTS gold_macro_anomaly_scores (
     observation_date TEXT, mahalanobis_d2 REAL, chi2_df INTEGER,
     p_value REAL, is_anomaly INTEGER NOT NULL DEFAULT 0, n_factors_used INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_recession_probability_daily (
+    observation_date TEXT, recession_prob REAL, prob_recession_3m REAL,
+    prob_recession_6m REAL, prob_recession_12m REAL, logit_score REAL,
+    n_features INTEGER, n_obs_training INTEGER, model_vintage TEXT,
+    is_backfilled INTEGER NOT NULL DEFAULT 0
+);
 
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
@@ -758,9 +764,9 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_treasury_curve_metrics")
         self._insert("gold_treasury_curve_metrics", curve["metrics"])
         from fred_pipeline.ns_model import compute_yield_curve_ns_factors
+        ns_factor_rows = compute_yield_curve_ns_factors(curve["curve"])
         self.conn.execute("DELETE FROM gold_yield_curve_ns_factors")
-        self._insert("gold_yield_curve_ns_factors",
-                     compute_yield_curve_ns_factors(curve["curve"]))
+        self._insert("gold_yield_curve_ns_factors", ns_factor_rows)
         self.conn.execute("DELETE FROM gold_curve_spread_daily")
         self._insert("gold_curve_spread_daily", compute_curve_spread_daily(latest))
         self.conn.execute("DELETE FROM gold_spread_inversion_episode")
@@ -777,9 +783,9 @@ class LocalWarehouse:
         self._insert("gold_funding_tape_daily", funding["tape"])
         self.conn.execute("DELETE FROM gold_funding_stress_daily")
         self._insert("gold_funding_stress_daily", funding["stress"])
+        credit_rows = compute_credit_spread_daily(latest)
         self.conn.execute("DELETE FROM gold_credit_spread_daily")
-        self._insert("gold_credit_spread_daily",
-                     compute_credit_spread_daily(latest))
+        self._insert("gold_credit_spread_daily", credit_rows)
 
         # Phase 2 Inflation Explorer (config/inflation_items.yml).
         inflation = compute_inflation_explorer(latest)
@@ -807,8 +813,9 @@ class LocalWarehouse:
             compute_series_correlation,
             compute_series_lead_lag,
         )
+        regime_rows = compute_macro_regime(latest)
         self.conn.execute("DELETE FROM gold_macro_regime_daily")
-        self._insert("gold_macro_regime_daily", compute_macro_regime(latest))
+        self._insert("gold_macro_regime_daily", regime_rows)
         self.conn.execute("DELETE FROM gold_series_correlation")
         self._insert("gold_series_correlation",
                      compute_series_correlation(latest))
@@ -886,6 +893,30 @@ class LocalWarehouse:
             ),
         )
 
+        # ML-3: Expanding IRLS logistic recession probability model.
+        from fred_pipeline.recession_model import (
+            compute_recession_probability,
+            load_recession_model_config,
+        )
+        rec_cfg = None
+        try:
+            rec_cfg = load_recession_model_config()
+        except Exception:
+            pass
+        self.conn.execute("DELETE FROM gold_recession_probability_daily")
+        self._insert(
+            "gold_recession_probability_daily",
+            compute_recession_probability(
+                latest,
+                ns_factor_rows=ns_factor_rows,
+                feature_transform_rows=feature_transform_rows,
+                credit_spread_rows=credit_rows,
+                funding_stress_rows=funding["stress"],
+                regime_rows=regime_rows,
+                cfg=rec_cfg,
+            ),
+        )
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -912,6 +943,7 @@ class LocalWarehouse:
             "ml_feature_matrix",
             "macro_factor_scores", "macro_factor_loadings",
             "macro_anomaly_scores",
+            "recession_probability_daily",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
