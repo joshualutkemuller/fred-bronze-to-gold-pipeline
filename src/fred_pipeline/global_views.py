@@ -177,7 +177,9 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "Star-schema hub: catalog semantics (category, polarity, transform) + meta titles/units."),
     _entry("dim_date", "dimension", "ALL", "1 / calendar day",
            "date table (mark as such) + recession shading",
-           "Calendar attributes, US fiscal year, NBER recession flag."),
+           "Full time-intelligence calendar: date key, period start/end anchors, ISO week, "
+           "day-of-week (ISO + DAX Sunday-first), US Federal fiscal calendar (Oct start), "
+           "leap-year flag, NBER recession flag."),
     _entry("macro_indicator_dashboard", "fact", "ECON", "1 / series (latest)",
            "KPI grid / table with conditional formatting",
            "Latest/prior/change/YoY, PIT z-score & percentile, surprise proxy, polarity, staleness."),

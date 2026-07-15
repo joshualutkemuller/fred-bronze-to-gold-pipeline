@@ -150,6 +150,247 @@ def test_build_dim_date_recession_flag():
     assert early[0]["is_recession"] is None
 
 
+def test_dim_date_date_key():
+    rows = build_dim_date("2024-03-15", "2024-03-15")
+    r = rows[0]
+    assert r["date_key"] == 20240315
+
+
+def test_dim_date_year_fields():
+    rows = build_dim_date("2024-01-01", "2024-12-31")
+    r_jan1 = rows[0]
+    r_dec31 = rows[-1]
+    assert r_jan1["is_year_start"] is True
+    assert r_jan1["is_year_end"] is False
+    assert r_dec31["is_year_start"] is False
+    assert r_dec31["is_year_end"] is True
+    assert r_jan1["year_label"] == "2024"
+    assert r_jan1["year_start_date"] == "2024-01-01"
+    assert r_jan1["year_end_date"] == "2024-12-31"
+    # 2024 is a leap year
+    assert r_jan1["is_leap_year"] is True
+
+
+def test_dim_date_leap_year():
+    # 2023 is not a leap year
+    r = build_dim_date("2023-03-01", "2023-03-01")[0]
+    assert r["is_leap_year"] is False
+
+
+def test_dim_date_quarter_fields():
+    # Q1: Jan 1 – Mar 31
+    rows = {r["date"]: r for r in build_dim_date("2024-01-01", "2024-04-01")}
+    jan1 = rows["2024-01-01"]
+    assert jan1["quarter"] == 1
+    assert jan1["quarter_label"] == "Q1"
+    assert jan1["year_quarter"] == "2024-Q1"
+    assert jan1["year_quarter_sort"] == 20241
+    assert jan1["quarter_start_date"] == "2024-01-01"
+    assert jan1["quarter_end_date"] == "2024-03-31"
+    assert jan1["is_quarter_start"] is True
+    assert jan1["is_quarter_end"] is False
+
+    mar31 = rows["2024-03-31"]
+    assert mar31["quarter"] == 1
+    assert mar31["is_quarter_start"] is False
+    assert mar31["is_quarter_end"] is True
+
+    apr1 = rows["2024-04-01"]
+    assert apr1["quarter"] == 2
+    assert apr1["quarter_label"] == "Q2"
+    assert apr1["quarter_start_date"] == "2024-04-01"
+    assert apr1["quarter_end_date"] == "2024-06-30"
+    assert apr1["is_quarter_start"] is True
+
+
+def test_dim_date_month_fields():
+    rows = {r["date"]: r for r in build_dim_date("2024-02-01", "2024-03-01")}
+    feb1 = rows["2024-02-01"]
+    assert feb1["month"] == 2
+    assert feb1["month_name"] == "February"
+    assert feb1["month_short_name"] == "Feb"
+    assert feb1["year_month"] == "2024-02"
+    assert feb1["year_month_sort"] == 202402
+    assert feb1["month_start_date"] == "2024-02-01"
+    assert feb1["month_end_date"] == "2024-02-29"   # 2024 is leap year
+    assert feb1["is_month_start"] is True
+    assert feb1["is_month_end"] is False
+    assert feb1["days_in_month"] == 29
+
+    feb29 = rows["2024-02-29"]
+    assert feb29["is_month_end"] is True
+    assert feb29["is_month_start"] is False
+
+    mar1 = rows["2024-03-01"]
+    assert mar1["days_in_month"] == 31
+    assert mar1["is_month_start"] is True
+
+
+def test_dim_date_iso_week_fields():
+    # 2024-01-01 is a Monday → week 1 of 2024
+    r = build_dim_date("2024-01-01", "2024-01-07")
+    mon = r[0]   # 2024-01-01 Monday
+    sun = r[6]   # 2024-01-07 Sunday
+    assert mon["week_of_year"] == 1
+    assert mon["iso_year"] == 2024
+    assert mon["year_week"] == "2024-W01"
+    assert mon["week_start_date"] == "2024-01-01"
+    assert mon["week_end_date"] == "2024-01-07"
+    assert mon["is_week_start"] is True
+    assert mon["is_week_end"] is False
+    assert sun["is_week_start"] is False
+    assert sun["is_week_end"] is True
+
+
+def test_dim_date_iso_year_boundary():
+    # 2023-01-01 is a Sunday in ISO week 52 of 2022
+    r = build_dim_date("2023-01-01", "2023-01-01")[0]
+    assert r["iso_year"] == 2022
+    assert r["week_of_year"] == 52
+
+
+def test_dim_date_day_fields():
+    # 2024-01-01 is a Monday
+    r = build_dim_date("2024-01-01", "2024-01-01")[0]
+    assert r["day_of_month"] == 1
+    assert r["day_of_year"] == 1
+    assert r["day_name"] == "Monday"
+    assert r["day_short_name"] == "Mon"
+    assert r["day_of_week_iso"] == 1    # 1=Monday ISO
+    assert r["day_of_week_sun"] == 2    # Monday is 2 in Sun-first convention
+    assert r["is_weekday"] is True
+    assert r["is_weekend"] is False
+
+    # 2024-01-06 is a Saturday
+    sat = build_dim_date("2024-01-06", "2024-01-06")[0]
+    assert sat["day_name"] == "Saturday"
+    assert sat["day_of_week_iso"] == 6
+    assert sat["day_of_week_sun"] == 7   # Saturday = 7 in Sun-first
+    assert sat["is_weekday"] is False
+    assert sat["is_weekend"] is True
+
+    # 2024-01-07 is a Sunday
+    sun = build_dim_date("2024-01-07", "2024-01-07")[0]
+    assert sun["day_of_week_iso"] == 7
+    assert sun["day_of_week_sun"] == 1   # Sunday = 1 in Sun-first
+
+
+def test_dim_date_day_of_year():
+    # 2024 is leap year; Dec 31 = day 366
+    r = build_dim_date("2024-12-31", "2024-12-31")[0]
+    assert r["day_of_year"] == 366
+    # 2023 non-leap; Dec 31 = day 365
+    r2 = build_dim_date("2023-12-31", "2023-12-31")[0]
+    assert r2["day_of_year"] == 365
+
+
+def test_dim_date_fiscal_year_fields():
+    rows = {r["date"]: r for r in build_dim_date("2023-09-30", "2023-10-02")}
+    sep30 = rows["2023-09-30"]   # last day of FY2023
+    oct1 = rows["2023-10-01"]    # first day of FY2024
+    oct2 = rows["2023-10-02"]
+
+    assert sep30["fiscal_year"] == 2023
+    assert sep30["fiscal_year_label"] == "FY2023"
+    assert sep30["fiscal_month"] == 12      # Sep = fiscal month 12
+    assert sep30["fiscal_quarter"] == 4
+    assert sep30["fiscal_quarter_label"] == "FY2023-Q4"
+    assert sep30["is_fiscal_year_end"] is True
+    assert sep30["is_fiscal_year_start"] is False
+    assert sep30["fiscal_year_start_date"] == "2022-10-01"
+    assert sep30["fiscal_year_end_date"] == "2023-09-30"
+
+    assert oct1["fiscal_year"] == 2024
+    assert oct1["fiscal_year_label"] == "FY2024"
+    assert oct1["fiscal_month"] == 1        # Oct = fiscal month 1
+    assert oct1["fiscal_quarter"] == 1
+    assert oct1["fiscal_quarter_label"] == "FY2024-Q1"
+    assert oct1["is_fiscal_year_start"] is True
+    assert oct1["is_fiscal_year_end"] is False
+    assert oct1["is_fiscal_quarter_start"] is True
+    assert oct1["fiscal_year_start_date"] == "2023-10-01"
+    assert oct1["fiscal_year_end_date"] == "2024-09-30"
+    assert oct1["fiscal_quarter_start_date"] == "2023-10-01"
+    assert oct1["fiscal_quarter_end_date"] == "2023-12-31"
+
+    assert oct2["is_fiscal_year_start"] is False
+    assert oct2["is_fiscal_quarter_start"] is False
+
+
+def test_dim_date_fiscal_quarter_boundaries():
+    rows = {r["date"]: r for r in build_dim_date("2024-01-01", "2024-09-30")}
+    # FQ2 = Jan–Mar of FY2024
+    jan1 = rows["2024-01-01"]
+    assert jan1["fiscal_quarter"] == 2
+    assert jan1["is_fiscal_quarter_start"] is True
+    assert jan1["fiscal_quarter_start_date"] == "2024-01-01"
+    assert jan1["fiscal_quarter_end_date"] == "2024-03-31"
+
+    mar31 = rows["2024-03-31"]
+    assert mar31["fiscal_quarter"] == 2
+    assert mar31["is_fiscal_quarter_end"] is True
+
+    # FQ3 = Apr–Jun
+    apr1 = rows["2024-04-01"]
+    assert apr1["fiscal_quarter"] == 3
+    assert apr1["is_fiscal_quarter_start"] is True
+
+    # FQ4 = Jul–Sep
+    jul1 = rows["2024-07-01"]
+    assert jul1["fiscal_quarter"] == 4
+    assert jul1["is_fiscal_quarter_start"] is True
+
+    sep30 = rows["2024-09-30"]
+    assert sep30["fiscal_quarter"] == 4
+    assert sep30["is_fiscal_quarter_end"] is True
+    assert sep30["is_fiscal_year_end"] is True
+
+
+def test_dim_date_fiscal_year_quarter_sort():
+    r = build_dim_date("2024-01-15", "2024-01-15")[0]
+    # FY2024, FQ2
+    assert r["fiscal_year_quarter_sort"] == 20242
+    assert r["year_quarter_sort"] == 20241    # calendar Q1
+
+
+def test_dim_date_contiguous_no_gaps():
+    from datetime import date as _date, timedelta
+    rows = build_dim_date("2020-01-01", "2020-12-31")
+    assert len(rows) == 366   # 2020 is leap year
+    for i, r in enumerate(rows):
+        expected = (_date(2020, 1, 1) + timedelta(days=i)).isoformat()
+        assert r["date"] == expected
+
+
+def test_dim_date_complete_field_set():
+    r = build_dim_date("2024-06-15", "2024-06-15")[0]
+    expected_keys = {
+        "date", "date_key",
+        "year", "year_label", "year_start_date", "year_end_date",
+        "is_year_start", "is_year_end", "is_leap_year",
+        "quarter", "quarter_label", "year_quarter", "year_quarter_sort",
+        "quarter_start_date", "quarter_end_date",
+        "is_quarter_start", "is_quarter_end",
+        "month", "month_name", "month_short_name",
+        "year_month", "year_month_sort",
+        "month_start_date", "month_end_date",
+        "is_month_start", "is_month_end", "days_in_month",
+        "iso_year", "week_of_year", "year_week",
+        "week_start_date", "week_end_date", "is_week_start", "is_week_end",
+        "day_of_month", "day_of_year", "day_name", "day_short_name",
+        "day_of_week_iso", "day_of_week_sun", "is_weekday", "is_weekend",
+        "fiscal_year", "fiscal_year_label",
+        "fiscal_quarter", "fiscal_quarter_label", "fiscal_month",
+        "fiscal_year_quarter_sort",
+        "fiscal_year_start_date", "fiscal_year_end_date",
+        "fiscal_quarter_start_date", "fiscal_quarter_end_date",
+        "is_fiscal_year_start", "is_fiscal_year_end",
+        "is_fiscal_quarter_start", "is_fiscal_quarter_end",
+        "is_recession",
+    }
+    assert set(r.keys()) == expected_keys
+
+
 # ---- ECON macro dashboard ---------------------------------------------------
 
 def _labor_catalog(window=12):

@@ -143,13 +143,30 @@ def build_dim_series(
     return sorted(out, key=lambda r: (r["econ_category"], r["series_id"]))
 
 
+# US Federal fiscal year starts October 1.
+# Maps fiscal_quarter → (start_calendar_month, end_calendar_month).
+_FISCAL_Q_CAL = {1: (10, 12), 2: (1, 3), 3: (4, 6), 4: (7, 9)}
+
+_DAY_NAMES = (
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+)
+_DAY_SHORT = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
+
 def build_dim_date(
     start: Any, end: Any, recession_rows: Iterable[dict[str, Any]] = ()
 ) -> list[dict[str, Any]]:
-    """``gold.dim_date``: one row per calendar day in [start, end], with the
-    calendar attributes Power BI time-intelligence needs plus the NBER
-    recession flag (``None`` until USREC is ingested). ``fiscal_year`` is the
-    US federal fiscal year (October start)."""
+    """``gold.dim_date``: full time-intelligence calendar dimension.
+
+    One row per calendar day in [start, end].  Covers every attribute Power BI
+    DAX time-intelligence functions need (date key, period start/end anchors,
+    ISO week, day-of-week in both ISO and Sunday-=1 conventions, US Federal
+    fiscal calendar, leap-year flag) plus the NBER recession flag (``None``
+    until USREC is ingested — unknown, not false).
+
+    US Federal fiscal year (October start): FY N runs Oct 1 of year N-1 through
+    Sep 30 of year N.  fiscal_month=1 → October, fiscal_quarter=1 → Oct–Dec.
+    """
     lo, hi = _parse(start), _parse(end)
     if lo is None or hi is None or lo > hi:
         return []
@@ -157,14 +174,119 @@ def build_dim_date(
     out: list[dict[str, Any]] = []
     d = lo
     while d <= hi:
+        # ---- day of week ------------------------------------------------
+        dow = d.weekday()          # 0=Mon … 6=Sun
+        iso_year, iso_week, _ = d.isocalendar()
+
+        # ---- month -------------------------------------------------------
+        _, dim = calendar.monthrange(d.year, d.month)
+        month_start = date(d.year, d.month, 1)
+        month_end = date(d.year, d.month, dim)
+
+        # ---- quarter -----------------------------------------------------
+        q = (d.month - 1) // 3 + 1
+        q_start_month = (q - 1) * 3 + 1
+        q_end_month = q * 3
+        _, q_end_days = calendar.monthrange(d.year, q_end_month)
+        quarter_start = date(d.year, q_start_month, 1)
+        quarter_end = date(d.year, q_end_month, q_end_days)
+
+        # ---- year --------------------------------------------------------
+        year_start = date(d.year, 1, 1)
+        year_end = date(d.year, 12, 31)
+
+        # ---- ISO week bounds ---------------------------------------------
+        week_start = d - timedelta(days=dow)          # Monday
+        week_end = week_start + timedelta(days=6)     # Sunday
+
+        # ---- US Federal fiscal calendar ----------------------------------
+        fy = d.year + 1 if d.month >= 10 else d.year
+        # fiscal_month: October=1, November=2, … September=12
+        fm = (d.month - 10) % 12 + 1
+        fq = (fm - 1) // 3 + 1
+        fy_start = date(fy - 1, 10, 1)
+        fy_end = date(fy, 9, 30)   # September always has 30 days
+        fq_start_cm, fq_end_cm = _FISCAL_Q_CAL[fq]
+        fq_start_cy = fy - 1 if fq_start_cm >= 10 else fy
+        fq_end_cy = fy - 1 if fq_end_cm >= 10 else fy
+        fq_start = date(fq_start_cy, fq_start_cm, 1)
+        _, fq_end_days = calendar.monthrange(fq_end_cy, fq_end_cm)
+        fq_end = date(fq_end_cy, fq_end_cm, fq_end_days)
+
         out.append({
+            # ---- date identifiers ----------------------------------------
             "date": d.isoformat(),
+            "date_key": d.year * 10000 + d.month * 100 + d.day,
+
+            # ---- calendar year -------------------------------------------
             "year": d.year,
-            "quarter": (d.month - 1) // 3 + 1,
+            "year_label": str(d.year),
+            "year_start_date": year_start.isoformat(),
+            "year_end_date": year_end.isoformat(),
+            "is_year_start": d == year_start,
+            "is_year_end": d == year_end,
+            "is_leap_year": calendar.isleap(d.year),
+
+            # ---- calendar quarter ----------------------------------------
+            "quarter": q,
+            "quarter_label": f"Q{q}",
+            "year_quarter": f"{d.year}-Q{q}",
+            "year_quarter_sort": d.year * 10 + q,
+            "quarter_start_date": quarter_start.isoformat(),
+            "quarter_end_date": quarter_end.isoformat(),
+            "is_quarter_start": d == quarter_start,
+            "is_quarter_end": d == quarter_end,
+
+            # ---- calendar month ------------------------------------------
             "month": d.month,
             "month_name": calendar.month_name[d.month],
-            "is_month_end": d.month != (d + timedelta(days=1)).month,
-            "fiscal_year": d.year + 1 if d.month >= 10 else d.year,
+            "month_short_name": calendar.month_abbr[d.month],
+            "year_month": f"{d.year}-{d.month:02d}",
+            "year_month_sort": d.year * 100 + d.month,
+            "month_start_date": month_start.isoformat(),
+            "month_end_date": month_end.isoformat(),
+            "is_month_start": d == month_start,
+            "is_month_end": d == month_end,
+            "days_in_month": dim,
+
+            # ---- ISO week ------------------------------------------------
+            "iso_year": iso_year,
+            "week_of_year": iso_week,
+            "year_week": f"{iso_year}-W{iso_week:02d}",
+            "week_start_date": week_start.isoformat(),
+            "week_end_date": week_end.isoformat(),
+            "is_week_start": dow == 0,
+            "is_week_end": dow == 6,
+
+            # ---- day -----------------------------------------------------
+            "day_of_month": d.day,
+            "day_of_year": d.timetuple().tm_yday,
+            "day_name": _DAY_NAMES[dow],
+            "day_short_name": _DAY_SHORT[dow],
+            # ISO: 1=Monday … 7=Sunday  (Power BI "Monday as first day")
+            "day_of_week_iso": dow + 1,
+            # Sunday-first: 1=Sunday … 7=Saturday  (Power BI / DAX default)
+            "day_of_week_sun": (dow + 1) % 7 + 1,
+            "is_weekday": dow < 5,
+            "is_weekend": dow >= 5,
+
+            # ---- US Federal fiscal year (Oct start) ----------------------
+            "fiscal_year": fy,
+            "fiscal_year_label": f"FY{fy}",
+            "fiscal_quarter": fq,
+            "fiscal_quarter_label": f"FY{fy}-Q{fq}",
+            "fiscal_month": fm,
+            "fiscal_year_quarter_sort": fy * 10 + fq,
+            "fiscal_year_start_date": fy_start.isoformat(),
+            "fiscal_year_end_date": fy_end.isoformat(),
+            "fiscal_quarter_start_date": fq_start.isoformat(),
+            "fiscal_quarter_end_date": fq_end.isoformat(),
+            "is_fiscal_year_start": d == fy_start,
+            "is_fiscal_year_end": d == fy_end,
+            "is_fiscal_quarter_start": d == fq_start,
+            "is_fiscal_quarter_end": d == fq_end,
+
+            # ---- NBER recession (None = unknown / not yet ingested) ------
             "is_recession": _recession_at(flags, d),
         })
         d += timedelta(days=1)

@@ -157,8 +157,40 @@ CREATE TABLE IF NOT EXISTS gold_dim_series (
     scale TEXT, decimals INTEGER, notes TEXT
 );
 CREATE TABLE IF NOT EXISTS gold_dim_date (
-    date TEXT PRIMARY KEY, year INTEGER, quarter INTEGER, month INTEGER,
-    month_name TEXT, is_month_end INTEGER, fiscal_year INTEGER,
+    -- date identifiers
+    date TEXT PRIMARY KEY, date_key INTEGER,
+    -- calendar year
+    year INTEGER, year_label TEXT,
+    year_start_date TEXT, year_end_date TEXT,
+    is_year_start INTEGER, is_year_end INTEGER, is_leap_year INTEGER,
+    -- calendar quarter
+    quarter INTEGER, quarter_label TEXT,
+    year_quarter TEXT, year_quarter_sort INTEGER,
+    quarter_start_date TEXT, quarter_end_date TEXT,
+    is_quarter_start INTEGER, is_quarter_end INTEGER,
+    -- calendar month
+    month INTEGER, month_name TEXT, month_short_name TEXT,
+    year_month TEXT, year_month_sort INTEGER,
+    month_start_date TEXT, month_end_date TEXT,
+    is_month_start INTEGER, is_month_end INTEGER, days_in_month INTEGER,
+    -- ISO week
+    iso_year INTEGER, week_of_year INTEGER, year_week TEXT,
+    week_start_date TEXT, week_end_date TEXT,
+    is_week_start INTEGER, is_week_end INTEGER,
+    -- day
+    day_of_month INTEGER, day_of_year INTEGER,
+    day_name TEXT, day_short_name TEXT,
+    day_of_week_iso INTEGER, day_of_week_sun INTEGER,
+    is_weekday INTEGER, is_weekend INTEGER,
+    -- US Federal fiscal year (October start)
+    fiscal_year INTEGER, fiscal_year_label TEXT,
+    fiscal_quarter INTEGER, fiscal_quarter_label TEXT, fiscal_month INTEGER,
+    fiscal_year_quarter_sort INTEGER,
+    fiscal_year_start_date TEXT, fiscal_year_end_date TEXT,
+    fiscal_quarter_start_date TEXT, fiscal_quarter_end_date TEXT,
+    is_fiscal_year_start INTEGER, is_fiscal_year_end INTEGER,
+    is_fiscal_quarter_start INTEGER, is_fiscal_quarter_end INTEGER,
+    -- NBER recession (NULL = unknown / not yet ingested)
     is_recession INTEGER
 );
 CREATE TABLE IF NOT EXISTS gold_macro_indicator_dashboard (

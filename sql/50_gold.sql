@@ -262,18 +262,77 @@ CREATE TABLE IF NOT EXISTS gold.dim_series (
 )
 USING DELTA;
 
--- Calendar dimension over the observed date range. is_recession is the NBER
--- USREC flag (NULL until manifests/macro_flags.yml is activated — unknown,
--- never false). fiscal_year is US federal (October start).
+-- Full time-intelligence calendar dimension. One row per calendar day in the
+-- observed data range. Covers all attributes Power BI DAX time-intelligence
+-- functions need: period anchors, ISO week, dual day-of-week conventions,
+-- US Federal fiscal calendar (October start), and the NBER recession flag
+-- (NULL = unknown / USREC not yet ingested, never conflated with FALSE).
 CREATE TABLE IF NOT EXISTS gold.dim_date (
-    date         DATE,
-    year         INT,
-    quarter      INT,
-    month        INT,
-    month_name   STRING,
-    is_month_end BOOLEAN,
-    fiscal_year  INT,
-    is_recession BOOLEAN
+    -- date identifiers
+    date                        DATE,
+    date_key                    INT,        -- YYYYMMDD sort key
+    -- calendar year
+    year                        INT,
+    year_label                  STRING,
+    year_start_date             DATE,
+    year_end_date               DATE,
+    is_year_start               BOOLEAN,
+    is_year_end                 BOOLEAN,
+    is_leap_year                BOOLEAN,
+    -- calendar quarter
+    quarter                     INT,
+    quarter_label               STRING,     -- "Q1" … "Q4"
+    year_quarter                STRING,     -- "2024-Q1"
+    year_quarter_sort           INT,        -- 20241
+    quarter_start_date          DATE,
+    quarter_end_date            DATE,
+    is_quarter_start            BOOLEAN,
+    is_quarter_end              BOOLEAN,
+    -- calendar month
+    month                       INT,
+    month_name                  STRING,     -- "January" …
+    month_short_name            STRING,     -- "Jan" …
+    year_month                  STRING,     -- "2024-01"
+    year_month_sort             INT,        -- 202401
+    month_start_date            DATE,
+    month_end_date              DATE,
+    is_month_start              BOOLEAN,
+    is_month_end                BOOLEAN,
+    days_in_month               INT,
+    -- ISO week
+    iso_year                    INT,        -- ISO year (differs from year at year boundary)
+    week_of_year                INT,        -- ISO week 1–53
+    year_week                   STRING,     -- "2024-W01"
+    week_start_date             DATE,       -- Monday
+    week_end_date               DATE,       -- Sunday
+    is_week_start               BOOLEAN,    -- is Monday
+    is_week_end                 BOOLEAN,    -- is Sunday
+    -- day
+    day_of_month                INT,
+    day_of_year                 INT,
+    day_name                    STRING,     -- "Monday" …
+    day_short_name              STRING,     -- "Mon" …
+    day_of_week_iso             INT,        -- 1=Mon … 7=Sun (ISO 8601)
+    day_of_week_sun             INT,        -- 1=Sun … 7=Sat (DAX default)
+    is_weekday                  BOOLEAN,
+    is_weekend                  BOOLEAN,
+    -- US Federal fiscal year (October start; FY N = Oct(N-1) – Sep N)
+    fiscal_year                 INT,
+    fiscal_year_label           STRING,     -- "FY2024"
+    fiscal_quarter              INT,        -- 1=Oct–Dec … 4=Jul–Sep
+    fiscal_quarter_label        STRING,     -- "FY2024-Q1"
+    fiscal_month                INT,        -- 1=Oct … 12=Sep
+    fiscal_year_quarter_sort    INT,        -- 20241
+    fiscal_year_start_date      DATE,       -- Oct 1
+    fiscal_year_end_date        DATE,       -- Sep 30
+    fiscal_quarter_start_date   DATE,
+    fiscal_quarter_end_date     DATE,
+    is_fiscal_year_start        BOOLEAN,
+    is_fiscal_year_end          BOOLEAN,
+    is_fiscal_quarter_start     BOOLEAN,
+    is_fiscal_quarter_end       BOOLEAN,
+    -- NBER recession (NULL = unknown / USREC not yet ingested)
+    is_recession                BOOLEAN
 )
 USING DELTA;
 
