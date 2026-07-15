@@ -359,6 +359,10 @@ CREATE TABLE IF NOT EXISTS gold_macro_anomaly_scores (
     observation_date TEXT, mahalanobis_d2 REAL, chi2_df INTEGER,
     p_value REAL, is_anomaly INTEGER NOT NULL DEFAULT 0, n_factors_used INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_equity_factor_attribution (
+    ticker TEXT, observation_date TEXT, window INTEGER, factor INTEGER,
+    beta REAL, t_stat REAL, alpha REAL, r_squared REAL, n_obs INTEGER
+);
 CREATE TABLE IF NOT EXISTS gold_recession_probability_daily (
     observation_date TEXT, recession_prob REAL, prob_recession_3m REAL,
     prob_recession_6m REAL, prob_recession_12m REAL, logit_score REAL,
@@ -875,9 +879,9 @@ class LocalWarehouse:
         stooq_rows = [r for r in silver if r.get("source") == "stooq"]
         ishares_rows = [r for r in silver if r.get("source") == "ishares"]
         tiingo_rows = [r for r in silver if r.get("source") == "tiingo"]
+        eq_return_rows = compute_equity_return_daily(stooq_rows)
         self.conn.execute("DELETE FROM gold_equity_return_daily")
-        self._insert("gold_equity_return_daily",
-                     compute_equity_return_daily(stooq_rows))
+        self._insert("gold_equity_return_daily", eq_return_rows)
         self.conn.execute("DELETE FROM gold_index_constituents")
         self._insert("gold_index_constituents",
                      compute_index_constituents(ishares_rows))
@@ -915,6 +919,26 @@ class LocalWarehouse:
             "gold_macro_anomaly_scores",
             compute_macro_anomaly_scores(
                 pca["scores"], anomaly_threshold=anom_thresh
+            ),
+        )
+
+        # ML-5: Equity factor attribution (rolling OLS vs PCA macro factors).
+        from fred_pipeline.equity_factor_attribution import (
+            compute_equity_factor_attribution,
+            load_equity_factor_config,
+        )
+        ef_cfg = None
+        try:
+            ef_cfg = load_equity_factor_config()
+        except Exception:
+            pass
+        self.conn.execute("DELETE FROM gold_equity_factor_attribution")
+        self._insert(
+            "gold_equity_factor_attribution",
+            compute_equity_factor_attribution(
+                eq_return_rows,
+                pca["scores"],
+                cfg=ef_cfg,
             ),
         )
 
@@ -969,6 +993,7 @@ class LocalWarehouse:
             "ml_feature_matrix",
             "macro_factor_scores", "macro_factor_loadings",
             "macro_anomaly_scores",
+            "equity_factor_attribution",
             "recession_probability_daily",
         )}
 

@@ -1,0 +1,11 @@
+# Equity factor attribution (ML-5)
+# Rolling OLS of monthly equity price returns on ML-2 PCA macro factor scores.
+#
+# windows  — rolling window lengths in calendar months (1y, 3y, 5y)
+# min_obs  — minimum matched months required to estimate OLS (avoids underfitting)
+# tickers  — restrict to these symbols; leave empty to run on all tickers found
+#            in gold.equity_return_daily
+
+windows: [12, 36, 60]
+min_obs: 12
+tickers: []

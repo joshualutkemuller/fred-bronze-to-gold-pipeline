@@ -261,6 +261,11 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
     _entry("equity_price_reconciliation", "reference", "EQUITY", "1 / ticker x date",
            "divergence scatter / table",
            "Cross-vendor close comparison: Stooq split-adjusted vs Tiingo adjClose; flags dates where sources diverge beyond tolerance."),
+    _entry("equity_factor_attribution", "fact", "EQUITY", "1 / ticker x factor x window x date",
+           "factor exposure heatmap / rolling beta lines",
+           "Rolling OLS of monthly equity price returns on ML-2 PCA macro factor scores: "
+           "beta and t-stat per factor, alpha, R², and observation count per (ticker, window, date). "
+           "Configurable windows (default 12 / 36 / 60 months); tickers filter in config/equity_factor_attribution.yml."),
     _entry("fred_latest_observation", "fact", "CORE", "1 / series x date",
            "generic line", "Latest-revised observation per (series, date)."),
     _entry("fred_feature_transforms", "fact", "CORE", "1 / series x date",

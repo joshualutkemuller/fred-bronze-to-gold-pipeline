@@ -956,6 +956,24 @@ CREATE TABLE IF NOT EXISTS gold.macro_anomaly_scores (
 )
 USING DELTA;
 
+-- ML-5: Rolling OLS of monthly equity price returns on ML-2 PCA macro factor
+-- scores. One row per (ticker, factor, window, observation_date): rolling beta
+-- and t-stat; alpha / R² / n_obs repeated across all factor rows for the same
+-- (ticker, window, date) for Power BI convenience.
+-- Written by fred_pipeline.equity_factor_attribution.
+CREATE TABLE IF NOT EXISTS gold.equity_factor_attribution (
+    ticker           STRING,
+    observation_date DATE,
+    window           INT,
+    factor           INT,
+    beta             DOUBLE,
+    t_stat           DOUBLE,
+    alpha            DOUBLE,
+    r_squared        DOUBLE,
+    n_obs            INT
+)
+USING DELTA;
+
 -- ML-3: Expanding IRLS logistic recession probability — one row per USREC date.
 -- Separate forward-horizon models for P(recession in next 3 / 6 / 12 months).
 -- is_backfilled=true for early rows with fewer than min_obs training examples.
