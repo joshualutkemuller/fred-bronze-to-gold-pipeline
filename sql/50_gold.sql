@@ -262,18 +262,77 @@ CREATE TABLE IF NOT EXISTS gold.dim_series (
 )
 USING DELTA;
 
--- Calendar dimension over the observed date range. is_recession is the NBER
--- USREC flag (NULL until manifests/macro_flags.yml is activated — unknown,
--- never false). fiscal_year is US federal (October start).
+-- Full time-intelligence calendar dimension. One row per calendar day in the
+-- observed data range. Covers all attributes Power BI DAX time-intelligence
+-- functions need: period anchors, ISO week, dual day-of-week conventions,
+-- US Federal fiscal calendar (October start), and the NBER recession flag
+-- (NULL = unknown / USREC not yet ingested, never conflated with FALSE).
 CREATE TABLE IF NOT EXISTS gold.dim_date (
-    date         DATE,
-    year         INT,
-    quarter      INT,
-    month        INT,
-    month_name   STRING,
-    is_month_end BOOLEAN,
-    fiscal_year  INT,
-    is_recession BOOLEAN
+    -- date identifiers
+    date                        DATE,
+    date_key                    INT,        -- YYYYMMDD sort key
+    -- calendar year
+    year                        INT,
+    year_label                  STRING,
+    year_start_date             DATE,
+    year_end_date               DATE,
+    is_year_start               BOOLEAN,
+    is_year_end                 BOOLEAN,
+    is_leap_year                BOOLEAN,
+    -- calendar quarter
+    quarter                     INT,
+    quarter_label               STRING,     -- "Q1" … "Q4"
+    year_quarter                STRING,     -- "2024-Q1"
+    year_quarter_sort           INT,        -- 20241
+    quarter_start_date          DATE,
+    quarter_end_date            DATE,
+    is_quarter_start            BOOLEAN,
+    is_quarter_end              BOOLEAN,
+    -- calendar month
+    month                       INT,
+    month_name                  STRING,     -- "January" …
+    month_short_name            STRING,     -- "Jan" …
+    year_month                  STRING,     -- "2024-01"
+    year_month_sort             INT,        -- 202401
+    month_start_date            DATE,
+    month_end_date              DATE,
+    is_month_start              BOOLEAN,
+    is_month_end                BOOLEAN,
+    days_in_month               INT,
+    -- ISO week
+    iso_year                    INT,        -- ISO year (differs from year at year boundary)
+    week_of_year                INT,        -- ISO week 1–53
+    year_week                   STRING,     -- "2024-W01"
+    week_start_date             DATE,       -- Monday
+    week_end_date               DATE,       -- Sunday
+    is_week_start               BOOLEAN,    -- is Monday
+    is_week_end                 BOOLEAN,    -- is Sunday
+    -- day
+    day_of_month                INT,
+    day_of_year                 INT,
+    day_name                    STRING,     -- "Monday" …
+    day_short_name              STRING,     -- "Mon" …
+    day_of_week_iso             INT,        -- 1=Mon … 7=Sun (ISO 8601)
+    day_of_week_sun             INT,        -- 1=Sun … 7=Sat (DAX default)
+    is_weekday                  BOOLEAN,
+    is_weekend                  BOOLEAN,
+    -- US Federal fiscal year (October start; FY N = Oct(N-1) – Sep N)
+    fiscal_year                 INT,
+    fiscal_year_label           STRING,     -- "FY2024"
+    fiscal_quarter              INT,        -- 1=Oct–Dec … 4=Jul–Sep
+    fiscal_quarter_label        STRING,     -- "FY2024-Q1"
+    fiscal_month                INT,        -- 1=Oct … 12=Sep
+    fiscal_year_quarter_sort    INT,        -- 20241
+    fiscal_year_start_date      DATE,       -- Oct 1
+    fiscal_year_end_date        DATE,       -- Sep 30
+    fiscal_quarter_start_date   DATE,
+    fiscal_quarter_end_date     DATE,
+    is_fiscal_year_start        BOOLEAN,
+    is_fiscal_year_end          BOOLEAN,
+    is_fiscal_quarter_start     BOOLEAN,
+    is_fiscal_quarter_end       BOOLEAN,
+    -- NBER recession (NULL = unknown / USREC not yet ingested)
+    is_recession                BOOLEAN
 )
 USING DELTA;
 
@@ -784,5 +843,60 @@ CREATE TABLE IF NOT EXISTS gold.equity_price_reconciliation (
     abs_diff          DOUBLE,
     pct_diff          DOUBLE,
     diverged          BOOLEAN NOT NULL
+)
+USING DELTA;
+
+-- ============================================================================
+-- ML pipeline (handoff.md "ML Extensions Sub-Plan"):
+-- ML-0 feature matrix, ML-2 PCA factor scores/loadings, ML-4 anomaly scores.
+-- Computed by fred_pipeline.ml_features / macro_pca / anomaly (pure Python).
+-- ============================================================================
+
+-- Tidy (long-format) ML feature matrix: one row per (observation_date,
+-- feature_name), selecting the configured transform column from
+-- gold.fred_feature_transforms. Input to the PCA and anomaly engines.
+CREATE TABLE IF NOT EXISTS gold.ml_feature_matrix (
+    observation_date  DATE,
+    feature_name      STRING,
+    series_id         STRING,
+    transform         STRING,
+    value             DOUBLE
+)
+USING DELTA;
+
+-- Expanding monthly PCA factor scores: one row per snapshot date × factor.
+-- n_obs is the number of monthly snapshots seen before this date (expanding
+-- Welford estimate). explained_variance_ratio and cumulative_variance_ratio
+-- come from the eigenvalue / total variance ratio.
+CREATE TABLE IF NOT EXISTS gold.macro_factor_scores (
+    observation_date            DATE,
+    factor                      INT,
+    score                       DOUBLE,
+    explained_variance_ratio    DOUBLE,
+    cumulative_variance_ratio   DOUBLE,
+    n_obs                       INT
+)
+USING DELTA;
+
+-- PCA factor loadings: one row per snapshot date × factor × feature. The
+-- sign is anchored so the max-abs loading component is always positive.
+CREATE TABLE IF NOT EXISTS gold.macro_factor_loadings (
+    observation_date  DATE,
+    factor            INT,
+    feature_name      STRING,
+    loading           DOUBLE
+)
+USING DELTA;
+
+-- Mahalanobis D² anomaly scores in PCA factor space: one row per snapshot
+-- date. D² = Σ_k ((score_k − μ_k) / σ_k)² with expanding per-factor stats.
+-- p_value = P(χ²(chi2_df) > D²); is_anomaly = 1 when p_value < 0.01.
+CREATE TABLE IF NOT EXISTS gold.macro_anomaly_scores (
+    observation_date  DATE,
+    mahalanobis_d2    DOUBLE,
+    chi2_df           INT,
+    p_value           DOUBLE,
+    is_anomaly        BOOLEAN NOT NULL,
+    n_factors_used    INT
 )
 USING DELTA;

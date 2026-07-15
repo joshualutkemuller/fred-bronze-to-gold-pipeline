@@ -1,0 +1,60 @@
+min_features_for_pca: 5
+n_components: 5
+anomaly_threshold: 0.99
+
+features:
+  # Financial conditions indices (Chicago Fed, weekly)
+  - name: NFCI
+    series_id: NFCI
+    transform: level
+
+  - name: ANFCI
+    series_id: ANFCI
+    transform: level
+
+  # Money supply (monthly, yoy growth)
+  - name: M2SL_YOY
+    series_id: M2SL
+    transform: yoy
+
+  - name: BOGMBASE_YOY
+    series_id: BOGMBASE
+    transform: yoy
+
+  # Production & capacity (monthly, yoy growth / level)
+  - name: IPMAN_YOY
+    series_id: IPMAN
+    transform: yoy
+
+  - name: TCU
+    series_id: TCU
+    transform: level
+
+  # Prices (monthly, yoy growth)
+  - name: PPIACO_YOY
+    series_id: PPIACO
+    transform: yoy
+
+  - name: GDPDEF_YOY
+    series_id: GDPDEF
+    transform: yoy
+
+  # National accounts (quarterly; A191RL1Q225SBEA is already a % change)
+  - name: GDPC1_QOQ
+    series_id: A191RL1Q225SBEA
+    transform: level
+
+  # Labor (quarterly; level in %)
+  - name: ECIWAG_YOY
+    series_id: ECIWAG
+    transform: yoy
+
+  # Unemployment NSA (monthly, level)
+  - name: UNRATENSA
+    series_id: UNRATENSA
+    transform: level
+
+  # Dollar index (monthly, yoy growth)
+  - name: TWEXBGSMTH_YOY
+    series_id: TWEXBGSMTH
+    transform: yoy

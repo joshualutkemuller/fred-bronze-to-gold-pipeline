@@ -157,8 +157,40 @@ CREATE TABLE IF NOT EXISTS gold_dim_series (
     scale TEXT, decimals INTEGER, notes TEXT
 );
 CREATE TABLE IF NOT EXISTS gold_dim_date (
-    date TEXT PRIMARY KEY, year INTEGER, quarter INTEGER, month INTEGER,
-    month_name TEXT, is_month_end INTEGER, fiscal_year INTEGER,
+    -- date identifiers
+    date TEXT PRIMARY KEY, date_key INTEGER,
+    -- calendar year
+    year INTEGER, year_label TEXT,
+    year_start_date TEXT, year_end_date TEXT,
+    is_year_start INTEGER, is_year_end INTEGER, is_leap_year INTEGER,
+    -- calendar quarter
+    quarter INTEGER, quarter_label TEXT,
+    year_quarter TEXT, year_quarter_sort INTEGER,
+    quarter_start_date TEXT, quarter_end_date TEXT,
+    is_quarter_start INTEGER, is_quarter_end INTEGER,
+    -- calendar month
+    month INTEGER, month_name TEXT, month_short_name TEXT,
+    year_month TEXT, year_month_sort INTEGER,
+    month_start_date TEXT, month_end_date TEXT,
+    is_month_start INTEGER, is_month_end INTEGER, days_in_month INTEGER,
+    -- ISO week
+    iso_year INTEGER, week_of_year INTEGER, year_week TEXT,
+    week_start_date TEXT, week_end_date TEXT,
+    is_week_start INTEGER, is_week_end INTEGER,
+    -- day
+    day_of_month INTEGER, day_of_year INTEGER,
+    day_name TEXT, day_short_name TEXT,
+    day_of_week_iso INTEGER, day_of_week_sun INTEGER,
+    is_weekday INTEGER, is_weekend INTEGER,
+    -- US Federal fiscal year (October start)
+    fiscal_year INTEGER, fiscal_year_label TEXT,
+    fiscal_quarter INTEGER, fiscal_quarter_label TEXT, fiscal_month INTEGER,
+    fiscal_year_quarter_sort INTEGER,
+    fiscal_year_start_date TEXT, fiscal_year_end_date TEXT,
+    fiscal_quarter_start_date TEXT, fiscal_quarter_end_date TEXT,
+    is_fiscal_year_start INTEGER, is_fiscal_year_end INTEGER,
+    is_fiscal_quarter_start INTEGER, is_fiscal_quarter_end INTEGER,
+    -- NBER recession (NULL = unknown / not yet ingested)
     is_recession INTEGER
 );
 CREATE TABLE IF NOT EXISTS gold_macro_indicator_dashboard (
@@ -292,6 +324,25 @@ CREATE TABLE IF NOT EXISTS gold_equity_price_reconciliation (
     stooq_close REAL, tiingo_adj_close REAL,
     abs_diff REAL, pct_diff REAL, diverged INTEGER NOT NULL DEFAULT 0
 );
+
+-- ML pipeline (handoff.md "ML Extensions Sub-Plan"):
+-- ML-0 feature matrix, ML-2 PCA factor scores/loadings, ML-4 anomaly scores.
+CREATE TABLE IF NOT EXISTS gold_ml_feature_matrix (
+    observation_date TEXT, feature_name TEXT, series_id TEXT,
+    transform TEXT, value REAL
+);
+CREATE TABLE IF NOT EXISTS gold_macro_factor_scores (
+    observation_date TEXT, factor INTEGER, score REAL,
+    explained_variance_ratio REAL, cumulative_variance_ratio REAL, n_obs INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_macro_factor_loadings (
+    observation_date TEXT, factor INTEGER, feature_name TEXT, loading REAL
+);
+CREATE TABLE IF NOT EXISTS gold_macro_anomaly_scores (
+    observation_date TEXT, mahalanobis_d2 REAL, chi2_df INTEGER,
+    p_value REAL, is_anomaly INTEGER NOT NULL DEFAULT 0, n_factors_used INTEGER
+);
+
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
     triggered_by TEXT, status TEXT, started_at TEXT, ended_at TEXT,
@@ -607,7 +658,12 @@ class LocalWarehouse:
         insert("gold_fred_macro_feature_daily", build_daily_matrix(latest))
 
         self.conn.execute("DELETE FROM gold_fred_feature_transforms")
-        insert("gold_fred_feature_transforms", build_transforms(latest))
+        _ft_result = build_transforms(latest)
+        insert("gold_fred_feature_transforms", _ft_result)
+        # Capture as list[dict] for the ML feature-matrix engine (ML-0).
+        feature_transform_rows: list[dict] = (
+            _ft_result.to_dicts() if mode == "polars" else list(_ft_result)
+        )
         self.conn.execute("DELETE FROM gold_fred_curve_spread")
         insert("gold_fred_curve_spread", build_spreads(latest))
 
@@ -791,6 +847,36 @@ class LocalWarehouse:
         self._insert("gold_equity_price_reconciliation",
                      compute_equity_price_reconciliation(stooq_rows, tiingo_rows))
 
+        # ML pipeline: ML-0 feature matrix → ML-2 PCA scores/loadings → ML-4 anomaly.
+        from fred_pipeline.ml_features import compute_ml_feature_matrix
+        from fred_pipeline.macro_pca import compute_macro_factor_scores
+        from fred_pipeline.anomaly import compute_macro_anomaly_scores
+        ml_cfg = None  # load from repo config/ml_features.yml
+        try:
+            from fred_pipeline.ml_features import load_ml_feature_config
+            ml_cfg = load_ml_feature_config()
+        except Exception:
+            pass
+        ml_matrix = compute_ml_feature_matrix(feature_transform_rows, ml_cfg)
+        self.conn.execute("DELETE FROM gold_ml_feature_matrix")
+        self._insert("gold_ml_feature_matrix", ml_matrix)
+
+        n_comp = ml_cfg.n_components if ml_cfg else 5
+        pca = compute_macro_factor_scores(ml_matrix, n_components=n_comp)
+        self.conn.execute("DELETE FROM gold_macro_factor_scores")
+        self._insert("gold_macro_factor_scores", pca["scores"])
+        self.conn.execute("DELETE FROM gold_macro_factor_loadings")
+        self._insert("gold_macro_factor_loadings", pca["loadings"])
+
+        anom_thresh = ml_cfg.anomaly_threshold if ml_cfg else 0.99
+        self.conn.execute("DELETE FROM gold_macro_anomaly_scores")
+        self._insert(
+            "gold_macro_anomaly_scores",
+            compute_macro_anomaly_scores(
+                pca["scores"], anomaly_threshold=anom_thresh
+            ),
+        )
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -813,6 +899,9 @@ class LocalWarehouse:
             "global_inflation", "global_policy_rates", "powerbi_catalog",
             "equity_return_daily", "index_constituents",
             "equity_total_return_index", "equity_price_reconciliation",
+            "ml_feature_matrix",
+            "macro_factor_scores", "macro_factor_loadings",
+            "macro_anomaly_scores",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
