@@ -207,6 +207,11 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "line with window slicer", "Trailing change/pct-change/z over 1-252 obs windows."),
     _entry("treasury_curve_rolling", "fact", "CURV", "1 / tenor x date x window",
            "line with window slicer", "Per-tenor trailing change/pct-change/z."),
+    _entry("yield_curve_ns_factors", "fact", "CURV", "1 / date",
+           "3-panel factor time series / fitted-curve line",
+           "Nelson-Siegel β₀ (level) / β₁ (slope) / β₂ (curvature) fitted daily; "
+           "λ decay, fit RMSE, and fit_valid flag. "
+           "β₁ (negative when normally shaped) is the Estrella-Mishkin recession predictor."),
     _entry("benchmark_rate_board", "fact", "BMRK", "1 / rate (latest)",
            "board table with trend arrows",
            "43-rate board: change bps, trend, spread-to-benchmark, regime tag."),

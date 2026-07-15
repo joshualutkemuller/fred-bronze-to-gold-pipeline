@@ -219,6 +219,11 @@ CREATE TABLE IF NOT EXISTS gold_treasury_curve_metrics (
     is_inverted_10y2y INTEGER, is_inverted_10y3m INTEGER,
     is_recession INTEGER, curve_move TEXT
 );
+CREATE TABLE IF NOT EXISTS gold_yield_curve_ns_factors (
+    observation_date TEXT, beta0 REAL, beta1 REAL, beta2 REAL,
+    lambda REAL, lambda_estimated INTEGER, fit_rmse REAL,
+    n_tenors INTEGER, fit_valid INTEGER
+);
 CREATE TABLE IF NOT EXISTS gold_curve_spread_daily (
     spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT,
     value REAL, value_bps REAL, zscore REAL, percentile REAL,
@@ -752,6 +757,10 @@ class LocalWarehouse:
         self._insert("gold_treasury_curve", curve["curve"])
         self.conn.execute("DELETE FROM gold_treasury_curve_metrics")
         self._insert("gold_treasury_curve_metrics", curve["metrics"])
+        from fred_pipeline.ns_model import compute_yield_curve_ns_factors
+        self.conn.execute("DELETE FROM gold_yield_curve_ns_factors")
+        self._insert("gold_yield_curve_ns_factors",
+                     compute_yield_curve_ns_factors(curve["curve"]))
         self.conn.execute("DELETE FROM gold_curve_spread_daily")
         self._insert("gold_curve_spread_daily", compute_curve_spread_daily(latest))
         self.conn.execute("DELETE FROM gold_spread_inversion_episode")
@@ -888,7 +897,8 @@ class LocalWarehouse:
             "dim_series", "dim_date",
             "macro_indicator_dashboard", "macro_indicator_sparkline",
             "macro_category_summary",
-            "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
+            "treasury_curve", "treasury_curve_metrics",
+            "yield_curve_ns_factors", "curve_spread_daily",
             "spread_inversion_episode",
             "benchmark_rate_board", "funding_tape_daily",
             "funding_stress_daily", "credit_spread_daily",

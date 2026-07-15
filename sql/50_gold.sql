@@ -641,6 +641,23 @@ CREATE TABLE IF NOT EXISTS gold.treasury_curve_rolling (
 )
 USING DELTA;
 
+-- Nelson-Siegel three-factor fit to the daily Treasury curve.  β₀ is the
+-- long-run level, β₁ the slope (short − long rate; negative when normally
+-- shaped), β₂ the curvature/hump; λ controls the decay speed (fixed at 1.7
+-- unless the grid search improves RMSE beyond RMSE_GRID_THRESHOLD).
+CREATE TABLE IF NOT EXISTS gold.yield_curve_ns_factors (
+    observation_date  DATE,
+    beta0             DOUBLE,
+    beta1             DOUBLE,
+    beta2             DOUBLE,
+    lambda            DOUBLE,
+    lambda_estimated  BOOLEAN,
+    fit_rmse          DOUBLE,
+    n_tenors          INT,
+    fit_valid         BOOLEAN
+)
+USING DELTA;
+
 -- ============================================================================
 -- Phase 5 regime playbook + statistical lab (docs/market_terminal_gold_views
 -- .md §4.8–4.9). Computed by fred_pipeline.regime_stats (configs:
