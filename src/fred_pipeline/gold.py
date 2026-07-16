@@ -1380,6 +1380,44 @@ def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
                 "n_obs_training", "CAST(model_vintage AS DATE) AS model_vintage",
                 "is_backfilled"])
 
+    # ML-6: Short-horizon inflation forecasting (AR + VAR on CPI/PCE MoM).
+    from fred_pipeline.inflation_model import (
+        compute_inflation_forecast,
+        load_inflation_forecast_config,
+    )
+    inf_cfg = None
+    try:
+        inf_cfg = load_inflation_forecast_config()
+    except Exception:
+        pass
+    inf_series = list(inf_cfg.series if inf_cfg else ("CPIAUCSL", "PCEPI"))
+    inf_pairs = list(inf_cfg.var_pairs if inf_cfg else [("CPIAUCSL", "PCEPI")])
+    all_inf_ids = list({s for s in inf_series} | {s for pair in inf_pairs for s in pair})
+    _write("inflation_forecast",
+           compute_inflation_forecast(
+               _collect_latest(config, spark, all_inf_ids), cfg=inf_cfg
+           ),
+           StructType([
+               StructField("series_id", StringType()),
+               StructField("forecast_date", StringType()),
+               StructField("horizon_months", IntegerType()),
+               StructField("forecast_value", DoubleType()),
+               StructField("lower_80", DoubleType()),
+               StructField("upper_80", DoubleType()),
+               StructField("lower_95", DoubleType()),
+               StructField("upper_95", DoubleType()),
+               StructField("model_type", StringType()),
+               StructField("lag_order", IntegerType()),
+               StructField("model_vintage", StringType()),
+               StructField("n_obs_training", IntegerType()),
+           ]), ["series_id",
+                "CAST(forecast_date AS DATE) AS forecast_date",
+                "horizon_months", "forecast_value",
+                "lower_80", "upper_80", "lower_95", "upper_95",
+                "model_type", "lag_order",
+                "CAST(model_vintage AS DATE) AS model_vintage",
+                "n_obs_training"])
+
     # ML-5: equity factor attribution — uses in-memory pca["scores"].
     eq_return_table = config.table("gold", "equity_return_daily")
     eq_return_rows = [
@@ -1476,6 +1514,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "macro_anomaly_scores",
         "recession_probability_daily",
         "equity_factor_attribution",
+        "inflation_forecast",
     ):
         results[name] = "ok"
     return results

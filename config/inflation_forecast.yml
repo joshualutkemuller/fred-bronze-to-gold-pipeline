@@ -1,0 +1,24 @@
+# ML-6: Short-Horizon Inflation Forecasting configuration.
+#
+# series     — FRED monthly price-index levels to forecast with AR(p).
+# var_pairs  — Pairs for joint VAR(p) estimation.
+# horizons   — Forecast horizons in months ahead.
+# max_ar_lag — BIC search range for AR: p ∈ [1, max_ar_lag].
+# max_var_lag — BIC search range for VAR: p ∈ [1, max_var_lag].
+# n_bootstrap — Bootstrap draws for confidence intervals (500 → ±0.5pp MC error).
+# min_obs     — Minimum monthly MoM observations needed before estimating.
+# random_seed — Seed for reproducible CIs.
+
+series:
+  - CPIAUCSL   # CPI-U All Items SA
+  - PCEPI      # PCE Price Index
+
+var_pairs:
+  - [CPIAUCSL, PCEPI]
+
+horizons: [1, 3, 6, 12]
+max_ar_lag: 12
+max_var_lag: 4
+n_bootstrap: 500
+min_obs: 24
+random_seed: 42

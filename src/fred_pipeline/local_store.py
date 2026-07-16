@@ -377,6 +377,12 @@ CREATE TABLE IF NOT EXISTS gold_recession_probability_daily (
     n_features INTEGER, n_obs_training INTEGER, model_vintage TEXT,
     is_backfilled INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS gold_inflation_forecast (
+    series_id TEXT, forecast_date TEXT, horizon_months INTEGER,
+    forecast_value REAL, lower_80 REAL, upper_80 REAL, lower_95 REAL,
+    upper_95 REAL, model_type TEXT, lag_order INTEGER,
+    model_vintage TEXT, n_obs_training INTEGER
+);
 
 CREATE TABLE IF NOT EXISTS audit_etl_run (
     run_id TEXT PRIMARY KEY, environment TEXT, manifest_path TEXT,
@@ -978,6 +984,22 @@ class LocalWarehouse:
             ),
         )
 
+        # ML-6: Short-horizon inflation forecasting (AR + VAR on CPI/PCE MoM).
+        from fred_pipeline.inflation_model import (
+            compute_inflation_forecast,
+            load_inflation_forecast_config,
+        )
+        inf_cfg = None
+        try:
+            inf_cfg = load_inflation_forecast_config()
+        except Exception:
+            pass
+        self.conn.execute("DELETE FROM gold_inflation_forecast")
+        self._insert(
+            "gold_inflation_forecast",
+            compute_inflation_forecast(latest, cfg=inf_cfg),
+        )
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
@@ -1008,6 +1030,7 @@ class LocalWarehouse:
             "macro_anomaly_scores",
             "equity_factor_attribution",
             "recession_probability_daily",
+            "inflation_forecast",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
