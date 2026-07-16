@@ -1297,6 +1297,24 @@ re-estimate monthly to avoid daily refitting cost).
 -   Configure workflows
 -   Configure Asset Bundles (incl. per-source jobs in resources/source_jobs.yml)
 -   Configure secret scopes (fred_api_key + optional bls_api_key / eia_api_key)
+-   **Spark/Delta backend parity pass** — `sql/50_gold.sql` already has DDL for
+    all new tables (ML-1 NS factors, ML-3 recession probability, z-score views,
+    ML-5 equity factor attribution), but `gold.py` / `spark_io.py` on the
+    Databricks side do not yet call the matching pure-Python engines. A targeted
+    wiring pass is needed so the Spark path stays output-identical to
+    `local_store.build_gold()`. No new logic required — the engines are shared.
+-   **Historical backfill CLI command** — add a `fred-pipeline backfill`
+    subcommand that re-runs the Gold engines over the full Silver history, one
+    snapshot per date, writing point-in-time Gold rows rather than only the
+    latest revision. This enables true PIT materialization for backtesting and
+    is the natural completion of the `pipeline-daily-history` work that brought
+    rolling z-scores and the ML layer into the pipeline.
+-   **Cross-series structural break detection** — extend the statistical lab
+    (Phase 5) with Chow-test and CUSUM structural break tests for each
+    configured series pair. A natural companion to `gold.series_lead_lag`;
+    would produce `gold.series_structural_breaks` (episode start/end, F-stat,
+    p-value, pre/post means) and wire into the Power BI catalog under the EDA
+    module.
 
 ## Platform
 
