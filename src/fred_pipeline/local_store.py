@@ -308,6 +308,14 @@ CREATE TABLE IF NOT EXISTS gold_series_lead_lag (
     granger_f_ab REAL, granger_p_ab REAL, granger_f_ba REAL,
     granger_p_ba REAL, as_of_date TEXT
 );
+CREATE TABLE IF NOT EXISTS gold_series_structural_breaks (
+    series_a TEXT, series_b TEXT, transform_a TEXT, transform_b TEXT,
+    test_type TEXT, break_date TEXT,
+    f_stat REAL, p_value REAL, pre_n INTEGER, post_n INTEGER,
+    pre_mean_a REAL, post_mean_a REAL, pre_mean_b REAL, post_mean_b REAL,
+    cusum_max REAL, is_significant INTEGER NOT NULL DEFAULT 0,
+    as_of_date TEXT
+);
 CREATE TABLE IF NOT EXISTS gold_global_inflation (
     country TEXT, iso3 TEXT, region TEXT, series_id TEXT,
     observation_date TEXT, cpi_yoy_pct REAL, change_pp REAL, trend TEXT,
@@ -841,6 +849,7 @@ class LocalWarehouse:
             compute_macro_regime,
             compute_series_correlation,
             compute_series_lead_lag,
+            compute_series_structural_breaks,
         )
         regime_rows = compute_macro_regime(latest)
         self.conn.execute("DELETE FROM gold_macro_regime_daily")
@@ -850,6 +859,9 @@ class LocalWarehouse:
                      compute_series_correlation(latest))
         self.conn.execute("DELETE FROM gold_series_lead_lag")
         self._insert("gold_series_lead_lag", compute_series_lead_lag(latest))
+        self.conn.execute("DELETE FROM gold_series_structural_breaks")
+        self._insert("gold_series_structural_breaks",
+                     compute_series_structural_breaks(latest))
 
         # Phase 6: global inflation / policy rates + the Power BI catalog
         # (config/global_series.yml; catalog from global_views.POWERBI_CATALOG).
@@ -987,6 +999,7 @@ class LocalWarehouse:
             "curve_spread_rolling", "credit_spread_rolling",
             "treasury_curve_rolling",
             "macro_regime_daily", "series_correlation", "series_lead_lag",
+            "series_structural_breaks",
             "global_inflation", "global_policy_rates", "powerbi_catalog",
             "equity_return_daily", "index_constituents",
             "equity_total_return_index", "equity_price_reconciliation",

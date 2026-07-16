@@ -863,18 +863,19 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
 
 def _build_regime_stats(config: PipelineConfig, spark: Any) -> None:
     """Build the Phase-5 regime playbook + statistical lab tables
-    (``gold.macro_regime_daily``, ``series_correlation``, ``series_lead_lag``)
-    by reusing the pure-Python engines in :mod:`fred_pipeline.regime_stats` —
-    same collect-and-compute pattern as :func:`_build_terminal_views`.
-    Collected input is bounded to the pillar-input and pair series."""
+    (``gold.macro_regime_daily``, ``series_correlation``, ``series_lead_lag``,
+    ``series_structural_breaks``) by reusing the pure-Python engines in
+    :mod:`fred_pipeline.regime_stats` — same collect-and-compute pattern as
+    :func:`_build_terminal_views`. Input is bounded to pillar/pair series."""
     from pyspark.sql.types import (
-        DoubleType, IntegerType, StringType, StructField, StructType,
+        BooleanType, DoubleType, IntegerType, StringType, StructField, StructType,
     )
 
     from fred_pipeline.regime_stats import (
         compute_macro_regime,
         compute_series_correlation,
         compute_series_lead_lag,
+        compute_series_structural_breaks,
     )
     from fred_pipeline.regime_stats_config import (
         load_regime_config, load_stats_config,
@@ -944,6 +945,31 @@ def _build_regime_stats(config: PipelineConfig, spark: Any) -> None:
     ]), ["series_a", "series_b", "transform_a", "transform_b", "lag",
          "cross_correlation", "n_obs", "best_lag", "granger_f_ab",
          "granger_p_ab", "granger_f_ba", "granger_p_ba",
+         "CAST(as_of_date AS DATE) AS as_of_date"])
+    _write("series_structural_breaks",
+           compute_series_structural_breaks(stats_input, stats_cfg), StructType([
+        StructField("series_a", StringType()),
+        StructField("series_b", StringType()),
+        StructField("transform_a", StringType()),
+        StructField("transform_b", StringType()),
+        StructField("test_type", StringType()),
+        StructField("break_date", StringType()),
+        StructField("f_stat", DoubleType()),
+        StructField("p_value", DoubleType()),
+        StructField("pre_n", IntegerType()),
+        StructField("post_n", IntegerType()),
+        StructField("pre_mean_a", DoubleType()),
+        StructField("post_mean_a", DoubleType()),
+        StructField("pre_mean_b", DoubleType()),
+        StructField("post_mean_b", DoubleType()),
+        StructField("cusum_max", DoubleType()),
+        StructField("is_significant", IntegerType()),
+        StructField("as_of_date", StringType()),
+    ]), ["series_a", "series_b", "transform_a", "transform_b",
+         "test_type", "CAST(break_date AS DATE) AS break_date",
+         "f_stat", "p_value", "pre_n", "post_n",
+         "pre_mean_a", "post_mean_a", "pre_mean_b", "post_mean_b",
+         "cusum_max", "is_significant",
          "CAST(as_of_date AS DATE) AS as_of_date"])
 
 
@@ -1426,6 +1452,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     _build_regime_stats(config, spark)
     for name in (
         "macro_regime_daily", "series_correlation", "series_lead_lag",
+        "series_structural_breaks",
     ):
         results[name] = "ok"
     _build_global_views(config, spark)

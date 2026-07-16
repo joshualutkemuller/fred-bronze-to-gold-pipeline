@@ -396,6 +396,231 @@ def _granger(
     return f, _f_sf(f, p, d2)
 
 
+def _ols_fit(
+    xs: list[float], ys: list[float]
+) -> Optional[tuple[list[float], list[float], float]]:
+    """OLS y ~ 1 + x.  Returns (coeffs, residuals, rss) or None if singular."""
+    n = len(ys)
+    if n < 2:
+        return None
+    X = [[1.0, x] for x in xs]
+    k = 2
+    xtx = [[sum(r[i] * r[j] for r in X) for j in range(k)] for i in range(k)]
+    xty = [sum(r[i] * yv for r, yv in zip(X, ys)) for i in range(k)]
+    theta = _solve(xtx, xty)
+    if theta is None:
+        lam = 1e-8 * (sum(xtx[i][i] for i in range(k)) / k or 1.0)
+        ridged = [[xtx[i][j] + (lam if i == j else 0) for j in range(k)] for i in range(k)]
+        theta = _solve(ridged, xty)
+    if theta is None:
+        return None
+    resid = [ys[i] - sum(theta[j] * X[i][j] for j in range(k)) for i in range(n)]
+    rss = sum(r * r for r in resid)
+    return theta, resid, rss
+
+
+def _chow_f_at(
+    xs: list[float], ys: list[float], tau: int
+) -> Optional[float]:
+    """Chow F-statistic for breakpoint at index tau (y ~ 1 + x both sides)."""
+    n = len(xs)
+    k = 2
+    if tau < k or (n - tau) < k or (n - 2 * k) <= 0:
+        return None
+    full = _ols_fit(xs, ys)
+    left = _ols_fit(xs[:tau], ys[:tau])
+    right = _ols_fit(xs[tau:], ys[tau:])
+    if full is None or left is None or right is None:
+        return None
+    rss_u = left[2] + right[2]
+    # If full-sample RSS is also negligible, the test is degenerate.
+    if full[2] < 1e-12 and rss_u < 1e-12:
+        return None
+    # Both segments fit perfectly but full doesn't → overwhelming evidence of
+    # a break; use a relative floor so F is finite but large.
+    rss_u = max(rss_u, 1e-12 * max(full[2], 1.0))
+    f = ((full[2] - rss_u) / k) / (rss_u / (n - 2 * k))
+    return max(0.0, f)
+
+
+def _chow_scan(
+    dates: list[date],
+    xs: list[float],
+    ys: list[float],
+    min_segment: int = 20,
+) -> tuple[Optional[date], Optional[float], Optional[float], int, int]:
+    """Scan all candidate break dates and return the one with the highest F.
+
+    Returns (break_date, f_stat, p_value, pre_n, post_n).
+    """
+    n = len(dates)
+    trim = max(min_segment, int(0.15 * n))
+    best_tau: Optional[int] = None
+    best_f: Optional[float] = None
+    for tau in range(trim, n - trim + 1):
+        f = _chow_f_at(xs, ys, tau)
+        if f is not None and (best_f is None or f > best_f):
+            best_f = f
+            best_tau = tau
+    if best_tau is None or best_f is None:
+        return None, None, None, 0, 0
+    k, d2 = 2, n - 4
+    p = _f_sf(best_f, k, d2) if d2 > 0 else None
+    return dates[best_tau - 1], best_f, p, best_tau, n - best_tau
+
+
+def _cusum_scan(
+    dates: list[date],
+    xs: list[float],
+    ys: list[float],
+) -> tuple[Optional[date], float, float]:
+    """CUSUM of full-sample OLS residuals (Brown-Durbin-Evans proxy).
+
+    Normalises residuals by the residual standard deviation, accumulates
+    the CUSUM, and uses the Kolmogorov-Smirnov survival function
+    ``p ≈ 2·exp(−2·(max|CUSUM|/√n)²)`` as the p-value approximation.
+    The 5% boundary is max|CUSUM| / √n > 1.358.
+
+    Returns (break_date, cusum_max, p_value) where break_date is the first
+    5%-boundary crossing (or the peak |CUSUM| date if there is no crossing).
+    """
+    n = len(dates)
+    fit = _ols_fit(xs, ys)
+    if fit is None:
+        return None, 0.0, 1.0
+    _, resid, rss = fit
+    sigma = math.sqrt(rss / max(n - 2, 1))
+    if sigma < 1e-12:
+        return None, 0.0, 1.0
+
+    norm = [r / sigma for r in resid]
+    boundary = 1.358 * math.sqrt(n)
+    cusum = 0.0
+    cusum_max = 0.0
+    first_cross: Optional[int] = None
+    peak_idx = 0
+    for i, w in enumerate(norm):
+        cusum += w
+        if abs(cusum) > cusum_max:
+            cusum_max = abs(cusum)
+            peak_idx = i
+        if first_cross is None and abs(cusum) > boundary:
+            first_cross = i
+
+    stat = cusum_max / math.sqrt(n)
+    p = min(1.0, 2.0 * math.exp(-2.0 * stat * stat)) if stat > 0 else 1.0
+    chosen_idx = first_cross if first_cross is not None else peak_idx
+    return dates[chosen_idx], cusum_max, p
+
+
+def compute_series_structural_breaks(
+    latest_rows: Iterable[dict[str, Any]],
+    cfg: Optional[StatsConfig] = None,
+) -> list[dict[str, Any]]:
+    """``gold.series_structural_breaks``: Chow and CUSUM structural-break
+    tests on the aligned, transformed series for every configured pair.
+
+    Two rows are emitted per pair:
+
+    * ``test_type='chow'`` — scans all candidate break dates (trimming 15%
+      from each end) and reports the break date with the highest F-statistic
+      under the simple regression ``series_b ~ 1 + series_a``.
+    * ``test_type='cusum'`` — CUSUM of full-sample OLS residuals (Brown-
+      Durbin-Evans proxy); reports the first 5%-boundary crossing or the
+      peak |CUSUM| date when there is no crossing.
+
+    Both tests use the same ``transform_a`` / ``transform_b`` alignment as
+    ``gold.series_correlation`` and ``gold.series_lead_lag``.
+
+    ``break_date = NULL`` means the test could not be run (too few obs).
+    ``is_significant = 1`` means p-value < 0.05.
+    """
+    if cfg is None:
+        cfg = load_stats_config()
+    if not cfg.pairs:
+        return []
+    wanted = {s for p in cfg.pairs for s in (p.series_a, p.series_b)}
+    by_series = _group_sorted(
+        r for r in latest_rows if r.get("series_id") in wanted
+    )
+
+    out: list[dict[str, Any]] = []
+    for pair in cfg.pairs:
+        dates, xs, ys = _aligned(by_series, pair)
+        n = len(dates)
+        if n < 10:
+            continue
+        as_of = dates[-1].isoformat()
+        mean_a_full = sum(xs) / n if n else None
+        mean_b_full = sum(ys) / n if n else None
+
+        # ---- Chow test -------------------------------------------------------
+        bd, f, p, pre_n, post_n = _chow_scan(dates, xs, ys)
+        if bd is not None:
+            tau = pre_n
+            pre_a = sum(xs[:tau]) / tau if tau else mean_a_full
+            post_a = sum(xs[tau:]) / post_n if post_n else mean_a_full
+            pre_b = sum(ys[:tau]) / tau if tau else mean_b_full
+            post_b = sum(ys[tau:]) / post_n if post_n else mean_b_full
+        else:
+            pre_a = post_a = mean_a_full
+            pre_b = post_b = mean_b_full
+        out.append({
+            "series_a": pair.series_a,
+            "series_b": pair.series_b,
+            "transform_a": pair.transform_a,
+            "transform_b": pair.transform_b,
+            "test_type": "chow",
+            "break_date": bd.isoformat() if bd else None,
+            "f_stat": f,
+            "p_value": p,
+            "pre_n": pre_n,
+            "post_n": post_n,
+            "pre_mean_a": pre_a,
+            "post_mean_a": post_a,
+            "pre_mean_b": pre_b,
+            "post_mean_b": post_b,
+            "cusum_max": None,
+            "is_significant": int(p < 0.05) if p is not None else 0,
+            "as_of_date": as_of,
+        })
+
+        # ---- CUSUM test ------------------------------------------------------
+        cd, cusum_max, cp = _cusum_scan(dates, xs, ys)
+        if cd is not None:
+            ci = dates.index(cd)
+            c_pre_n = ci + 1
+            c_post_n = n - c_pre_n
+            c_pre_a = sum(xs[:c_pre_n]) / c_pre_n if c_pre_n else mean_a_full
+            c_post_a = sum(xs[c_pre_n:]) / c_post_n if c_post_n else mean_a_full
+            c_pre_b = sum(ys[:c_pre_n]) / c_pre_n if c_pre_n else mean_b_full
+            c_post_b = sum(ys[c_pre_n:]) / c_post_n if c_post_n else mean_b_full
+        else:
+            c_pre_n = c_post_n = 0
+            c_pre_a = c_post_a = mean_a_full
+            c_pre_b = c_post_b = mean_b_full
+        out.append({
+            "series_a": pair.series_a,
+            "series_b": pair.series_b,
+            "transform_a": pair.transform_a,
+            "transform_b": pair.transform_b,
+            "test_type": "cusum",
+            "break_date": cd.isoformat() if cd else None,
+            "f_stat": None,
+            "p_value": cp,
+            "pre_n": c_pre_n,
+            "post_n": c_post_n,
+            "pre_mean_a": c_pre_a,
+            "post_mean_a": c_post_a,
+            "pre_mean_b": c_pre_b,
+            "post_mean_b": c_post_b,
+            "cusum_max": cusum_max,
+            "is_significant": int(cp < 0.05) if cp is not None else 0,
+            "as_of_date": as_of,
+        })
+    return out
+
+
 def compute_series_lead_lag(
     latest_rows: Iterable[dict[str, Any]],
     cfg: Optional[StatsConfig] = None,

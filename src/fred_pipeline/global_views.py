@@ -244,6 +244,12 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
     _entry("series_lead_lag", "fact", "EDA", "1 / pair x lag",
            "CCF bar chart + Granger cards",
            "Cross-correlation by lag (+lag = a leads), best lag, two-direction Granger F/p."),
+    _entry("series_structural_breaks", "fact", "EDA", "1 / pair x test_type",
+           "break-date scatter / table",
+           "Chow and CUSUM structural-break tests for each configured pair: estimated break date, "
+           "Chow F-stat / p-value, pre/post segment means, CUSUM max deviation, and significance flag. "
+           "Chow scans all candidate break dates (15% trim) under y ~ 1 + x and picks the max-F date; "
+           "CUSUM accumulates full-sample OLS residuals and reports the first 5%-boundary crossing."),
     _entry("global_inflation", "fact", "GCPI", "1 / country x print",
            "map / heat table by region",
            "CPI YoY by country: change, trend, streaks, vs-target gap."),

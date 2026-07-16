@@ -1314,12 +1314,18 @@ re-estimate monthly to avoid daily refitting cost).
     `fred_backfill.db`) with `pit_*`-prefixed tables. Resume support (skips
     already-computed dates via `pit_backfill_log`) and a `--no-resume` override
     are included. 22 new unit tests in `tests/test_backfill.py`.
--   **Cross-series structural break detection** — extend the statistical lab
-    (Phase 5) with Chow-test and CUSUM structural break tests for each
-    configured series pair. A natural companion to `gold.series_lead_lag`;
-    would produce `gold.series_structural_breaks` (episode start/end, F-stat,
-    p-value, pre/post means) and wire into the Power BI catalog under the EDA
-    module.
+-   **Cross-series structural break detection** ✅ **implemented** —
+    `compute_series_structural_breaks` in `regime_stats.py` adds two rows per
+    configured pair to `gold.series_structural_breaks`:
+    * **Chow** (`test_type='chow'`): scans all candidate break dates (15% trim from
+      each end) under `series_b ~ 1 + series_a`; reports the date with the highest
+      F-statistic and its p-value.
+    * **CUSUM** (`test_type='cusum'`): Brown-Durbin-Evans cumulative-residual test;
+      reports the first 5%-boundary crossing date and a KS-based p-value approximation.
+    Both tests report pre/post segment means, observation counts, and an
+    `is_significant` flag. Wired into `local_store.build_gold()` and the Spark
+    `_build_regime_stats()` path; added to the Power BI catalog under EDA.
+    20 new unit tests in `tests/test_structural_breaks.py`.
 
 ## Platform
 
