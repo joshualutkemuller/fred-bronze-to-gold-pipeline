@@ -1297,12 +1297,12 @@ re-estimate monthly to avoid daily refitting cost).
 -   Configure workflows
 -   Configure Asset Bundles (incl. per-source jobs in resources/source_jobs.yml)
 -   Configure secret scopes (fred_api_key + optional bls_api_key / eia_api_key)
--   **Spark/Delta backend parity pass** — `sql/50_gold.sql` already has DDL for
-    all new tables (ML-1 NS factors, ML-3 recession probability, z-score views,
-    ML-5 equity factor attribution), but `gold.py` / `spark_io.py` on the
-    Databricks side do not yet call the matching pure-Python engines. A targeted
-    wiring pass is needed so the Spark path stays output-identical to
-    `local_store.build_gold()`. No new logic required — the engines are shared.
+-   **Spark/Delta backend parity pass** ✅ **implemented** — `gold.py` now calls
+    all new pure-Python engines: ML-1 NS factors (`_build_terminal_views`),
+    equity price reconciliation (`_build_equity_views`), new `_build_zscore_views`
+    (rolling z-score + heatmap), and new `_build_ml_pipeline` (ML-0/2/4/3/5 in
+    sequence). The Databricks path is now output-identical to
+    `local_store.build_gold()`.
 -   **Historical backfill CLI command** — add a `fred-pipeline backfill`
     subcommand that re-runs the Gold engines over the full Silver history, one
     snapshot per date, writing point-in-time Gold rows rather than only the
