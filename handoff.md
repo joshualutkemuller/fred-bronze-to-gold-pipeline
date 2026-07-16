@@ -1303,12 +1303,17 @@ re-estimate monthly to avoid daily refitting cost).
     (rolling z-score + heatmap), and new `_build_ml_pipeline` (ML-0/2/4/3/5 in
     sequence). The Databricks path is now output-identical to
     `local_store.build_gold()`.
--   **Historical backfill CLI command** — add a `fred-pipeline backfill`
-    subcommand that re-runs the Gold engines over the full Silver history, one
-    snapshot per date, writing point-in-time Gold rows rather than only the
-    latest revision. This enables true PIT materialization for backtesting and
-    is the natural completion of the `pipeline-daily-history` work that brought
-    rolling z-scores and the ML layer into the pipeline.
+-   **Historical backfill CLI command** ✅ **implemented** — `fred-pipeline backfill`
+    generates point-in-time Gold snapshots over a date range (monthly/weekly/daily
+    cadence). For each snapshot date D, Silver is filtered to rows with
+    `realtime_start <= D` (non-vintage series always included), collapsed to the
+    latest revision, and a focused set of Gold engines is run: feature transforms,
+    ML-0 feature matrix, ML-2 PCA factor scores/loadings, ML-4 anomaly scores,
+    regime playbook, and ML-3 recession probability. All output rows are tagged
+    with `as_of_date = D` and written to a separate SQLite database (default
+    `fred_backfill.db`) with `pit_*`-prefixed tables. Resume support (skips
+    already-computed dates via `pit_backfill_log`) and a `--no-resume` override
+    are included. 22 new unit tests in `tests/test_backfill.py`.
 -   **Cross-series structural break detection** — extend the statistical lab
     (Phase 5) with Chow-test and CUSUM structural break tests for each
     configured series pair. A natural companion to `gold.series_lead_lag`;

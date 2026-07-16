@@ -143,6 +143,53 @@ def _open_warehouse(config, args):
     return SparkWarehouse(config, get_spark())
 
 
+def _cmd_backfill(args: argparse.Namespace) -> int:
+    import datetime as _dt
+
+    from fred_pipeline.backfill import ALL_TABLES, run_backfill
+
+    try:
+        from_date = _dt.date.fromisoformat(args.from_date)
+        to_date = _dt.date.fromisoformat(args.to_date)
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+    if from_date > to_date:
+        print("ERROR: --from must be <= --to", file=sys.stderr)
+        return 2
+
+    tables = None
+    if args.tables:
+        tables = tuple(t.strip() for t in args.tables.split(",") if t.strip())
+        unknown = set(tables) - set(ALL_TABLES)
+        if unknown:
+            print(
+                f"ERROR: unknown table(s): {sorted(unknown)}. "
+                f"Valid: {list(ALL_TABLES)}",
+                file=sys.stderr,
+            )
+            return 2
+
+    print(
+        f"Backfilling {args.step} snapshots from {from_date} to {to_date} "
+        f"(source: {args.db_path}, output: {args.backfill_db})"
+    )
+    result = run_backfill(
+        db_path=args.db_path,
+        backfill_db_path=args.backfill_db,
+        from_date=from_date,
+        to_date=to_date,
+        step=args.step,
+        tables=tables,
+        resume=not args.no_resume,
+    )
+    print(json.dumps(result, indent=2))
+    if result["snapshots_failed"]:
+        return 1
+    return 0
+
+
 def _cmd_replay(args: argparse.Namespace) -> int:
     from fred_pipeline.replay import replay_from_bronze
 
@@ -391,6 +438,58 @@ def build_parser() -> argparse.ArgumentParser:
     rc.add_argument("--fail-on-drift", action="store_true",
                     help="exit non-zero if any error-level drift is found (for CI)")
     rc.set_defaults(func=_cmd_reconcile)
+
+    bf = sub.add_parser(
+        "backfill",
+        help="generate point-in-time Gold snapshots over a date range",
+    )
+    bf.add_argument(
+        "--db-path",
+        default="fred_local.db",
+        help="SQLite source database containing Silver data (default: fred_local.db)",
+    )
+    bf.add_argument(
+        "--backfill-db",
+        default="fred_backfill.db",
+        help="SQLite output database for pit_* tables (default: fred_backfill.db)",
+    )
+    bf.add_argument(
+        "--from",
+        dest="from_date",
+        required=True,
+        metavar="DATE",
+        help="start date for snapshots (YYYY-MM-DD)",
+    )
+    bf.add_argument(
+        "--to",
+        dest="to_date",
+        required=True,
+        metavar="DATE",
+        help="end date for snapshots (YYYY-MM-DD)",
+    )
+    bf.add_argument(
+        "--step",
+        default="monthly",
+        choices=["monthly", "weekly", "daily"],
+        help="snapshot cadence: monthly (month-end), weekly (Sunday), daily "
+             "(default: monthly)",
+    )
+    bf.add_argument(
+        "--tables",
+        default=None,
+        help=(
+            "comma-separated subset of tables to build "
+            "(default: all). Valid names: feature_transforms, ml_feature_matrix, "
+            "macro_factor_scores, macro_factor_loadings, macro_anomaly_scores, "
+            "macro_regime_daily, recession_probability_daily"
+        ),
+    )
+    bf.add_argument(
+        "--no-resume",
+        action="store_true",
+        help="recompute already-finished snapshot dates instead of skipping them",
+    )
+    bf.set_defaults(func=_cmd_backfill)
 
     rp = sub.add_parser(
         "replay",
