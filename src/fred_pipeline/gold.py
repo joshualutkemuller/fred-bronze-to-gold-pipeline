@@ -649,6 +649,23 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
          "CAST(observation_date AS DATE) AS observation_date", "window",
          "yield_pct", "change", "pct_change", "zscore"])
 
+    # ML-1: Nelson-Siegel three-factor fit to the daily Treasury curve.
+    from fred_pipeline.ns_model import compute_yield_curve_ns_factors
+    _write("yield_curve_ns_factors",
+           compute_yield_curve_ns_factors(curve["curve"]), StructType([
+        StructField("observation_date", StringType()),
+        StructField("beta0", DoubleType()),
+        StructField("beta1", DoubleType()),
+        StructField("beta2", DoubleType()),
+        StructField("lambda", DoubleType()),
+        StructField("lambda_estimated", BooleanType()),
+        StructField("fit_rmse", DoubleType()),
+        StructField("n_tenors", IntegerType()),
+        StructField("fit_valid", BooleanType()),
+    ]), ["CAST(observation_date AS DATE) AS observation_date",
+         "beta0", "beta1", "beta2",
+         "`lambda`", "lambda_estimated", "fit_rmse", "n_tenors", "fit_valid"])
+
     # Enriched spread history + inversion episodes: spread legs + USREC.
     leg_ids = sorted(
         {s for sd in spreads for s in (sd.long_leg, sd.short_leg)}
@@ -1011,6 +1028,7 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
     )
 
     from fred_pipeline.equity_views import (
+        compute_equity_price_reconciliation,
         compute_equity_return_daily,
         compute_equity_total_return_index,
         compute_index_constituents,
@@ -1094,6 +1112,276 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
         "overwriteSchema", "true"
     ).saveAsTable(config.table("gold", "equity_total_return_index"))
 
+    spark.createDataFrame(
+        compute_equity_price_reconciliation(close_rows, tiingo_rows),
+        schema=StructType([
+            StructField("ticker", StringType()),
+            StructField("observation_date", StringType()),
+            StructField("stooq_close", DoubleType()),
+            StructField("tiingo_adj_close", DoubleType()),
+            StructField("abs_diff", DoubleType()),
+            StructField("pct_diff", DoubleType()),
+            StructField("diverged", BooleanType()),
+        ]),
+    ).selectExpr(
+        "ticker", "CAST(observation_date AS DATE) AS observation_date",
+        "stooq_close", "tiingo_adj_close", "abs_diff", "pct_diff", "diverged",
+    ).write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(config.table("gold", "equity_price_reconciliation"))
+
+
+def _build_zscore_views(config: PipelineConfig, spark: Any) -> None:
+    """Build ``gold.fred_series_zscore_rolling`` and ``gold.zscore_heatmap``
+    from the pure-Python engines in :mod:`fred_pipeline.zscore_views`.
+    Reads ``gold.fred_feature_transforms`` (already written by SQL step) and
+    produces rolling/expanding z-score analytics per FRED series."""
+    from pyspark.sql.types import (
+        DoubleType, IntegerType, StringType, StructField, StructType,
+    )
+
+    from fred_pipeline.zscore_views import (
+        compute_fred_series_zscore_rolling,
+        compute_zscore_heatmap,
+    )
+
+    def _write(name: str, rows: list[dict[str, Any]], schema: Any, casts: list[str]) -> None:
+        spark.createDataFrame(rows, schema=schema).selectExpr(*casts).write.format(
+            "delta"
+        ).mode("overwrite").option("overwriteSchema", "true").saveAsTable(
+            config.table("gold", name)
+        )
+
+    ft_table = config.table("gold", "fred_feature_transforms")
+    feature_transform_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
+            f"value, zscore FROM {ft_table}"
+        ).collect()
+    ]
+
+    _write("fred_series_zscore_rolling",
+           compute_fred_series_zscore_rolling(feature_transform_rows),
+           StructType([
+               StructField("series_id", StringType()),
+               StructField("observation_date", StringType()),
+               StructField("window", IntegerType()),
+               StructField("value", DoubleType()),
+               StructField("change", DoubleType()),
+               StructField("pct_change", DoubleType()),
+               StructField("zscore", DoubleType()),
+               StructField("percentile", DoubleType()),
+           ]), ["series_id", "CAST(observation_date AS DATE) AS observation_date",
+                "window", "value", "change", "pct_change", "zscore", "percentile"])
+
+    _write("zscore_heatmap",
+           compute_zscore_heatmap(feature_transform_rows),
+           StructType([
+               StructField("series_id", StringType()),
+               StructField("observation_date", StringType()),
+               StructField("value", DoubleType()),
+               StructField("zscore_expanding", DoubleType()),
+               StructField("percentile_expanding", DoubleType()),
+               StructField("zscore_12", DoubleType()),
+               StructField("percentile_12", DoubleType()),
+               StructField("zscore_36", DoubleType()),
+               StructField("percentile_36", DoubleType()),
+               StructField("zscore_60", DoubleType()),
+               StructField("percentile_60", DoubleType()),
+               StructField("zscore_120", DoubleType()),
+               StructField("percentile_120", DoubleType()),
+           ]), ["series_id", "CAST(observation_date AS DATE) AS observation_date",
+                "value", "zscore_expanding", "percentile_expanding",
+                "zscore_12", "percentile_12", "zscore_36", "percentile_36",
+                "zscore_60", "percentile_60", "zscore_120", "percentile_120"])
+
+
+def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
+    """Build ML pipeline Gold tables (ML-0/2/4/3/5) by reusing the pure-Python
+    engines, same collect-and-compute pattern as the other builders.
+
+    Execution order:
+      ML-0  feature matrix (reads ``gold.fred_feature_transforms``)
+      ML-2  PCA factor scores + loadings (reads ML-0 output in memory)
+      ML-4  Mahalanobis anomaly scores (reads ML-2 scores in memory)
+      ML-3  recession probability (reads NS factors + credit/funding/regime from Gold)
+      ML-5  equity factor attribution (reads equity returns + ML-2 scores in memory)
+    """
+    from pyspark.sql.types import (
+        BooleanType, DoubleType, IntegerType, StringType, StructField, StructType,
+    )
+
+    from fred_pipeline.anomaly import compute_macro_anomaly_scores
+    from fred_pipeline.equity_factor_attribution import (
+        compute_equity_factor_attribution,
+        load_equity_factor_config,
+    )
+    from fred_pipeline.macro_pca import compute_macro_factor_scores
+    from fred_pipeline.ml_features import compute_ml_feature_matrix, load_ml_feature_config
+    from fred_pipeline.recession_model import (
+        compute_recession_probability,
+        load_recession_model_config,
+    )
+    from fred_pipeline.terminal_views import RECESSION_SERIES
+
+    def _write(name: str, rows: list[dict[str, Any]], schema: Any, casts: list[str]) -> None:
+        spark.createDataFrame(rows, schema=schema).selectExpr(*casts).write.format(
+            "delta"
+        ).mode("overwrite").option("overwriteSchema", "true").saveAsTable(
+            config.table("gold", name)
+        )
+
+    # Collect feature transforms (shared by ML-0 and ML-3).
+    ft_table = config.table("gold", "fred_feature_transforms")
+    feature_transform_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT series_id, CAST(observation_date AS STRING) AS observation_date, "
+            f"value, mom, diff, yoy, zscore FROM {ft_table}"
+        ).collect()
+    ]
+
+    # ML-0: feature matrix.
+    ml_cfg = None
+    try:
+        ml_cfg = load_ml_feature_config()
+    except Exception:
+        pass
+    ml_matrix = compute_ml_feature_matrix(feature_transform_rows, ml_cfg)
+    _write("ml_feature_matrix", ml_matrix, StructType([
+        StructField("observation_date", StringType()),
+        StructField("feature_name", StringType()),
+        StructField("series_id", StringType()),
+        StructField("transform", StringType()),
+        StructField("value", DoubleType()),
+    ]), ["CAST(observation_date AS DATE) AS observation_date",
+         "feature_name", "series_id", "transform", "value"])
+
+    # ML-2: PCA factor scores + loadings (keep pca in memory for ML-4 and ML-5).
+    n_comp = ml_cfg.n_components if ml_cfg else 5
+    pca = compute_macro_factor_scores(ml_matrix, n_components=n_comp)
+    _write("macro_factor_scores", pca["scores"], StructType([
+        StructField("observation_date", StringType()),
+        StructField("factor", IntegerType()),
+        StructField("score", DoubleType()),
+        StructField("explained_variance_ratio", DoubleType()),
+        StructField("cumulative_variance_ratio", DoubleType()),
+        StructField("n_obs", IntegerType()),
+    ]), ["CAST(observation_date AS DATE) AS observation_date",
+         "factor", "score", "explained_variance_ratio",
+         "cumulative_variance_ratio", "n_obs"])
+    _write("macro_factor_loadings", pca["loadings"], StructType([
+        StructField("observation_date", StringType()),
+        StructField("factor", IntegerType()),
+        StructField("feature_name", StringType()),
+        StructField("loading", DoubleType()),
+    ]), ["CAST(observation_date AS DATE) AS observation_date",
+         "factor", "feature_name", "loading"])
+
+    # ML-4: Mahalanobis anomaly scores.
+    anom_thresh = ml_cfg.anomaly_threshold if ml_cfg else 0.99
+    _write("macro_anomaly_scores",
+           compute_macro_anomaly_scores(pca["scores"], anomaly_threshold=anom_thresh),
+           StructType([
+               StructField("observation_date", StringType()),
+               StructField("mahalanobis_d2", DoubleType()),
+               StructField("chi2_df", IntegerType()),
+               StructField("p_value", DoubleType()),
+               StructField("is_anomaly", BooleanType()),
+               StructField("n_factors_used", IntegerType()),
+           ]), ["CAST(observation_date AS DATE) AS observation_date",
+                "mahalanobis_d2", "chi2_df", "p_value", "is_anomaly", "n_factors_used"])
+
+    # ML-3: recession probability — reads from already-written Gold tables.
+    # lambda is a Spark SQL reserved keyword; backtick-quote it in the SELECT.
+    ns_table = config.table("gold", "yield_curve_ns_factors")
+    ns_factor_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT CAST(observation_date AS STRING) AS observation_date, "
+            f"beta0, beta1, beta2, `lambda`, lambda_estimated, fit_rmse, n_tenors, fit_valid "
+            f"FROM {ns_table}"
+        ).collect()
+    ]
+    credit_table = config.table("gold", "credit_spread_daily")
+    credit_spread_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT instrument, CAST(observation_date AS STRING) AS observation_date, "
+            f"zscore FROM {credit_table}"
+        ).collect()
+    ]
+    funding_table = config.table("gold", "funding_stress_daily")
+    funding_stress_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT CAST(observation_date AS STRING) AS observation_date, stress_score "
+            f"FROM {funding_table}"
+        ).collect()
+    ]
+    regime_table = config.table("gold", "macro_regime_daily")
+    regime_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT CAST(observation_date AS STRING) AS observation_date, composite_score "
+            f"FROM {regime_table}"
+        ).collect()
+    ]
+    rec_cfg = None
+    try:
+        rec_cfg = load_recession_model_config()
+    except Exception:
+        pass
+    _write("recession_probability_daily",
+           compute_recession_probability(
+               _collect_latest(config, spark, [RECESSION_SERIES]),
+               ns_factor_rows=ns_factor_rows,
+               feature_transform_rows=feature_transform_rows,
+               credit_spread_rows=credit_spread_rows,
+               funding_stress_rows=funding_stress_rows,
+               regime_rows=regime_rows,
+               cfg=rec_cfg,
+           ),
+           StructType([
+               StructField("observation_date", StringType()),
+               StructField("recession_prob", DoubleType()),
+               StructField("prob_recession_3m", DoubleType()),
+               StructField("prob_recession_6m", DoubleType()),
+               StructField("prob_recession_12m", DoubleType()),
+               StructField("logit_score", DoubleType()),
+               StructField("n_features", IntegerType()),
+               StructField("n_obs_training", IntegerType()),
+               StructField("model_vintage", StringType()),
+               StructField("is_backfilled", BooleanType()),
+           ]), ["CAST(observation_date AS DATE) AS observation_date",
+                "recession_prob", "prob_recession_3m", "prob_recession_6m",
+                "prob_recession_12m", "logit_score", "n_features",
+                "n_obs_training", "CAST(model_vintage AS DATE) AS model_vintage",
+                "is_backfilled"])
+
+    # ML-5: equity factor attribution — uses in-memory pca["scores"].
+    eq_return_table = config.table("gold", "equity_return_daily")
+    eq_return_rows = [
+        r.asDict() for r in spark.sql(
+            f"SELECT ticker, CAST(observation_date AS STRING) AS observation_date, "
+            f"price_return FROM {eq_return_table}"
+        ).collect()
+    ]
+    ef_cfg = None
+    try:
+        ef_cfg = load_equity_factor_config()
+    except Exception:
+        pass
+    _write("equity_factor_attribution",
+           compute_equity_factor_attribution(eq_return_rows, pca["scores"], cfg=ef_cfg),
+           StructType([
+               StructField("ticker", StringType()),
+               StructField("observation_date", StringType()),
+               StructField("window", IntegerType()),
+               StructField("factor", IntegerType()),
+               StructField("beta", DoubleType()),
+               StructField("t_stat", DoubleType()),
+               StructField("alpha", DoubleType()),
+               StructField("r_squared", DoubleType()),
+               StructField("n_obs", IntegerType()),
+           ]), ["ticker", "CAST(observation_date AS DATE) AS observation_date",
+                "window", "factor", "beta", "t_stat", "alpha", "r_squared", "n_obs"])
+
 
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     """Rebuild all Gold tables from Silver. Returns table -> 'ok' map."""
@@ -1126,8 +1414,8 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "dim_series", "dim_date",
         "macro_indicator_dashboard", "macro_indicator_sparkline",
         "macro_category_summary",
-        "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
-        "spread_inversion_episode",
+        "treasury_curve", "treasury_curve_metrics", "yield_curve_ns_factors",
+        "curve_spread_daily", "spread_inversion_episode",
         "benchmark_rate_board", "funding_tape_daily", "funding_stress_daily",
         "credit_spread_daily",
         "inflation_explorer", "inflation_contribution",
@@ -1148,7 +1436,19 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     _build_equity_views(config, spark)
     for name in (
         "equity_return_daily", "index_constituents",
-        "equity_total_return_index",
+        "equity_total_return_index", "equity_price_reconciliation",
+    ):
+        results[name] = "ok"
+    _build_zscore_views(config, spark)
+    for name in ("fred_series_zscore_rolling", "zscore_heatmap"):
+        results[name] = "ok"
+    _build_ml_pipeline(config, spark)
+    for name in (
+        "ml_feature_matrix",
+        "macro_factor_scores", "macro_factor_loadings",
+        "macro_anomaly_scores",
+        "recession_probability_daily",
+        "equity_factor_attribution",
     ):
         results[name] = "ok"
     return results
