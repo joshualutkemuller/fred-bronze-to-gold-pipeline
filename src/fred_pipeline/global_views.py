@@ -189,9 +189,19 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "breadth bar / cards", "Improving vs deteriorating breadth and surprise index per category."),
     _entry("inflation_explorer", "fact", "INFL", "1 / item x month",
            "decomposition tree + line drill",
-           "CPI/PCE item trees: index, MoM/YoY, acceleration, 3m-annualized, weight, contribution."),
+           "CPI/PCE item trees: index, MoM/YoY, acceleration, 3m-annualized, weight, contribution. "
+           "CPI/SA and CPI/NSA trees include BLS major groups and selected strata "
+           "(bls_cpi_basket_sa.yml / bls_cpi_basket.yml, shipped inactive). "
+           "PCE/SA tree covers headline (PCEPI) and core (PCEPILFE) from FRED, plus 21 BEA NIPA "
+           "Table 2.4.4 sub-items — Goods/Services, Durable/Nondurable splits, and 15 detailed "
+           "spending categories — when manifests/bea_pce_items.yml is activated with a BEA API key."),
     _entry("inflation_contribution", "fact", "INFL", "1 / item x month",
-           "waterfall", "Ranked weight x MoM contributions vs the headline-total bar."),
+           "waterfall", "Ranked weight × MoM contributions vs the headline-total bar. "
+           "PCE waterfall decomposes into 16 spending categories (Motor Vehicles, Furnishings, "
+           "Recreational Goods, Other Durables, Food Off-Premises, Clothing, Energy Goods, "
+           "Other Nondurables, Housing, Health Care, Transportation Svcs, Recreation Svcs, "
+           "Food Services, Financial Svcs, Other Svcs, NPISHs) using approximate nominal-PCE expenditure "
+           "shares; refresh from BEA Section 2 Underlying Detail for precise contributions."),
     _entry("treasury_curve", "fact", "CURV", "1 / date x tenor",
            "line chart over tenor (play axis on date)", "The tidy constant-maturity curve."),
     _entry("treasury_curve_metrics", "fact", "CURV", "1 / date",

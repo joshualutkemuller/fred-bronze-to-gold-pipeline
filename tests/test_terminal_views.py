@@ -954,8 +954,8 @@ def test_inflation_items_loader_missing_and_repo_file(tmp_path):
     assert all(i.parent in ids for i in items if i.parent)
     roots = [(i.basket, i.sa_nsa) for i in items if i.level == 0]
     assert len(roots) == len(set(roots))
-    # the 8 SA major groups carry weights and the waterfall flag
-    wf = [i for i in items if i.waterfall and i.sa_nsa == "SA"]
+    # the 8 CPI/SA major groups carry weights and the waterfall flag
+    wf = [i for i in items if i.waterfall and i.sa_nsa == "SA" and i.basket == "CPI"]
     assert len(wf) == 8 and all(i.weight for i in wf)
 
 

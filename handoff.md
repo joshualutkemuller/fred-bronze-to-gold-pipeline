@@ -1326,6 +1326,26 @@ re-estimate monthly to avoid daily refitting cost).
     `is_significant` flag. Wired into `local_store.build_gold()` and the Spark
     `_build_regime_stats()` path; added to the Power BI catalog under EDA.
     20 new unit tests in `tests/test_structural_breaks.py`.
+-   **PCE item-level via BEA API** ✅ **implemented** — `config/inflation_items.yml`
+    PCE/SA tree expanded from headline + core only to a full 23-item hierarchy using
+    BEA NIPA Table 2.4.4 (`NIPA:T20404:LINE:M`) series IDs:
+    * **Level 0** (FRED-sourced): `PCEPI` (headline)
+    * **Level 1** (FRED-sourced): `PCEPILFE` (core); BEA: Goods (line 2), Services (line 13)
+    * **Level 2** (BEA): Durable Goods, Nondurable Goods, Household Services, NPISHs
+    * **Level 3** (BEA): 4 durable + 4 nondurable + 7 services spending categories
+    * **Waterfall** (16 items): Motor Vehicles, Furnishings, Recreational Goods, Other Durable,
+      Food Off-Premises, Clothing, Energy Goods, Other Nondurable, Housing & Utilities,
+      Health Care, Transportation Svcs, Recreation Svcs, Food Services & Accommodations,
+      Financial Svcs & Insurance, Other Svcs, NPISHs. Weights are approximate 2023-era nominal
+      PCE expenditure shares (sum = 100%); refresh from BEA Section 2 Underlying Detail.
+    * **Manifest**: `manifests/bea_pce_items.yml` (21 BEA series, all `active: false`).
+      Activate by setting `BEA_API_KEY` and flipping `active: true`.
+    * `compute_inflation_explorer` requires no engine changes — the function already handles
+      mixed FRED/BEA `series_id` formats by exact matching; BEA price index levels flow
+      through the same MoM/YoY/acceleration/contribution path as CPI items.
+    * Power BI catalog entries for `inflation_explorer` and `inflation_contribution` updated
+      to describe PCE drill-down and the 16-item waterfall.
+    * 28 new unit tests in `tests/test_pce_items.py`.
 
 ## Platform
 
