@@ -87,7 +87,50 @@ items:
   - {series_id: CUUR0000SAM2,   label: Medical Care Services,    basket: CPI, sa_nsa: NSA, parent: CUUR0000SAM, level: 2}
 
   # ============================ PCE / SA tree ================================
-  # Headline + core only until BEA item-level (NIPA Table 2.4.x) ingestion
-  # lands — the plan's deferred follow-up. No waterfall for PCE yet.
+  # PCEPI and PCEPILFE come from FRED (already active in manifests/inflation.yml).
+  # Sub-items use BEA NIPA Table 2.4.4 series IDs (NIPA:T20404:LINE:M).
+  # ⚠️  VERIFY BEFORE ACTIVATING manifests/bea_pce_items.yml: line numbers below
+  # are from BEA Table 2.4.4 documentation — confirm at
+  # https://apps.bea.gov/iTable/?reqid=19&step=4&isuri=1&nipa_table_list=71
+  # then set active: true once a BEA API key (UserID) is configured.
+  #
+  # weight = approximate nominal-PCE expenditure share in percent (2023-era).
+  # ⚠️  Weights are APPROXIMATE — refresh from BEA Section 2 Underlying Detail
+  # before treating PCE contributions as precise.
+  # waterfall: true marks the 15 detailed spending categories whose
+  # weight × MoM contributions decompose the headline print.
+
+  # --- headline & core (FRED-sourced) ---
   - {series_id: PCEPI,    label: PCE Price Index,                basket: PCE, sa_nsa: SA, level: 0}
   - {series_id: PCEPILFE, label: Core PCE (Ex Food and Energy),  basket: PCE, sa_nsa: SA, parent: PCEPI, level: 1}
+
+  # --- major spending aggregates (BEA NIPA T20404, level 1) ---
+  - {series_id: "NIPA:T20404:2:M",  label: Goods,    basket: PCE, sa_nsa: SA, parent: PCEPI, level: 1}
+  - {series_id: "NIPA:T20404:13:M", label: Services,  basket: PCE, sa_nsa: SA, parent: PCEPI, level: 1}
+
+  # --- durable goods (level 2 under Goods) ---
+  - {series_id: "NIPA:T20404:3:M",  label: Durable Goods,                              basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:2:M",  level: 2}
+  - {series_id: "NIPA:T20404:4:M",  label: Motor Vehicles and Parts,                   basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:3:M",  level: 3, weight: 4.0,  waterfall: true}
+  - {series_id: "NIPA:T20404:5:M",  label: Furnishings and Durable Household Equipment, basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:3:M", level: 3, weight: 2.5,  waterfall: true}
+  - {series_id: "NIPA:T20404:6:M",  label: Recreational Goods and Vehicles,            basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:3:M",  level: 3, weight: 4.0,  waterfall: true}
+  - {series_id: "NIPA:T20404:7:M",  label: Other Durable Goods,                        basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:3:M",  level: 3, weight: 2.5,  waterfall: true}
+
+  # --- nondurable goods (level 2 under Goods) ---
+  - {series_id: "NIPA:T20404:8:M",  label: Nondurable Goods,                           basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:2:M",  level: 2}
+  - {series_id: "NIPA:T20404:9:M",  label: Food and Beverages Purchased for Off-Premises Consumption, basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:8:M", level: 3, weight: 7.5, waterfall: true}
+  - {series_id: "NIPA:T20404:10:M", label: Clothing and Footwear,                      basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:8:M",  level: 3, weight: 2.5,  waterfall: true}
+  - {series_id: "NIPA:T20404:11:M", label: Gasoline and Other Energy Goods,            basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:8:M",  level: 3, weight: 2.5,  waterfall: true}
+  - {series_id: "NIPA:T20404:12:M", label: Other Nondurable Goods,                     basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:8:M",  level: 3, weight: 5.5,  waterfall: true}
+
+  # --- household services (level 2 under Services) ---
+  - {series_id: "NIPA:T20404:14:M", label: Household Consumption Expenditures (Services), basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:13:M", level: 2}
+  - {series_id: "NIPA:T20404:15:M", label: Housing and Utilities,                      basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:14:M", level: 3, weight: 18.5, waterfall: true}
+  - {series_id: "NIPA:T20404:16:M", label: Health Care,                                basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:14:M", level: 3, weight: 17.5, waterfall: true}
+  - {series_id: "NIPA:T20404:17:M", label: Transportation Services,                    basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:14:M", level: 3, weight: 3.0,  waterfall: true}
+  - {series_id: "NIPA:T20404:18:M", label: Recreation Services,                        basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:14:M", level: 3, weight: 4.0,  waterfall: true}
+  - {series_id: "NIPA:T20404:19:M", label: Food Services and Accommodations,           basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:14:M", level: 3, weight: 6.5,  waterfall: true}
+  - {series_id: "NIPA:T20404:20:M", label: Financial Services and Insurance,           basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:14:M", level: 3, weight: 7.5,  waterfall: true}
+  - {series_id: "NIPA:T20404:21:M", label: Other Services,                             basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:14:M", level: 3, weight: 8.5,  waterfall: true}
+
+  # --- nonprofits (level 2 under Services) ---
+  - {series_id: "NIPA:T20404:22:M", label: Final Consumption Expenditures of NPISHs,  basket: PCE, sa_nsa: SA, parent: "NIPA:T20404:13:M", level: 2, weight: 3.5,  waterfall: true}

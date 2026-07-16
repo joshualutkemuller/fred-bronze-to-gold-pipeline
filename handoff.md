@@ -1303,18 +1303,49 @@ re-estimate monthly to avoid daily refitting cost).
     (rolling z-score + heatmap), and new `_build_ml_pipeline` (ML-0/2/4/3/5 in
     sequence). The Databricks path is now output-identical to
     `local_store.build_gold()`.
--   **Historical backfill CLI command** — add a `fred-pipeline backfill`
-    subcommand that re-runs the Gold engines over the full Silver history, one
-    snapshot per date, writing point-in-time Gold rows rather than only the
-    latest revision. This enables true PIT materialization for backtesting and
-    is the natural completion of the `pipeline-daily-history` work that brought
-    rolling z-scores and the ML layer into the pipeline.
--   **Cross-series structural break detection** — extend the statistical lab
-    (Phase 5) with Chow-test and CUSUM structural break tests for each
-    configured series pair. A natural companion to `gold.series_lead_lag`;
-    would produce `gold.series_structural_breaks` (episode start/end, F-stat,
-    p-value, pre/post means) and wire into the Power BI catalog under the EDA
-    module.
+-   **Historical backfill CLI command** ✅ **implemented** — `fred-pipeline backfill`
+    generates point-in-time Gold snapshots over a date range (monthly/weekly/daily
+    cadence). For each snapshot date D, Silver is filtered to rows with
+    `realtime_start <= D` (non-vintage series always included), collapsed to the
+    latest revision, and a focused set of Gold engines is run: feature transforms,
+    ML-0 feature matrix, ML-2 PCA factor scores/loadings, ML-4 anomaly scores,
+    regime playbook, and ML-3 recession probability. All output rows are tagged
+    with `as_of_date = D` and written to a separate SQLite database (default
+    `fred_backfill.db`) with `pit_*`-prefixed tables. Resume support (skips
+    already-computed dates via `pit_backfill_log`) and a `--no-resume` override
+    are included. 22 new unit tests in `tests/test_backfill.py`.
+-   **Cross-series structural break detection** ✅ **implemented** —
+    `compute_series_structural_breaks` in `regime_stats.py` adds two rows per
+    configured pair to `gold.series_structural_breaks`:
+    * **Chow** (`test_type='chow'`): scans all candidate break dates (15% trim from
+      each end) under `series_b ~ 1 + series_a`; reports the date with the highest
+      F-statistic and its p-value.
+    * **CUSUM** (`test_type='cusum'`): Brown-Durbin-Evans cumulative-residual test;
+      reports the first 5%-boundary crossing date and a KS-based p-value approximation.
+    Both tests report pre/post segment means, observation counts, and an
+    `is_significant` flag. Wired into `local_store.build_gold()` and the Spark
+    `_build_regime_stats()` path; added to the Power BI catalog under EDA.
+    20 new unit tests in `tests/test_structural_breaks.py`.
+-   **PCE item-level via BEA API** ✅ **implemented** — `config/inflation_items.yml`
+    PCE/SA tree expanded from headline + core only to a full 23-item hierarchy using
+    BEA NIPA Table 2.4.4 (`NIPA:T20404:LINE:M`) series IDs:
+    * **Level 0** (FRED-sourced): `PCEPI` (headline)
+    * **Level 1** (FRED-sourced): `PCEPILFE` (core); BEA: Goods (line 2), Services (line 13)
+    * **Level 2** (BEA): Durable Goods, Nondurable Goods, Household Services, NPISHs
+    * **Level 3** (BEA): 4 durable + 4 nondurable + 7 services spending categories
+    * **Waterfall** (16 items): Motor Vehicles, Furnishings, Recreational Goods, Other Durable,
+      Food Off-Premises, Clothing, Energy Goods, Other Nondurable, Housing & Utilities,
+      Health Care, Transportation Svcs, Recreation Svcs, Food Services & Accommodations,
+      Financial Svcs & Insurance, Other Svcs, NPISHs. Weights are approximate 2023-era nominal
+      PCE expenditure shares (sum = 100%); refresh from BEA Section 2 Underlying Detail.
+    * **Manifest**: `manifests/bea_pce_items.yml` (21 BEA series, all `active: false`).
+      Activate by setting `BEA_API_KEY` and flipping `active: true`.
+    * `compute_inflation_explorer` requires no engine changes — the function already handles
+      mixed FRED/BEA `series_id` formats by exact matching; BEA price index levels flow
+      through the same MoM/YoY/acceleration/contribution path as CPI items.
+    * Power BI catalog entries for `inflation_explorer` and `inflation_contribution` updated
+      to describe PCE drill-down and the 16-item waterfall.
+    * 28 new unit tests in `tests/test_pce_items.py`.
 
 ## Platform
 
