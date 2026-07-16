@@ -1,0 +1,38 @@
+# ML-3: Recession Probability Model configuration.
+# Expanding IRLS logistic regression — re-estimated at each new USREC print.
+# Requires macro_flags.yml (USREC) to be activated; returns no rows otherwise.
+
+# Minimum labeled months before rows are marked is_backfilled: false.
+min_obs: 60
+
+# L2 ridge coefficient (stabilises the logit on small / near-separable samples).
+l2_lambda: 0.01
+
+# IRLS: max iterations per estimation call and convergence tolerance.
+max_iter: 25
+tol: 1.0e-7
+
+# Horizon-forecast months: separate logistic models for P(recession in next Nm).
+horizon_months: [3, 6, 12]
+
+# Feature flags — set to false to drop a source entirely from the model.
+# Inactive series emit no rows, so those features are simply absent from the
+# design matrix; the model adapts gracefully to however many are available.
+features:
+  # NS β₁ (slope factor from gold.yield_curve_ns_factors).
+  # The Estrella-Mishkin (1998) core predictor: inverted β₁ > 0 precedes recessions.
+  ns_slope: true
+
+  # Monthly changes from gold.fred_feature_transforms.
+  unrate_mom: true    # UNRATE MoM — unemployment rises into recessions
+  indpro_mom: true    # INDPRO MoM — industrial production leads the cycle
+
+  # HY OAS z-score from gold.credit_spread_daily (requires ice_credit.yml active).
+  hy_oas_zscore: true
+  hy_oas_instrument: BAMLH0A0HYM2   # ICE BofA US High Yield OAS
+
+  # 0-100 composite funding stress gauge (requires fed_funding.yml active).
+  funding_stress: true
+
+  # Composite pillar score from gold.macro_regime_daily (higher = friendlier macro).
+  regime_composite: true

@@ -207,6 +207,11 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "line with window slicer", "Trailing change/pct-change/z over 1-252 obs windows."),
     _entry("treasury_curve_rolling", "fact", "CURV", "1 / tenor x date x window",
            "line with window slicer", "Per-tenor trailing change/pct-change/z."),
+    _entry("yield_curve_ns_factors", "fact", "CURV", "1 / date",
+           "3-panel factor time series / fitted-curve line",
+           "Nelson-Siegel β₀ (level) / β₁ (slope) / β₂ (curvature) fitted daily; "
+           "λ decay, fit RMSE, and fit_valid flag. "
+           "β₁ (negative when normally shaped) is the Estrella-Mishkin recession predictor."),
     _entry("benchmark_rate_board", "fact", "BMRK", "1 / rate (latest)",
            "board table with trend arrows",
            "43-rate board: change bps, trend, spread-to-benchmark, regime tag."),
@@ -222,6 +227,18 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
     _entry("macro_regime_daily", "fact", "REGIME", "1 / date",
            "regime ribbon + pillar small multiples",
            "Five pillar z-scores, signed composite, named regime with confidence."),
+    _entry("fred_series_zscore_rolling", "fact", "STAT", "1 / series x date x window",
+           "multi-window fan chart / z-score band",
+           "Rolling z-score and percentile rank for every FRED macro series at 12 / 36 / 60 / 120 "
+           "observation windows (≈ 1 / 3 / 5 / 10 years). Fan-chart: filter to one series and "
+           "overlay each window band to gauge how extreme the current reading is on different "
+           "historical horizons."),
+    _entry("zscore_heatmap", "fact", "STAT", "1 / series x date",
+           "heatmap (filter to date) / fan chart (filter to series)",
+           "Wide-format cross-series z-score snapshot: expanding z-score plus rolling z-scores and "
+           "percentile ranks at 12 / 36 / 60 / 120 observations per (series_id, date). "
+           "Filter to a single date for a cross-category heat matrix; filter to one series for "
+           "a multi-window z-score fan chart over time."),
     _entry("series_correlation", "fact", "STAT", "1 / pair x window x date",
            "heatmap (latest) / rolling line", "Rolling & expanding Pearson correlation for curated pairs."),
     _entry("series_lead_lag", "fact", "EDA", "1 / pair x lag",
@@ -244,6 +261,11 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
     _entry("equity_price_reconciliation", "reference", "EQUITY", "1 / ticker x date",
            "divergence scatter / table",
            "Cross-vendor close comparison: Stooq split-adjusted vs Tiingo adjClose; flags dates where sources diverge beyond tolerance."),
+    _entry("equity_factor_attribution", "fact", "EQUITY", "1 / ticker x factor x window x date",
+           "factor exposure heatmap / rolling beta lines",
+           "Rolling OLS of monthly equity price returns on ML-2 PCA macro factor scores: "
+           "beta and t-stat per factor, alpha, R², and observation count per (ticker, window, date). "
+           "Configurable windows (default 12 / 36 / 60 months); tickers filter in config/equity_factor_attribution.yml."),
     _entry("fred_latest_observation", "fact", "CORE", "1 / series x date",
            "generic line", "Latest-revised observation per (series, date)."),
     _entry("fred_feature_transforms", "fact", "CORE", "1 / series x date",
@@ -262,6 +284,11 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
     _entry("macro_anomaly_scores", "fact", "ML", "1 / date",
            "line + anomaly markers",
            "Mahalanobis D² in PCA factor space with χ²(k) p-value; is_anomaly flags the top-1% statistical outliers."),
+    _entry("recession_probability_daily", "fact", "ML", "1 / date",
+           "probability fan chart + recession shading",
+           "Expanding IRLS logistic recession probability: P(recession in next 3/6/12m) "
+           "re-estimated at each USREC print; logit score, feature count, training-obs count, "
+           "and backfill flag for early dates below the min-obs threshold."),
 )
 
 

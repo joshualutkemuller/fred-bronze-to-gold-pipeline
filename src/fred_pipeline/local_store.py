@@ -121,6 +121,18 @@ CREATE TABLE IF NOT EXISTS gold_fred_feature_transforms (
     series_id TEXT, observation_date TEXT, value REAL,
     mom REAL, diff REAL, yoy REAL, zscore REAL
 );
+CREATE TABLE IF NOT EXISTS gold_fred_series_zscore_rolling (
+    series_id TEXT, observation_date TEXT, window INTEGER,
+    value REAL, change REAL, pct_change REAL, zscore REAL, percentile REAL
+);
+CREATE TABLE IF NOT EXISTS gold_zscore_heatmap (
+    series_id TEXT, observation_date TEXT, value REAL,
+    zscore_expanding REAL, percentile_expanding REAL,
+    zscore_12 REAL, percentile_12 REAL,
+    zscore_36 REAL, percentile_36 REAL,
+    zscore_60 REAL, percentile_60 REAL,
+    zscore_120 REAL, percentile_120 REAL
+);
 CREATE TABLE IF NOT EXISTS gold_fred_curve_spread (
     spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT, value REAL
 );
@@ -218,6 +230,11 @@ CREATE TABLE IF NOT EXISTS gold_treasury_curve_metrics (
     curvature_2_5_10 REAL, butterfly_2_10_30 REAL,
     is_inverted_10y2y INTEGER, is_inverted_10y3m INTEGER,
     is_recession INTEGER, curve_move TEXT
+);
+CREATE TABLE IF NOT EXISTS gold_yield_curve_ns_factors (
+    observation_date TEXT, beta0 REAL, beta1 REAL, beta2 REAL,
+    lambda REAL, lambda_estimated INTEGER, fit_rmse REAL,
+    n_tenors INTEGER, fit_valid INTEGER
 );
 CREATE TABLE IF NOT EXISTS gold_curve_spread_daily (
     spread_name TEXT, observation_date TEXT, long_leg TEXT, short_leg TEXT,
@@ -341,6 +358,16 @@ CREATE TABLE IF NOT EXISTS gold_macro_factor_loadings (
 CREATE TABLE IF NOT EXISTS gold_macro_anomaly_scores (
     observation_date TEXT, mahalanobis_d2 REAL, chi2_df INTEGER,
     p_value REAL, is_anomaly INTEGER NOT NULL DEFAULT 0, n_factors_used INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_equity_factor_attribution (
+    ticker TEXT, observation_date TEXT, window INTEGER, factor INTEGER,
+    beta REAL, t_stat REAL, alpha REAL, r_squared REAL, n_obs INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_recession_probability_daily (
+    observation_date TEXT, recession_prob REAL, prob_recession_3m REAL,
+    prob_recession_6m REAL, prob_recession_12m REAL, logit_score REAL,
+    n_features INTEGER, n_obs_training INTEGER, model_vintage TEXT,
+    is_backfilled INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS audit_etl_run (
@@ -664,6 +691,19 @@ class LocalWarehouse:
         feature_transform_rows: list[dict] = (
             _ft_result.to_dicts() if mode == "polars" else list(_ft_result)
         )
+
+        # Historical z-score analysis (ML-adjacent: reads feature_transform_rows).
+        from fred_pipeline.zscore_views import (
+            compute_fred_series_zscore_rolling,
+            compute_zscore_heatmap,
+        )
+        self.conn.execute("DELETE FROM gold_fred_series_zscore_rolling")
+        self._insert("gold_fred_series_zscore_rolling",
+                     compute_fred_series_zscore_rolling(feature_transform_rows))
+        self.conn.execute("DELETE FROM gold_zscore_heatmap")
+        self._insert("gold_zscore_heatmap",
+                     compute_zscore_heatmap(feature_transform_rows))
+
         self.conn.execute("DELETE FROM gold_fred_curve_spread")
         insert("gold_fred_curve_spread", build_spreads(latest))
 
@@ -752,6 +792,10 @@ class LocalWarehouse:
         self._insert("gold_treasury_curve", curve["curve"])
         self.conn.execute("DELETE FROM gold_treasury_curve_metrics")
         self._insert("gold_treasury_curve_metrics", curve["metrics"])
+        from fred_pipeline.ns_model import compute_yield_curve_ns_factors
+        ns_factor_rows = compute_yield_curve_ns_factors(curve["curve"])
+        self.conn.execute("DELETE FROM gold_yield_curve_ns_factors")
+        self._insert("gold_yield_curve_ns_factors", ns_factor_rows)
         self.conn.execute("DELETE FROM gold_curve_spread_daily")
         self._insert("gold_curve_spread_daily", compute_curve_spread_daily(latest))
         self.conn.execute("DELETE FROM gold_spread_inversion_episode")
@@ -768,9 +812,9 @@ class LocalWarehouse:
         self._insert("gold_funding_tape_daily", funding["tape"])
         self.conn.execute("DELETE FROM gold_funding_stress_daily")
         self._insert("gold_funding_stress_daily", funding["stress"])
+        credit_rows = compute_credit_spread_daily(latest)
         self.conn.execute("DELETE FROM gold_credit_spread_daily")
-        self._insert("gold_credit_spread_daily",
-                     compute_credit_spread_daily(latest))
+        self._insert("gold_credit_spread_daily", credit_rows)
 
         # Phase 2 Inflation Explorer (config/inflation_items.yml).
         inflation = compute_inflation_explorer(latest)
@@ -798,8 +842,9 @@ class LocalWarehouse:
             compute_series_correlation,
             compute_series_lead_lag,
         )
+        regime_rows = compute_macro_regime(latest)
         self.conn.execute("DELETE FROM gold_macro_regime_daily")
-        self._insert("gold_macro_regime_daily", compute_macro_regime(latest))
+        self._insert("gold_macro_regime_daily", regime_rows)
         self.conn.execute("DELETE FROM gold_series_correlation")
         self._insert("gold_series_correlation",
                      compute_series_correlation(latest))
@@ -834,9 +879,9 @@ class LocalWarehouse:
         stooq_rows = [r for r in silver if r.get("source") == "stooq"]
         ishares_rows = [r for r in silver if r.get("source") == "ishares"]
         tiingo_rows = [r for r in silver if r.get("source") == "tiingo"]
+        eq_return_rows = compute_equity_return_daily(stooq_rows)
         self.conn.execute("DELETE FROM gold_equity_return_daily")
-        self._insert("gold_equity_return_daily",
-                     compute_equity_return_daily(stooq_rows))
+        self._insert("gold_equity_return_daily", eq_return_rows)
         self.conn.execute("DELETE FROM gold_index_constituents")
         self._insert("gold_index_constituents",
                      compute_index_constituents(ishares_rows))
@@ -877,10 +922,55 @@ class LocalWarehouse:
             ),
         )
 
+        # ML-5: Equity factor attribution (rolling OLS vs PCA macro factors).
+        from fred_pipeline.equity_factor_attribution import (
+            compute_equity_factor_attribution,
+            load_equity_factor_config,
+        )
+        ef_cfg = None
+        try:
+            ef_cfg = load_equity_factor_config()
+        except Exception:
+            pass
+        self.conn.execute("DELETE FROM gold_equity_factor_attribution")
+        self._insert(
+            "gold_equity_factor_attribution",
+            compute_equity_factor_attribution(
+                eq_return_rows,
+                pca["scores"],
+                cfg=ef_cfg,
+            ),
+        )
+
+        # ML-3: Expanding IRLS logistic recession probability model.
+        from fred_pipeline.recession_model import (
+            compute_recession_probability,
+            load_recession_model_config,
+        )
+        rec_cfg = None
+        try:
+            rec_cfg = load_recession_model_config()
+        except Exception:
+            pass
+        self.conn.execute("DELETE FROM gold_recession_probability_daily")
+        self._insert(
+            "gold_recession_probability_daily",
+            compute_recession_probability(
+                latest,
+                ns_factor_rows=ns_factor_rows,
+                feature_transform_rows=feature_transform_rows,
+                credit_spread_rows=credit_rows,
+                funding_stress_rows=funding["stress"],
+                regime_rows=regime_rows,
+                cfg=rec_cfg,
+            ),
+        )
+
         self.conn.commit()
         return {k: "ok" for k in (
             "fred_point_in_time", "fred_latest_observation",
             "fred_macro_feature_daily", "fred_feature_transforms",
+            "fred_series_zscore_rolling", "zscore_heatmap",
             "fred_curve_spread", "fred_cross_series_feature",
             "fred_cross_series_feature_pit", "fred_source_reconciliation",
             "fred_company_fundamentals", "fred_company_ratios",
@@ -888,7 +978,8 @@ class LocalWarehouse:
             "dim_series", "dim_date",
             "macro_indicator_dashboard", "macro_indicator_sparkline",
             "macro_category_summary",
-            "treasury_curve", "treasury_curve_metrics", "curve_spread_daily",
+            "treasury_curve", "treasury_curve_metrics",
+            "yield_curve_ns_factors", "curve_spread_daily",
             "spread_inversion_episode",
             "benchmark_rate_board", "funding_tape_daily",
             "funding_stress_daily", "credit_spread_daily",
@@ -902,6 +993,8 @@ class LocalWarehouse:
             "ml_feature_matrix",
             "macro_factor_scores", "macro_factor_loadings",
             "macro_anomaly_scores",
+            "equity_factor_attribution",
+            "recession_probability_daily",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:
