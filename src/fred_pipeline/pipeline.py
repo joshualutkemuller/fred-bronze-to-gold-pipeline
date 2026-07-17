@@ -32,6 +32,7 @@ from fred_pipeline.sources.stooq import StooqClient
 from fred_pipeline.sources.tiingo import TiingoClient
 from fred_pipeline.sources.treasury import TreasuryClient
 from fred_pipeline.sources.worldbank import WorldBankClient
+from fred_pipeline.timing import timed
 from fred_pipeline.transform import assign_revision_numbers, normalize_observations
 from fred_pipeline.warehouse import SparkWarehouse, Warehouse
 
@@ -268,6 +269,7 @@ class FredPipeline:
             force_full=force_full,
         )
 
+    @timed("FredPipeline.run")
     def run(
         self,
         specs: Iterable[SeriesSpec],
@@ -494,6 +496,7 @@ class FredPipeline:
             log.exception("Failed to persist audit records for run %s", run.run_id)
 
 
+@timed("run_pipeline")
 def run_pipeline(
     environment: str = "dev",
     manifest_path: str = "manifests",
