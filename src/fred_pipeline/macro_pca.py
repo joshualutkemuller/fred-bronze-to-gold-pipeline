@@ -1,12 +1,12 @@
-"""ML-2: Expanding PCA factor scores — pure Python, scipy-free.
+"""ML-2: Expanding PCA factor scores — NumPy-accelerated, scipy-free.
 
 Reads the tidy ``gold.ml_feature_matrix`` and computes monthly expanding
 principal-component factor scores via:
 
   * **Welford's online covariance** — running mean and M2 matrix updated once
     per monthly snapshot; no need to store the full history.
-  * **Power iteration with deflation** — extracts the top-*k* eigenpairs from
-    the running covariance matrix, which is symmetric positive semi-definite.
+  * **np.linalg.eigh** — extracts all eigenpairs of the symmetric covariance
+    matrix in one LAPACK call (replaces the old pure-Python power iteration).
   * **Sign anchoring** — each eigenvector's sign is fixed so the component with
     the largest absolute loading is always positive (prevents random sign flips
     across time steps).
@@ -17,92 +17,68 @@ Outputs ``gold.macro_factor_scores`` (one row per snapshot × factor) and
 
 from __future__ import annotations
 
-import math
 from datetime import date
 from typing import Any, Iterable
 
+import numpy as np
 
-# ---- Welford online covariance matrix ----------------------------------------
+
+# ---- Welford online covariance matrix (NumPy internals) ----------------------
 
 class _WelfordCov:
-    """Incremental k×k covariance via Welford's online algorithm."""
+    """Incremental k×k covariance via Welford's online algorithm.
+
+    Public API is unchanged: ``update(x: list[float])`` / ``covariance()``
+    returning an indexable 2-D structure (now a numpy ndarray).
+    """
 
     def __init__(self, k: int) -> None:
         self.k = k
         self.n = 0
-        self.mean = [0.0] * k
-        self.M2 = [[0.0] * k for _ in range(k)]
+        self.mean: np.ndarray = np.zeros(k)
+        self.M2: np.ndarray = np.zeros((k, k))
 
-    def update(self, x: list[float]) -> None:
+    def update(self, x: Any) -> None:
+        """Accept a list or numpy array of length k."""
         self.n += 1
-        delta = [x[j] - self.mean[j] for j in range(self.k)]
-        for j in range(self.k):
-            self.mean[j] += delta[j] / self.n
-        delta2 = [x[j] - self.mean[j] for j in range(self.k)]
-        for i in range(self.k):
-            for j in range(self.k):
-                self.M2[i][j] += delta[i] * delta2[j]
+        x_arr = np.asarray(x, dtype=float)
+        delta = x_arr - self.mean
+        self.mean += delta / self.n
+        delta2 = x_arr - self.mean
+        self.M2 += np.outer(delta, delta2)
 
-    def covariance(self) -> list[list[float]]:
+    def covariance(self) -> np.ndarray:
         if self.n < 2:
-            return [[0.0] * self.k for _ in range(self.k)]
-        d = self.n - 1
-        return [[self.M2[i][j] / d for j in range(self.k)] for i in range(self.k)]
+            return np.zeros((self.k, self.k))
+        return self.M2 / (self.n - 1)
 
 
-# ---- power iteration + deflation for symmetric matrices ----------------------
-
-def _mat_vec(A: list[list[float]], v: list[float]) -> list[float]:
-    n = len(A)
-    return [sum(A[i][j] * v[j] for j in range(n)) for i in range(n)]
-
-
-def _power_iter(
-    A: list[list[float]], max_iter: int = 500, tol: float = 1e-9
-) -> tuple[float, list[float]]:
-    """Dominant eigenvalue and unit eigenvector of a symmetric matrix."""
-    k = len(A)
-    v = [1.0 / math.sqrt(k)] * k
-    eigenvalue = 0.0
-    for _ in range(max_iter):
-        Av = _mat_vec(A, v)
-        new_ev = sum(v[j] * Av[j] for j in range(k))
-        nrm = math.sqrt(sum(x * x for x in Av))
-        if nrm == 0.0:
-            break
-        v_new = [x / nrm for x in Av]
-        if abs(new_ev - eigenvalue) < tol:
-            eigenvalue = new_ev
-            v = v_new
-            break
-        eigenvalue = new_ev
-        v = v_new
-    return eigenvalue, v
-
-
-def _deflate(
-    A: list[list[float]], eigenvalue: float, evec: list[float]
-) -> list[list[float]]:
-    """A ← A − λ·v·vᵀ (remove one eigenpair from a symmetric matrix)."""
-    k = len(A)
-    return [
-        [A[i][j] - eigenvalue * evec[i] * evec[j] for j in range(k)]
-        for i in range(k)
-    ]
-
+# ---- top-k eigenpairs via numpy.linalg.eigh ----------------------------------
 
 def _top_k_eigenpairs(
-    cov: list[list[float]], k: int
-) -> list[tuple[float, list[float]]]:
-    """Top-*k* (eigenvalue, unit eigenvector) pairs via power iteration + deflation."""
-    pairs: list[tuple[float, list[float]]] = []
-    A = [row[:] for row in cov]
-    for _ in range(k):
-        ev, vec = _power_iter(A)
+    cov: Any, k: int
+) -> list[tuple[float, np.ndarray]]:
+    """Top-k (eigenvalue, unit eigenvector) pairs for a symmetric PSD matrix.
+
+    Uses ``np.linalg.eigh`` (LAPACK dsyevd) which is O(k_feat^3) but runs
+    as a single BLAS/LAPACK call — orders of magnitude faster than the old
+    pure-Python power iteration for k_feat > ~10.
+
+    ``cov`` may be a list-of-lists or a numpy ndarray; it is converted
+    internally so callers do not need to change.
+    """
+    A = np.asarray(cov, dtype=float)
+    # eigh returns eigenvalues in ascending order
+    eigvals, eigvecs = np.linalg.eigh(A)
+    pairs: list[tuple[float, np.ndarray]] = []
+    # Walk from the largest eigenvalue down
+    for idx in range(len(eigvals) - 1, -1, -1):
+        if len(pairs) >= k:
+            break
+        ev = float(eigvals[idx])
         if ev <= 0.0:
             break
-        pairs.append((ev, vec))
-        A = _deflate(A, ev, vec)
+        pairs.append((ev, eigvecs[:, idx]))
     return pairs
 
 
@@ -157,7 +133,6 @@ def compute_macro_factor_scores(
         return {"scores": [], "loadings": []}
 
     k_comp = min(n_components, k_feat)
-    feat_idx = {fn: i for i, fn in enumerate(all_features)}
 
     welford = _WelfordCov(k_feat)
     scores_out: list[dict[str, Any]] = []
@@ -168,23 +143,20 @@ def compute_macro_factor_scores(
         row_map = by_date[d_str]
 
         # Build feature vector; skip if too many features are missing
-        x_raw = [row_map.get(fn) for fn in all_features]
-        n_present = sum(1 for v in x_raw if v is not None)
+        x_raw = np.array([row_map.get(fn, np.nan) for fn in all_features])
+        n_present = int(np.sum(~np.isnan(x_raw)))
         if n_present < max(2, k_feat // 2):
             continue
 
         # Impute missing values with the current running mean (0 initially)
-        x = [
-            (v if v is not None else welford.mean[i])
-            for i, v in enumerate(x_raw)
-        ]
+        x = np.where(np.isnan(x_raw), welford.mean, x_raw)
         welford.update(x)
 
         if welford.n < min_obs:
             continue
 
         cov = welford.covariance()
-        total_var = sum(cov[i][i] for i in range(k_feat))
+        total_var = float(np.trace(cov))
         if total_var <= 0.0:
             continue
 
@@ -193,18 +165,18 @@ def compute_macro_factor_scores(
             continue
 
         # Sign-anchor: flip so the max-abs-loading component is positive
-        anchored: list[tuple[float, list[float]]] = []
+        anchored: list[tuple[float, np.ndarray]] = []
         for ev, evec in pairs:
-            max_i = max(range(k_feat), key=lambda i: abs(evec[i]))
+            max_i = int(np.argmax(np.abs(evec)))
             if evec[max_i] < 0.0:
-                evec = [-v for v in evec]
+                evec = -evec
             anchored.append((ev, evec))
 
         # Project the centred snapshot onto the eigenvectors
-        x_c = [x[i] - welford.mean[i] for i in range(k_feat)]
+        x_c = x - welford.mean
         cum_evr = 0.0
         for comp_idx, (ev, evec) in enumerate(anchored, start=1):
-            score = sum(x_c[i] * evec[i] for i in range(k_feat))
+            score = float(np.dot(x_c, evec))
             evr = ev / total_var
             cum_evr += evr
             scores_out.append({
@@ -215,7 +187,7 @@ def compute_macro_factor_scores(
                 "cumulative_variance_ratio": cum_evr,
                 "n_obs": welford.n,
             })
-            for fn, loading in zip(all_features, evec):
+            for fn, loading in zip(all_features, evec.tolist()):
                 loadings_out.append({
                     "observation_date": d_str,
                     "factor": comp_idx,

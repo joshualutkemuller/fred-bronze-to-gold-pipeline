@@ -1,5 +1,5 @@
 """ML-5: Equity factor attribution — rolling OLS of monthly equity returns on
-PCA macro factor scores (pure Python, scipy-free).
+PCA macro factor scores (NumPy-accelerated, scipy-free).
 
 Inputs
 ------
@@ -16,11 +16,16 @@ Algorithm
 1. Compound daily price returns within each calendar month → monthly return
    series per ticker.
 2. Match monthly ticker returns to PCA factor scores on (year, month).
-3. For each (ticker, window w), slide the trailing-w-months window and run
-   OLS:  monthly_return ~ 1 + factor_1 + … + factor_K
+3. For each (window w, ending calendar month m), batch ALL tickers that have
+   returns for the w consecutive months and solve:
+       np.linalg.lstsq(X, Y)   where Y = (n, N_tickers)
+   — a single BLAS call replaces N_tickers independent OLS solves and reuses
+   the shared (X'X)⁻¹ diagonal across all tickers in the batch.
 4. Emit α (intercept), K betas, t-stats, R², n_obs per window end-date.
 
-The pure-Python OLS uses Gaussian elimination with partial pivoting.
+The public `_solve` / `_ols` helpers are kept for backward compatibility
+with the test suite; the hot path inside `compute_equity_factor_attribution`
+uses batched NumPy instead.
 """
 
 from __future__ import annotations
@@ -32,6 +37,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
+import numpy as np
 import yaml
 
 _CONFIG_PATH = (
@@ -66,7 +72,7 @@ def load_equity_factor_config(path: Optional[str] = None) -> EquityFactorConfig:
 
 
 # ---------------------------------------------------------------------------
-# Gaussian elimination (shared OLS kernel)
+# Gaussian elimination (kept for backward compatibility with tests)
 # ---------------------------------------------------------------------------
 
 def _solve(a: list[list[float]], b: list[float]) -> Optional[list[float]]:
@@ -94,7 +100,7 @@ def _solve(a: list[list[float]], b: list[float]) -> Optional[list[float]]:
 
 
 # ---------------------------------------------------------------------------
-# OLS with t-statistics
+# OLS with t-statistics (NumPy internals, kept for backward compat / tests)
 # ---------------------------------------------------------------------------
 
 def _ols(
@@ -109,55 +115,46 @@ def _ols(
     Returns None if the design matrix is singular, n ≤ p, or SST is zero.
     """
     n = len(y)
-    k = len(factor_cols)  # predictors, excluding intercept
-    p = k + 1              # total parameters
+    k = len(factor_cols)
+    p = k + 1
     if n <= p:
         return None
 
-    # Design matrix rows: [1, x1_i, x2_i, …]
-    X = [[1.0] + [factor_cols[j][i] for j in range(k)] for i in range(n)]
+    y_arr = np.array(y, dtype=float)
+    X = np.column_stack([np.ones(n)] + [np.array(c, dtype=float) for c in factor_cols])
 
-    XtX = [
-        [sum(X[i][a] * X[i][b] for i in range(n)) for b in range(p)]
-        for a in range(p)
-    ]
-    Xty = [sum(X[i][a] * y[i] for i in range(n)) for a in range(p)]
-
-    beta = _solve(XtX, Xty)
-    if beta is None:
+    beta, _, rank, _ = np.linalg.lstsq(X, y_arr, rcond=None)
+    if rank < p:
         return None
 
-    y_hat = [sum(X[i][a] * beta[a] for a in range(p)) for i in range(n)]
-    resid = [y[i] - y_hat[i] for i in range(n)]
-    sse = sum(r * r for r in resid)
-
-    y_mean = sum(y) / n
-    sst = sum((yi - y_mean) ** 2 for yi in y)
+    y_hat = X @ beta
+    resid = y_arr - y_hat
+    sse = float(resid @ resid)
+    y_mean = float(y_arr.mean())
+    sst = float(((y_arr - y_mean) ** 2).sum())
     r_squared = max(0.0, 1.0 - sse / sst) if sst > 1e-14 else 0.0
 
     sigma2 = sse / (n - p)
     if sigma2 <= 0.0:
-        # Perfect fit — t-stats undefined (would be ±∞)
         return {
-            "alpha": beta[0], "betas": beta[1:],
+            "alpha": float(beta[0]), "betas": beta[1:].tolist(),
             "t_stat_alpha": None, "t_stats": [None] * k,
             "r_squared": r_squared, "n_obs": n,
         }
 
-    # Var(β_j) = σ²·[(XᵀX)⁻¹]_{jj} — recover via column of the inverse
-    t_all: list[Optional[float]] = []
-    for j in range(p):
-        e_j = [1.0 if i == j else 0.0 for i in range(p)]
-        col_j = _solve(XtX, e_j)
-        if col_j is None or col_j[j] <= 0.0:
-            t_all.append(None)
-        else:
-            se_j = math.sqrt(sigma2 * col_j[j])
-            t_all.append(beta[j] / se_j if se_j > 1e-14 else None)
+    try:
+        XtX_inv_diag = np.diag(np.linalg.inv(X.T @ X))
+    except np.linalg.LinAlgError:
+        return None
+
+    se = np.sqrt(np.maximum(sigma2 * XtX_inv_diag, 0.0))
+    t_all: list[Optional[float]] = [
+        float(b / s) if s > 1e-14 else None for b, s in zip(beta, se)
+    ]
 
     return {
-        "alpha": beta[0],
-        "betas": beta[1:],
+        "alpha": float(beta[0]),
+        "betas": beta[1:].tolist(),
         "t_stat_alpha": t_all[0],
         "t_stats": t_all[1:],
         "r_squared": r_squared,
@@ -235,7 +232,7 @@ def _factor_matrix(
 
 
 # ---------------------------------------------------------------------------
-# Main engine
+# Main engine — batched cross-ticker OLS (Tier 1 + 2)
 # ---------------------------------------------------------------------------
 
 def compute_equity_factor_attribution(
@@ -249,6 +246,10 @@ def compute_equity_factor_attribution(
     One row per (ticker, window, observation_date, factor).
     ``alpha``, ``r_squared``, and ``n_obs`` repeat for every factor row at the
     same (ticker, window, observation_date) for Power BI convenience.
+
+    For each (window, ending calendar month), all tickers that have returns for
+    every month in the window are batched into a single ``np.linalg.lstsq``
+    call, sharing one (X'X)⁻¹ diagonal computation.
     """
     if cfg is None:
         cfg = load_equity_factor_config()
@@ -263,59 +264,108 @@ def compute_equity_factor_attribution(
     if not monthly_ret:
         return []
 
-    # All months with at least one factor score, sorted chronologically
     all_ym = sorted(fscores)
     factor_ids = sorted({fid for v in fscores.values() for fid in v})
     n_factors = len(factor_ids)
     if n_factors == 0:
         return []
 
+    # Pre-build list of (ym, factor_score_ndarray) for months where all factors
+    # are present — these are the only months that can anchor a window.
+    all_monthly_pairs: list[tuple[tuple[int, int], np.ndarray]] = []
+    for ym in all_ym:
+        frow = fscores[ym]
+        if all(fid in frow for fid in factor_ids):
+            all_monthly_pairs.append(
+                (ym, np.array([frow[fid] for fid in factor_ids], dtype=float))
+            )
+
+    if not all_monthly_pairs:
+        return []
+
+    all_tickers = sorted(monthly_ret)
     out: list[dict[str, Any]] = []
-    for ticker in sorted(monthly_ret):
-        ticker_returns = monthly_ret[ticker]
 
-        # Build matched list: months where both return and all factors exist
-        matched: list[tuple[tuple[int, int], float, list[float]]] = []
-        for ym in all_ym:
-            if ym not in ticker_returns:
+    for window in sorted(cfg.windows):
+        for i in range(len(all_monthly_pairs)):
+            if i + 1 < window:
                 continue
-            frow = fscores[ym]
-            if not all(fid in frow for fid in factor_ids):
+            sl = all_monthly_pairs[i + 1 - window: i + 1]
+            n = len(sl)
+            if n < cfg.min_obs:
                 continue
-            matched.append((ym, ticker_returns[ym], [frow[fid] for fid in factor_ids]))
 
-        if not matched:
-            continue
+            sl_yms = [p[0] for p in sl]
+            obs_date = fdates[sl_yms[-1]]
 
-        for window in sorted(cfg.windows):
-            for i in range(len(matched)):
-                if i + 1 < window:
-                    continue  # not enough history yet
-                sl = matched[i + 1 - window: i + 1]
-                if len(sl) < cfg.min_obs:
-                    continue
+            # Design matrix X — shared by all tickers (n, p)
+            F = np.array([p[1] for p in sl])          # (n, n_factors)
+            X = np.column_stack([np.ones(n), F])       # (n, p)
+            p_cols = X.shape[1]
 
-                y = [s[1] for s in sl]
-                Xcols = [[s[2][j] for s in sl] for j in range(n_factors)]
+            # Batch: tickers that have returns for every month in this window
+            batch = [t for t in all_tickers
+                     if all(ym in monthly_ret[t] for ym in sl_yms)]
+            if not batch:
+                continue
 
-                ols = _ols(y, Xcols)
-                if ols is None:
-                    continue
+            # Y: (n, n_batch) — each column is one ticker's monthly returns
+            Y = np.array(
+                [[monthly_ret[t][ym] for ym in sl_yms] for t in batch],
+                dtype=float,
+            ).T
 
-                obs_date = fdates[matched[i][0]]
+            # Single BLAS solve for all tickers (minimum-norm for rank-deficient X)
+            beta_all, _, _, _ = np.linalg.lstsq(X, Y, rcond=None)
+
+            # Shared quantities (same X for all tickers)
+            Y_hat = X @ beta_all                               # (n, n_batch)
+            resid = Y - Y_hat                                  # (n, n_batch)
+            sse = (resid ** 2).sum(axis=0)                    # (n_batch,)
+            y_mean = Y.mean(axis=0)                            # (n_batch,)
+            sst_arr = ((Y - y_mean) ** 2).sum(axis=0)         # (n_batch,)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                r2_arr = np.maximum(
+                    0.0,
+                    np.where(sst_arr > 1e-14, 1.0 - sse / sst_arr, 0.0),
+                )
+            sigma2_arr = sse / (n - p_cols)                    # (n_batch,)
+
+            # (X'X)⁺ diagonal via pseudoinverse — handles rank-deficient X gracefully
+            XtX_inv_diag = np.diag(np.linalg.pinv(X.T @ X))
+
+            for ti, ticker in enumerate(batch):
+                alpha_val = float(beta_all[0, ti])
+                betas_ti = beta_all[1:, ti]          # shape (n_factors,)
+                r2 = float(r2_arr[ti])
+                s2 = float(sigma2_arr[ti])
+
+                if s2 > 0.0:
+                    se = np.sqrt(np.maximum(s2 * XtX_inv_diag, 0.0))
+                    t_all: list[Optional[float]] = [
+                        float(b / s) if s > 1e-14 else None
+                        for b, s in zip(beta_all[:, ti], se)
+                    ]
+                else:
+                    t_all = [None] * p_cols
+
                 for fi, fid in enumerate(factor_ids):
                     out.append({
                         "ticker": ticker,
                         "observation_date": obs_date,
                         "window": window,
                         "factor": fid,
-                        "beta": ols["betas"][fi],
-                        "t_stat": ols["t_stats"][fi],
-                        "alpha": ols["alpha"],
-                        "r_squared": ols["r_squared"],
-                        "n_obs": ols["n_obs"],
+                        "beta": float(betas_ti[fi]),
+                        "t_stat": t_all[fi + 1],   # fi+1: skip intercept
+                        "alpha": alpha_val,
+                        "r_squared": r2,
+                        "n_obs": n,
                     })
 
+    # Sort to match the original (ticker, observation_date, window, factor) order
+    out.sort(key=lambda r: (
+        r["ticker"], r["observation_date"], r["window"], r["factor"]
+    ))
     return out
 
 

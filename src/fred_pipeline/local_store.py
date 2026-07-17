@@ -526,6 +526,13 @@ class LocalWarehouse:
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row
+        # Tier-6 SQLite performance tuning: WAL journal, relaxed fsync,
+        # 64 MB page cache, 256 MB mmap.  These survive reconnects via the
+        # journal_mode pragma (WAL is persisted); the others are session-level.
+        self.conn.execute("PRAGMA journal_mode=WAL")
+        self.conn.execute("PRAGMA synchronous=NORMAL")
+        self.conn.execute("PRAGMA cache_size=-65536")    # 64 MB
+        self.conn.execute("PRAGMA mmap_size=268435456")  # 256 MB
         self.conn.executescript(_SCHEMA)
         self.conn.commit()
 
