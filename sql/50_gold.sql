@@ -761,6 +761,36 @@ CREATE TABLE IF NOT EXISTS gold.series_lead_lag (
 )
 USING DELTA;
 
+-- Chow and CUSUM structural-break tests on the aligned, transformed series
+-- for every configured pair. Two rows per pair: test_type='chow' scans all
+-- candidate break dates (15% trimmed from each end) and reports the date
+-- with the highest F-statistic under series_b ~ 1 + series_a; test_type=
+-- 'cusum' is CUSUM of full-sample OLS residuals (Brown-Durbin-Evans proxy),
+-- reporting the first 5%-boundary crossing or the peak |CUSUM| date when
+-- there is no crossing. break_date NULL means the test could not run (too
+-- few obs); is_significant = true means p-value < 0.05. Written by
+-- fred_pipeline.regime_stats.compute_series_structural_breaks.
+CREATE TABLE IF NOT EXISTS gold.series_structural_breaks (
+    series_a          STRING,
+    series_b          STRING,
+    transform_a       STRING,
+    transform_b       STRING,
+    test_type         STRING,
+    break_date        DATE,
+    f_stat            DOUBLE,
+    p_value           DOUBLE,
+    pre_n             INT,
+    post_n            INT,
+    pre_mean_a        DOUBLE,
+    post_mean_a       DOUBLE,
+    pre_mean_b        DOUBLE,
+    post_mean_b       DOUBLE,
+    cusum_max         DOUBLE,
+    is_significant    BOOLEAN NOT NULL,
+    as_of_date        DATE
+)
+USING DELTA;
+
 -- ============================================================================
 -- Phase 6 global tables + Power BI catalog (docs/market_terminal_gold_views
 -- .md §4.9 global modules). Computed by fred_pipeline.global_views (config:
@@ -974,6 +1004,25 @@ CREATE TABLE IF NOT EXISTS gold.equity_factor_attribution (
 )
 USING DELTA;
 
+-- ML-5b: Factor-implied monthly return decomposition, one row per (ticker,
+-- window, month): implied_return = α + Σᵢ βᵢ·Fᵢ (full model prediction),
+-- factor_return = Σᵢ βᵢ·Fᵢ (pure systematic component), alpha_return = α
+-- (OLS intercept), residual_return = realized − implied (idiosyncratic).
+-- Betas are forward-filled from the most-recent equity_factor_attribution
+-- estimate at or before the month; no new OLS is run here. Written by
+-- fred_pipeline.equity_factor_attribution.compute_equity_factor_implied_return.
+CREATE TABLE IF NOT EXISTS gold.equity_factor_implied_return (
+    ticker           STRING,
+    observation_date DATE,
+    window           INT,
+    implied_return   DOUBLE,
+    factor_return    DOUBLE,
+    alpha_return     DOUBLE,
+    realized_return  DOUBLE,
+    residual_return  DOUBLE
+)
+USING DELTA;
+
 -- ML-3: Expanding IRLS logistic recession probability — one row per USREC date.
 -- Separate forward-horizon models for P(recession in next 3 / 6 / 12 months).
 -- is_backfilled=true for early rows with fewer than min_obs training examples.
@@ -988,5 +1037,26 @@ CREATE TABLE IF NOT EXISTS gold.recession_probability_daily (
     n_obs_training      INT,
     model_vintage       DATE,
     is_backfilled       BOOLEAN NOT NULL
+)
+USING DELTA;
+
+-- ML-6: Short-horizon AR(p)/VAR(p) MoM inflation forecasts, one row per
+-- (series_id, horizon_months, model_type). forecast_value and the CI bounds
+-- are MoM decimal fractions (e.g. 0.003 = +0.3%); model_vintage equals
+-- forecast_date (re-estimated monthly). Written by
+-- fred_pipeline.inflation_model.compute_inflation_forecast.
+CREATE TABLE IF NOT EXISTS gold.inflation_forecast (
+    series_id       STRING,
+    forecast_date   DATE,
+    horizon_months  INT,
+    forecast_value  DOUBLE,
+    lower_80        DOUBLE,
+    upper_80        DOUBLE,
+    lower_95        DOUBLE,
+    upper_95        DOUBLE,
+    model_type      STRING,
+    lag_order       INT,
+    model_vintage   DATE,
+    n_obs_training  INT
 )
 USING DELTA;
