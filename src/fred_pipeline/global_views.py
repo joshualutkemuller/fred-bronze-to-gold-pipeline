@@ -305,6 +305,18 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "Expanding IRLS logistic recession probability: P(recession in next 3/6/12m) "
            "re-estimated at each USREC print; logit score, feature count, training-obs count, "
            "and backfill flag for early dates below the min-obs threshold."),
+    _entry("equity_factor_implied_return", "fact", "ML", "1 / ticker x window x month",
+           "scatter (implied vs realized) / residual time-series",
+           "Factor-implied monthly return per ticker: α + Σ(βᵢ·Fᵢ) using forward-filled "
+           "betas from equity_factor_attribution vs contemporaneous PCA scores. "
+           "implied_return = full model; factor_return = systematic component; "
+           "alpha_return = OLS intercept; residual_return = realized − implied (idiosyncratic)."),
+    _entry("inflation_forecast", "fact", "ML", "1 / series x horizon x model",
+           "fan chart / forecast ribbon",
+           "AR(p) and VAR(p) MoM inflation forecasts for CPI-U SA and PCE at 1/3/6/12-month "
+           "horizons. BIC lag selection, recursive h-step forecasting, 80%/95% bootstrap CIs. "
+           "forecast_value and CI bounds are MoM decimal fractions. "
+           "model_type: 'ar' (univariate) or 'var' (bivariate CPI+PCE joint model)."),
 )
 
 
