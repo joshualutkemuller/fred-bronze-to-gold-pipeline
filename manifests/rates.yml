@@ -96,16 +96,14 @@ series:
     tags: [rates, curve, treasury]
 
   # Belly/long tenors that complete the curve for gold.treasury_curve
-  # (config/curve.yml). Standard FRED constant-maturity ids, but shipped
-  # inactive — this environment can't reach FRED to live-verify them, so
-  # confirm each at https://fred.stlouisfed.org before flipping active: true.
+  # (config/curve.yml). Verified against live FRED (2026-07-17).
   # (DGS20 has a 1987–1993 publication gap; that's expected, not an error.)
   - series_id: DGS3
     title: 3-Year Treasury Constant Maturity Rate
     category: rates
     frequency: d
     units: Percent
-    active: false
+    active: true
     vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 2
@@ -116,7 +114,7 @@ series:
     category: rates
     frequency: d
     units: Percent
-    active: false
+    active: true
     vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 2
@@ -127,20 +125,20 @@ series:
     category: rates
     frequency: d
     units: Percent
-    active: false
+    active: true
     vintage_enabled: false
     downstream_use_case: yield_curve
     priority: 3
     tags: [rates, curve, treasury]
 
   # Benchmark-board extras (gold.benchmark_rate_board, config/
-  # benchmark_rates.yml). Same verify-before-activating caveat as above.
+  # benchmark_rates.yml). Verified against live FRED (2026-07-17).
   - series_id: DPRIME
     title: Bank Prime Loan Rate (daily)
     category: rates
     frequency: d
     units: Percent
-    active: false
+    active: true
     vintage_enabled: false
     downstream_use_case: benchmark_board
     priority: 3
@@ -153,13 +151,103 @@ series:
     category: rates
     frequency: w
     units: Percent
-    active: false
+    active: true
     vintage_enabled: false
     downstream_use_case: benchmark_board
     priority: 3
     min_value: 0
     max_value: 25
     tags: [rates, lending, mortgage]
+
+  - series_id: MORTGAGE15US
+    title: 15-Year Fixed Rate Mortgage Average (weekly)
+    category: rates
+    frequency: w
+    units: Percent
+    active: true
+    vintage_enabled: false
+    downstream_use_case: benchmark_board
+    priority: 3
+    min_value: 0
+    max_value: 25
+    tags: [rates, lending, mortgage]
+
+  - series_id: DFII10
+    title: 10-Year TIPS (Real) Yield
+    category: rates
+    frequency: d
+    units: Percent
+    active: true
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 2
+    tags: [rates, curve, treasury, tips, real]
+
+  - series_id: T5YIFR
+    title: 5-Year, 5-Year Forward Inflation Expectation Rate
+    category: rates
+    frequency: d
+    units: Percent
+    active: true
+    vintage_enabled: false
+    downstream_use_case: inflation_expectations
+    priority: 2
+    tags: [rates, inflation, breakeven, forward]
+
+  - series_id: T10Y2Y
+    title: 10-Year Treasury Minus 2-Year Treasury (2s10s, FRED-computed)
+    category: rates
+    frequency: d
+    units: Percent
+    active: true
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 2
+    tags: [rates, curve, spread]
+
+  - series_id: T10Y3M
+    title: 10-Year Treasury Minus 3-Month Treasury (FRED-computed)
+    category: rates
+    frequency: d
+    units: Percent
+    active: true
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 2
+    tags: [rates, curve, spread]
+
+  - series_id: DTB4WK
+    title: 4-Week Treasury Bill Secondary Market Rate, Discount Basis
+    category: rates
+    frequency: d
+    units: Percent
+    active: true
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 3
+    tags: [rates, bill, treasury]
+
+  - series_id: DTB3
+    title: 3-Month Treasury Bill Secondary Market Rate, Discount Basis
+    category: rates
+    frequency: d
+    units: Percent
+    active: true
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 3
+    tags: [rates, bill, treasury]
+
+  - series_id: DTB6
+    title: 6-Month Treasury Bill Secondary Market Rate, Discount Basis
+    category: rates
+    frequency: d
+    units: Percent
+    active: true
+    vintage_enabled: false
+    downstream_use_case: yield_curve
+    priority: 3
+    tags: [rates, bill, treasury]
 
   - series_id: FEDFUNDS
     title: Federal Funds Effective Rate

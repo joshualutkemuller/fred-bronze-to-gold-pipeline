@@ -1,15 +1,16 @@
 name: global_policy
 description: >
   Non-US central-bank policy rates for gold.global_policy_rates (GPOL; see
-  config/global_series.yml). The US row runs off already-active FEDFUNDS —
-  only the ECB rates live here. FRED mirrors many central-bank rates, but a
-  number of the OECD-sourced ones were discontinued in 2024; extend this
-  manifest (and config/global_series.yml) only with ids you have verified.
+  config/global_series.yml). The US row runs off already-active FEDFUNDS.
+  FRED mirrors many central-bank rates, but a number of the OECD-sourced ones
+  were discontinued in 2024 or never existed under a guessable id (e.g.
+  IRSTCB01USM156N, IRSTCB01GBM156N, IRSTCB01AUM156N, IRSTCB01CHM156N,
+  IRSTCB01MXM156N, IRSTCB01KRM156N, IRSTCB01SEM156N, IRSTCB01NOM156N,
+  IRSTCB01NZM156N, IRSTCB01TRM156N all 400 from FRED as of this check) —
+  extend this manifest (and config/global_series.yml) only with ids you have
+  verified.
 
-  ⚠️ VERIFY BEFORE ACTIVATING: standard FRED ids for the ECB rates, but
-  assembled without live FRED access from this environment — confirm at
-  https://fred.stlouisfed.org before flipping active: true. A wrong id fails
-  only that one series (per-series isolation), not the run.
+  Verified against live FRED (2026-07-17): all ids below resolve.
 version: 1
 
 series:
@@ -18,7 +19,7 @@ series:
     category: rates
     frequency: d
     units: Percent
-    active: false
+    active: true
     vintage_enabled: false
     validation_profile: standard
     downstream_use_case: global_policy_rates
@@ -32,7 +33,7 @@ series:
     category: rates
     frequency: d
     units: Percent
-    active: false
+    active: true
     vintage_enabled: false
     validation_profile: standard
     downstream_use_case: global_policy_rates
@@ -40,3 +41,77 @@ series:
     min_value: -2
     max_value: 25
     tags: [rates, policy, ecb, international]
+
+  - series_id: IRSTCB01JPM156N
+    title: "Interest Rates, Immediate Rates: Central Bank Rates for Japan"
+    category: rates
+    frequency: m
+    units: Percent
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: global_policy_rates
+    priority: 2
+    min_value: -2
+    max_value: 25
+    tags: [rates, policy, boj, international]
+
+  - series_id: IRSTCB01CAM156N
+    title: "Interest Rates, Immediate Rates: Central Bank Rates for Canada"
+    category: rates
+    frequency: m
+    units: Percent
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: global_policy_rates
+    priority: 2
+    min_value: -2
+    max_value: 25
+    tags: [rates, policy, boc, international]
+
+  - series_id: IRSTCB01BRM156N
+    title: "Interest Rates, Immediate Rates: Central Bank Rates for Brazil"
+    category: rates
+    frequency: m
+    units: Percent
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: global_policy_rates
+    priority: 3
+    min_value: -2
+    max_value: 100   # Brazil's Selic has historically exceeded 40% (2026-07-17 dry-run: 9 obs above 40)
+    tags: [rates, policy, bcb, international]
+    # NOTE (2026-07-17 live check): latest observation was 959 days old — this
+    # FRED mirror appears stale/unmaintained (not marked discontinued, but not
+    # keeping pace either). Data will load but may not reflect Brazil's
+    # current policy rate; verify before relying on it for anything live.
+
+  - series_id: BOERUKM
+    title: Bank of England Policy Rate
+    category: rates
+    frequency: m
+    units: Percent per Annum
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: global_policy_rates
+    priority: 2
+    min_value: -2
+    max_value: 25
+    tags: [rates, policy, boe, international]
+
+  - series_id: INTDSRJPM193N
+    title: Interest Rates, Discount Rate for Japan
+    category: rates
+    frequency: m
+    units: Percent per Annum
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: global_policy_rates
+    priority: 3
+    min_value: -2
+    max_value: 25
+    tags: [rates, policy, boj, international, discount_rate]

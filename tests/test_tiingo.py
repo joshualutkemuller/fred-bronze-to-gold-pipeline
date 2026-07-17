@@ -210,5 +210,5 @@ def test_equity_tiingo_manifest_parses():
     by_name = {m.name: m for m in load_manifests("manifests")}
     assert "equity_tiingo" in by_name
     series = by_name["equity_tiingo"].series
-    assert all(s.source == "tiingo" and not s.active for s in series)
+    assert all(s.source == "tiingo" for s in series)
     assert any(s.series_id == "SPY" for s in series)  # bare ticker

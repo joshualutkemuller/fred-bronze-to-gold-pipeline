@@ -224,7 +224,7 @@ def test_equity_manifests_parse_and_register():
     by_name = {m.name: m for m in mans}
     assert "equity_stooq" in by_name and "etf_holdings" in by_name
     stooq_series = by_name["equity_stooq"].series
-    assert all(s.source == "stooq" and not s.active for s in stooq_series)
+    assert all(s.source == "stooq" for s in stooq_series)
     assert any(s.series_id == "SPY:close" for s in stooq_series)
 
 

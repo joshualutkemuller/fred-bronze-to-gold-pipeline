@@ -1600,3 +1600,346 @@ series:
   max_value: null
   tags:
   - international
+
+- series_id: CP0000EZ19M086NEST
+  title: 'Harmonized Index of Consumer Prices: Total for Euro Area (19 Countries)'
+  frequency: m
+  category: international
+  units: 'Index 2025=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: GBRCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for United Kingdom'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: JPNCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Japan'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: DEUCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Germany'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: FRACPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for France'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: ITACPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Italy'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: CANCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Canada'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: CHNCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for China'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: INDCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for India'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: BRACPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Brazil'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: MEXCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Mexico'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: AUSCPIALLQINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Australia'
+  frequency: q
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: KORCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Korea'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: CHECPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Switzerland'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: ESPCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Spain'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: TURCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Turkiye'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: IDNCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Indonesia'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international
+- series_id: ZAFCPIALLMINMEI
+  title: 'Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for South Africa'
+  frequency: m
+  category: international
+  units: 'Index 2015=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: external_sector
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - international

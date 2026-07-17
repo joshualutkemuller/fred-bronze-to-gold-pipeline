@@ -1,15 +1,12 @@
 name: macro_flags
 description: >
-  Regime/overlay flag series for the market-terminal analytical views
-  (docs/market_terminal_gold_views.md): the NBER recession indicator drives
-  the is_recession column in gold.dim_date, gold.treasury_curve_metrics, and
-  gold.curve_spread_daily (recession shading in Power BI). Until USREC is
-  ingested those columns are NULL (unknown), never false.
+  Regime/overlay flag and nowcast series for the market-terminal analytical
+  views (docs/market_terminal_gold_views.md): the NBER recession indicator
+  drives the is_recession column in gold.dim_date, gold.treasury_curve_metrics,
+  and gold.curve_spread_daily (recession shading in Power BI); GDPNow is the
+  Atlanta Fed's real-time GDP growth nowcast.
 
-  ⚠️ VERIFY BEFORE ACTIVATING: standard FRED ids, but assembled without live
-  FRED access from this environment — confirm at https://fred.stlouisfed.org
-  before flipping active: true. A wrong id fails only that one series
-  (per-series isolation), not the run.
+  Verified against live FRED (2026-07-17): all ids below resolve.
 version: 1
 
 series:
@@ -18,7 +15,7 @@ series:
     category: growth
     frequency: m
     units: +1 or 0
-    active: false
+    active: true
     vintage_enabled: false   # NBER dating changes only at turning points
     validation_profile: standard
     downstream_use_case: recession_overlay
@@ -32,7 +29,7 @@ series:
     category: growth
     frequency: d
     units: +1 or 0
-    active: false
+    active: true
     vintage_enabled: false
     validation_profile: standard
     downstream_use_case: recession_overlay
@@ -40,3 +37,15 @@ series:
     min_value: 0
     max_value: 1
     tags: [regime, recession, nber]
+
+  - series_id: GDPNOW
+    title: GDPNow (Atlanta Fed real-time GDP growth nowcast)
+    category: growth
+    frequency: q
+    units: Percent Change at Annual Rate
+    active: true
+    vintage_enabled: false   # a nowcast, not a revised official statistic
+    validation_profile: standard
+    downstream_use_case: growth_nowcast
+    priority: 2
+    tags: [regime, growth, nowcast]

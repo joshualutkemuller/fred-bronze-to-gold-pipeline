@@ -6894,3 +6894,42 @@ series:
   max_value: null
   tags:
   - production_housing
+
+- series_id: CSUSHPINSA
+  title: 'S&P Cotality Case-Shiller U.S. National Home Price Index'
+  frequency: m
+  category: production_housing
+  units: 'Index Jan 2000=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing
+- series_id: TOTALSA
+  title: 'Total Vehicle Sales'
+  frequency: m
+  category: production_housing
+  units: 'Millions of Units'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: business_cycle
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - production_housing

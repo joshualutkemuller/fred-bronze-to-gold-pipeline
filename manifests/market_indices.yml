@@ -1,0 +1,76 @@
+name: market_indices
+description: >
+  Market index levels and spot commodity prices mirrored on FRED (not
+  economic indicators — market data). Added for parity with market_terminal
+  (docs/market_terminal_series_gap.md §1 "Market levels / commodities").
+  Non-vintage: these are quoted market levels, not revised statistics.
+
+  Verified against live FRED (2026-07-17): all ids below resolve.
+  ("GOLDPMGBD228NLBM", the LBMA Gold PM Fix, does not exist under that id —
+  omitted rather than guessing a replacement.)
+version: 1
+
+series:
+  - series_id: VIXCLS
+    title: CBOE Volatility Index (VIX)
+    category: market_indices
+    frequency: d
+    units: Index
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: market_regime
+    priority: 1
+    min_value: 0
+    tags: [market, volatility, vix]
+
+  - series_id: SP500
+    title: S&P 500
+    category: market_indices
+    frequency: d
+    units: Index
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: market_regime
+    priority: 1
+    min_value: 0
+    tags: [market, equity, index]
+
+  - series_id: NASDAQCOM
+    title: NASDAQ Composite Index
+    category: market_indices
+    frequency: d
+    units: Index Feb 5, 1971=100
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: market_regime
+    priority: 2
+    min_value: 0
+    tags: [market, equity, index]
+
+  - series_id: DJIA
+    title: Dow Jones Industrial Average
+    category: market_indices
+    frequency: d
+    units: Index
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: market_regime
+    priority: 2
+    min_value: 0
+    tags: [market, equity, index]
+
+  - series_id: DCOILWTICO
+    title: Crude Oil Prices, West Texas Intermediate (WTI)
+    category: market_indices
+    frequency: d
+    units: Dollars per Barrel
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: market_regime
+    priority: 2
+    tags: [market, commodity, oil]

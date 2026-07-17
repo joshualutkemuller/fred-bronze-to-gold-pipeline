@@ -6794,3 +6794,42 @@ series:
   max_value: null
   tags:
   - labor_extra
+
+- series_id: CCSA
+  title: 'Continued Claims (Insured Unemployment)'
+  frequency: w
+  category: labor_extra
+  units: 'Number'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: labor_market_depth
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra
+- series_id: UMCSENT
+  title: 'University of Michigan: Consumer Sentiment'
+  frequency: m
+  category: labor_extra
+  units: 'Index 1966:Q1=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: consumer_sentiment
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - labor_extra

@@ -15484,3 +15484,194 @@ series:
   max_value: null
   tags:
   - prices_extra
+
+- series_id: CPIUFDSL
+  title: 'Consumer Price Index for All Urban Consumers: Food in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index 1982-1984=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: CPIENGSL
+  title: 'Consumer Price Index for All Urban Consumers: Energy in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index 1982-1984=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: CPIMEDSL
+  title: 'Consumer Price Index for All Urban Consumers: Medical Care in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index 1982-1984=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: CPIAPPSL
+  title: 'Consumer Price Index for All Urban Consumers: Apparel in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index 1982-1984=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: CPITRNSL
+  title: 'Consumer Price Index for All Urban Consumers: Transportation in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index 1982-1984=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: CUSR0000SEMD
+  title: 'Consumer Price Index for All Urban Consumers: Hospital and Related Services in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index Dec 2024=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: CUSR0000SAS367
+  title: 'Consumer Price Index for All Urban Consumers: Other Services in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index 1982-1984=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: CPIRECSL
+  title: 'Consumer Price Index for All Urban Consumers: Recreation in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index Dec 1997=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: CUSR0000SAE1
+  title: 'Consumer Price Index for All Urban Consumers: Education in U.S. City Average'
+  frequency: m
+  category: prices_extra
+  units: 'Index Dec 1997=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
+- series_id: DNRGRG3M086SBEA
+  title: 'Personal consumption expenditures: Energy goods and services (chain-type price index)'
+  frequency: m
+  category: prices_extra
+  units: 'Index 2017=100'
+  active: true
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: inflation_dynamics
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - prices_extra
