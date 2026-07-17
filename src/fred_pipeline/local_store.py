@@ -504,6 +504,26 @@ SELECT cik, ratio_name, observation_date, value,
            PARTITION BY ratio_name, observation_date ORDER BY value DESC
        ) AS rank_desc
 FROM gold_fred_company_ratios;
+
+-- Tier-7: indexes on the core query paths.
+--
+-- gold_v_latest_revised: ROW_NUMBER() OVER (PARTITION BY series_id ORDER BY realtime_start DESC)
+--   → covering index lets SQLite sort each partition without a full table scan.
+-- read_silver / merge_silver: filter + sort on (series_id, observation_date).
+-- restate_start: DISTINCT observation_date WHERE series_id = ? ORDER BY DESC LIMIT N.
+-- gold_fred_latest_observation: read by series_id in Gold rebuild + downstream joins.
+-- gold_macro_factor_scores: queried by observation_date in anomaly + attribution.
+-- gold_equity_factor_attribution: queried by (ticker, window) in implied-return.
+CREATE INDEX IF NOT EXISTS ix_silver_obs_sid_rt
+    ON silver_fred_observation(series_id, realtime_start DESC);
+CREATE INDEX IF NOT EXISTS ix_silver_obs_sid_date
+    ON silver_fred_observation(series_id, observation_date);
+CREATE INDEX IF NOT EXISTS ix_gold_latest_sid
+    ON gold_fred_latest_observation(series_id);
+CREATE INDEX IF NOT EXISTS ix_factor_scores_date
+    ON gold_macro_factor_scores(observation_date);
+CREATE INDEX IF NOT EXISTS ix_equity_attr_ticker_window
+    ON gold_equity_factor_attribution(ticker, window);
 """
 
 
