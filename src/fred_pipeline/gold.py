@@ -1240,6 +1240,7 @@ def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
     from fred_pipeline.anomaly import compute_macro_anomaly_scores
     from fred_pipeline.equity_factor_attribution import (
         compute_equity_factor_attribution,
+        compute_equity_factor_implied_return,
         load_equity_factor_config,
     )
     from fred_pipeline.macro_pca import compute_macro_factor_scores
@@ -1431,8 +1432,11 @@ def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
         ef_cfg = load_equity_factor_config()
     except Exception:
         pass
+    eq_attribution_rows = compute_equity_factor_attribution(
+        eq_return_rows, pca["scores"], cfg=ef_cfg
+    )
     _write("equity_factor_attribution",
-           compute_equity_factor_attribution(eq_return_rows, pca["scores"], cfg=ef_cfg),
+           eq_attribution_rows,
            StructType([
                StructField("ticker", StringType()),
                StructField("observation_date", StringType()),
@@ -1445,6 +1449,24 @@ def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
                StructField("n_obs", IntegerType()),
            ]), ["ticker", "CAST(observation_date AS DATE) AS observation_date",
                 "window", "factor", "beta", "t_stat", "alpha", "r_squared", "n_obs"])
+
+    # ML-5b: Factor-implied return decomposition.
+    _write("equity_factor_implied_return",
+           compute_equity_factor_implied_return(
+               eq_attribution_rows, pca["scores"], eq_return_rows, cfg=ef_cfg
+           ),
+           StructType([
+               StructField("ticker", StringType()),
+               StructField("observation_date", StringType()),
+               StructField("window", IntegerType()),
+               StructField("implied_return", DoubleType()),
+               StructField("factor_return", DoubleType()),
+               StructField("alpha_return", DoubleType()),
+               StructField("realized_return", DoubleType()),
+               StructField("residual_return", DoubleType()),
+           ]), ["ticker", "CAST(observation_date AS DATE) AS observation_date",
+                "window", "implied_return", "factor_return", "alpha_return",
+                "realized_return", "residual_return"])
 
 
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
@@ -1514,6 +1536,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "macro_anomaly_scores",
         "recession_probability_daily",
         "equity_factor_attribution",
+        "equity_factor_implied_return",
         "inflation_forecast",
     ):
         results[name] = "ok"

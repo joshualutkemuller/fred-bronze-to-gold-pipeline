@@ -26,6 +26,7 @@ The pure-Python OLS uses Gaussian elimination with partial pivoting.
 from __future__ import annotations
 
 import math
+from bisect import bisect_right
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -314,5 +315,118 @@ def compute_equity_factor_attribution(
                         "r_squared": ols["r_squared"],
                         "n_obs": ols["n_obs"],
                     })
+
+    return out
+
+
+# ---------------------------------------------------------------------------
+# ML-5b: Factor-implied return decomposition
+# ---------------------------------------------------------------------------
+
+def compute_equity_factor_implied_return(
+    attribution_rows: Iterable[dict[str, Any]],
+    factor_score_rows: Iterable[dict[str, Any]],
+    equity_return_rows: Iterable[dict[str, Any]],
+    cfg: Optional[EquityFactorConfig] = None,
+) -> list[dict[str, Any]]:
+    """``gold.equity_factor_implied_return``: factor-implied monthly returns.
+
+    For each (ticker, window, month):
+        implied_return  = α + Σᵢ βᵢ · Fᵢ   (full model prediction)
+        factor_return   = Σᵢ βᵢ · Fᵢ        (pure systematic component)
+        alpha_return    = α                   (OLS intercept)
+        residual_return = realized − implied  (idiosyncratic / unexplained)
+
+    Betas are forward-filled: the most-recent attribution estimate at or before
+    the current month is used, so no new OLS is run here.
+    """
+    if cfg is None:
+        cfg = load_equity_factor_config()
+
+    wanted = frozenset(cfg.tickers)
+
+    fscores, fdates = _factor_matrix(factor_score_rows)
+    if not fscores:
+        return []
+
+    factor_ids = sorted({fid for v in fscores.values() for fid in v})
+    if not factor_ids:
+        return []
+
+    # Parse attribution rows: {(ticker, window): {ym: {alpha, betas}}}
+    # Multiple factor rows share the same alpha/alpha per (ticker, window, ym).
+    attrib: dict[tuple[str, int], dict[tuple[int, int], dict[str, Any]]] = {}
+    for r in attribution_rows:
+        ticker = r.get("ticker", "")
+        obs = r.get("observation_date", "")
+        window = r.get("window")
+        factor = r.get("factor")
+        beta = r.get("beta")
+        alpha = r.get("alpha")
+        if (not ticker or not obs or window is None
+                or factor is None or beta is None or alpha is None):
+            continue
+        if wanted and ticker not in wanted:
+            continue
+        try:
+            d = date.fromisoformat(obs)
+        except (ValueError, TypeError):
+            continue
+        ym = (d.year, d.month)
+        key = (ticker, int(window))
+        entry = attrib.setdefault(key, {}).setdefault(
+            ym, {"alpha": 0.0, "betas": {}}
+        )
+        entry["betas"][int(factor)] = float(beta)
+        entry["alpha"] = float(alpha)  # same value for every factor row at this ym
+
+    if not attrib:
+        return []
+
+    # Pre-sort ym keys per (ticker, window) for O(log T) forward-fill lookup.
+    sorted_yms: dict[tuple[str, int], list[tuple[int, int]]] = {
+        key: sorted(ym_dict) for key, ym_dict in attrib.items()
+    }
+
+    monthly_ret = _monthly_returns(equity_return_rows, wanted)
+    all_ym = sorted(fscores)
+
+    out: list[dict[str, Any]] = []
+    for (ticker, window), ym_dict in sorted(attrib.items()):
+        key_yms = sorted_yms[(ticker, window)]
+
+        for ym in all_ym:
+            if ym not in fdates:
+                continue
+
+            # Forward-fill: latest attribution date ≤ current month
+            pos = bisect_right(key_yms, ym) - 1
+            if pos < 0:
+                continue
+            entry = ym_dict[key_yms[pos]]
+            betas = entry["betas"]
+            alpha = entry["alpha"]
+
+            if not all(fid in betas for fid in factor_ids):
+                continue
+
+            fscore = fscores.get(ym)
+            if fscore is None or not all(fid in fscore for fid in factor_ids):
+                continue
+
+            factor_ret = sum(betas[fid] * fscore[fid] for fid in factor_ids)
+            implied = alpha + factor_ret
+            realized = monthly_ret.get(ticker, {}).get(ym)
+
+            out.append({
+                "ticker": ticker,
+                "observation_date": fdates[ym],
+                "window": window,
+                "implied_return": implied,
+                "factor_return": factor_ret,
+                "alpha_return": alpha,
+                "realized_return": realized,
+                "residual_return": (realized - implied) if realized is not None else None,
+            })
 
     return out

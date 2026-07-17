@@ -371,6 +371,11 @@ CREATE TABLE IF NOT EXISTS gold_equity_factor_attribution (
     ticker TEXT, observation_date TEXT, window INTEGER, factor INTEGER,
     beta REAL, t_stat REAL, alpha REAL, r_squared REAL, n_obs INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_equity_factor_implied_return (
+    ticker TEXT, observation_date TEXT, window INTEGER,
+    implied_return REAL, factor_return REAL, alpha_return REAL,
+    realized_return REAL, residual_return REAL
+);
 CREATE TABLE IF NOT EXISTS gold_recession_probability_daily (
     observation_date TEXT, recession_prob REAL, prob_recession_3m REAL,
     prob_recession_6m REAL, prob_recession_12m REAL, logit_score REAL,
@@ -943,6 +948,7 @@ class LocalWarehouse:
         # ML-5: Equity factor attribution (rolling OLS vs PCA macro factors).
         from fred_pipeline.equity_factor_attribution import (
             compute_equity_factor_attribution,
+            compute_equity_factor_implied_return,
             load_equity_factor_config,
         )
         ef_cfg = None
@@ -950,13 +956,18 @@ class LocalWarehouse:
             ef_cfg = load_equity_factor_config()
         except Exception:
             pass
+        attribution_rows = compute_equity_factor_attribution(
+            eq_return_rows, pca["scores"], cfg=ef_cfg
+        )
         self.conn.execute("DELETE FROM gold_equity_factor_attribution")
+        self._insert("gold_equity_factor_attribution", attribution_rows)
+
+        # ML-5b: Factor-implied return decomposition.
+        self.conn.execute("DELETE FROM gold_equity_factor_implied_return")
         self._insert(
-            "gold_equity_factor_attribution",
-            compute_equity_factor_attribution(
-                eq_return_rows,
-                pca["scores"],
-                cfg=ef_cfg,
+            "gold_equity_factor_implied_return",
+            compute_equity_factor_implied_return(
+                attribution_rows, pca["scores"], eq_return_rows, cfg=ef_cfg
             ),
         )
 
@@ -1029,6 +1040,7 @@ class LocalWarehouse:
             "macro_factor_scores", "macro_factor_loadings",
             "macro_anomaly_scores",
             "equity_factor_attribution",
+            "equity_factor_implied_return",
             "recession_probability_daily",
             "inflation_forecast",
         )}
