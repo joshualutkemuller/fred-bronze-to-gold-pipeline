@@ -235,6 +235,37 @@ def _factor_matrix(
 # Main engine — batched cross-ticker OLS (Tier 1 + 2)
 # ---------------------------------------------------------------------------
 
+_SM_REINIT_EVERY = 200  # re-pin Ainv from scratch every N slides to prevent drift
+
+
+def _full_init(
+    all_monthly_pairs: list,
+    start: int,
+    end: int,
+    batch: list[str],
+    monthly_ret: dict,
+    p_cols: int,
+) -> tuple[np.ndarray, dict]:
+    """Compute Ainv and ticker_state from scratch for window [start, end)."""
+    n = end - start
+    F = np.stack([all_monthly_pairs[j][1] for j in range(start, end)])
+    X = np.column_stack([np.ones(n), F])
+    sl_yms = [all_monthly_pairs[j][0] for j in range(start, end)]
+    Y = np.array(
+        [[monthly_ret[t][ym] for ym in sl_yms] for t in batch], dtype=float
+    ).T
+    Ainv = np.linalg.pinv(X.T @ X)
+    state = {
+        t: {
+            "Xty": X.T @ Y[:, ti],
+            "sum_y": float(Y[:, ti].sum()),
+            "sum_y2": float((Y[:, ti] ** 2).sum()),
+        }
+        for ti, t in enumerate(batch)
+    }
+    return Ainv, state
+
+
 def compute_equity_factor_attribution(
     equity_return_rows: Iterable[dict[str, Any]],
     factor_score_rows: Iterable[dict[str, Any]],
@@ -247,9 +278,12 @@ def compute_equity_factor_attribution(
     ``alpha``, ``r_squared``, and ``n_obs`` repeat for every factor row at the
     same (ticker, window, observation_date) for Power BI convenience.
 
-    For each (window, ending calendar month), all tickers that have returns for
-    every month in the window are batched into a single ``np.linalg.lstsq``
-    call, sharing one (X'X)⁻¹ diagonal computation.
+    Tier-1+2: initial solve uses ``np.linalg.pinv`` / ``lstsq``.
+    Tier-3: subsequent window slides use two Sherman-Morrison O(K²) rank-1
+    updates to Ainv (remove oldest row, add newest row), then O(K) per-ticker
+    Xty/sum updates and O(K²) beta = Ainv @ Xty multiplies.  Falls back to
+    full reinitialisation on numerical instability or every
+    ``_SM_REINIT_EVERY`` slides to prevent floating-point drift.
     """
     if cfg is None:
         cfg = load_equity_factor_config()
@@ -284,85 +318,133 @@ def compute_equity_factor_attribution(
         return []
 
     all_tickers = sorted(monthly_ret)
+    p_cols = 1 + n_factors  # intercept + K factors
     out: list[dict[str, Any]] = []
 
     for window in sorted(cfg.windows):
+        Ainv: Optional[np.ndarray] = None
+        ticker_state: dict[str, dict[str, Any]] = {}
+        slides_since_reinit = 0
+
         for i in range(len(all_monthly_pairs)):
-            if i + 1 < window:
-                continue
-            sl = all_monthly_pairs[i + 1 - window: i + 1]
-            n = len(sl)
-            if n < cfg.min_obs:
+            if i + 1 < window or window < cfg.min_obs:
                 continue
 
-            sl_yms = [p[0] for p in sl]
+            start = i + 1 - window
+            sl_yms = [all_monthly_pairs[j][0] for j in range(start, i + 1)]
             obs_date = fdates[sl_yms[-1]]
 
-            # Design matrix X — shared by all tickers (n, p)
-            F = np.array([p[1] for p in sl])          # (n, n_factors)
-            X = np.column_stack([np.ones(n), F])       # (n, p)
-            p_cols = X.shape[1]
-
-            # Batch: tickers that have returns for every month in this window
+            # Tickers eligible for this window (returns present every month)
             batch = [t for t in all_tickers
                      if all(ym in monthly_ret[t] for ym in sl_yms)]
             if not batch:
+                Ainv = None
+                ticker_state = {}
+                slides_since_reinit = 0
                 continue
 
-            # Y: (n, n_batch) — each column is one ticker's monthly returns
-            Y = np.array(
-                [[monthly_ret[t][ym] for ym in sl_yms] for t in batch],
-                dtype=float,
-            ).T
-
-            # Single BLAS solve for all tickers (minimum-norm for rank-deficient X)
-            beta_all, _, _, _ = np.linalg.lstsq(X, Y, rcond=None)
-
-            # Shared quantities (same X for all tickers)
-            Y_hat = X @ beta_all                               # (n, n_batch)
-            resid = Y - Y_hat                                  # (n, n_batch)
-            sse = (resid ** 2).sum(axis=0)                    # (n_batch,)
-            y_mean = Y.mean(axis=0)                            # (n_batch,)
-            sst_arr = ((Y - y_mean) ** 2).sum(axis=0)         # (n_batch,)
-            with np.errstate(divide="ignore", invalid="ignore"):
-                r2_arr = np.maximum(
-                    0.0,
-                    np.where(sst_arr > 1e-14, 1.0 - sse / sst_arr, 0.0),
+            if Ainv is None or slides_since_reinit >= _SM_REINIT_EVERY:
+                # --- Full initialisation ---
+                Ainv, ticker_state = _full_init(
+                    all_monthly_pairs, start, i + 1, batch, monthly_ret, p_cols
                 )
-            sigma2_arr = sse / (n - p_cols)                    # (n_batch,)
+                slides_since_reinit = 0
+            else:
+                # --- Sherman-Morrison incremental update ---
+                x_out = np.concatenate([[1.0], all_monthly_pairs[start - 1][1]])
+                x_in  = np.concatenate([[1.0], all_monthly_pairs[i][1]])
+                ym_rem = all_monthly_pairs[start - 1][0]
+                ym_add = all_monthly_pairs[i][0]
 
-            # (X'X)⁺ diagonal via pseudoinverse — handles rank-deficient X gracefully
-            XtX_inv_diag = np.diag(np.linalg.pinv(X.T @ X))
+                # Two rank-1 updates: remove x_out then add x_in
+                stable = True
+                for sign, u in [(-1, x_out), (+1, x_in)]:
+                    Au = Ainv @ u
+                    denom = 1.0 + sign * float(u @ Au)
+                    if abs(denom) < 1e-10:
+                        stable = False
+                        break
+                    Ainv = Ainv - (sign / denom) * np.outer(Au, Au)
 
-            for ti, ticker in enumerate(batch):
-                alpha_val = float(beta_all[0, ti])
-                betas_ti = beta_all[1:, ti]          # shape (n_factors,)
-                r2 = float(r2_arr[ti])
-                s2 = float(sigma2_arr[ti])
+                if not stable:
+                    Ainv, ticker_state = _full_init(
+                        all_monthly_pairs, start, i + 1, batch, monthly_ret, p_cols
+                    )
+                    slides_since_reinit = 0
+                else:
+                    # Symmetrise to suppress floating-point skew accumulation
+                    Ainv = (Ainv + Ainv.T) * 0.5
+                    slides_since_reinit += 1
 
-                if s2 > 0.0:
-                    se = np.sqrt(np.maximum(s2 * XtX_inv_diag, 0.0))
-                    t_all: list[Optional[float]] = [
+                    # Per-ticker O(K) / O(1) incremental updates
+                    new_state: dict[str, dict[str, Any]] = {}
+                    for t in batch:
+                        if t in ticker_state:
+                            y_in  = monthly_ret[t].get(ym_add, 0.0)
+                            y_out = monthly_ret[t].get(ym_rem, 0.0)
+                            old = ticker_state[t]
+                            new_state[t] = {
+                                "Xty":   old["Xty"] + x_in * y_in - x_out * y_out,
+                                "sum_y":  old["sum_y"]  + y_in - y_out,
+                                "sum_y2": old["sum_y2"] + y_in ** 2 - y_out ** 2,
+                            }
+                        else:
+                            # Ticker newly eligible — compute its state from scratch
+                            y_t = np.array(
+                                [monthly_ret[t][ym] for ym in sl_yms], dtype=float
+                            )
+                            # Reconstruct X for this ticker's Xty only
+                            F_sl = np.stack(
+                                [all_monthly_pairs[j][1] for j in range(start, i + 1)]
+                            )
+                            X_sl = np.column_stack([np.ones(window), F_sl])
+                            new_state[t] = {
+                                "Xty":   X_sl.T @ y_t,
+                                "sum_y":  float(y_t.sum()),
+                                "sum_y2": float((y_t ** 2).sum()),
+                            }
+                    ticker_state = new_state
+
+            # --- Emit output rows ---
+            diag_Ainv = np.diag(Ainv)
+            for t in batch:
+                state = ticker_state[t]
+                Xty_t  = state["Xty"]
+                beta_t = Ainv @ Xty_t           # O(K²), shared Ainv
+
+                sum_y2_t = state["sum_y2"]
+                sum_y_t  = state["sum_y"]
+
+                # SSE = y'y - beta'(X'y)  (from normal equations: X'X beta = X'y)
+                sse_t  = max(0.0, sum_y2_t - float(Xty_t @ beta_t))
+                # SST = Σy² - (Σy)²/n    (numerically stable, no intermediate mean)
+                sst_t  = sum_y2_t - sum_y_t ** 2 / window
+                r2_t   = max(0.0, 1.0 - sse_t / sst_t) if sst_t > 1e-14 else 0.0
+                s2_t   = sse_t / (window - p_cols)
+
+                if s2_t > 0.0:
+                    se_t = np.sqrt(np.maximum(s2_t * diag_Ainv, 0.0))
+                    t_stats: list[Optional[float]] = [
                         float(b / s) if s > 1e-14 else None
-                        for b, s in zip(beta_all[:, ti], se)
+                        for b, s in zip(beta_t, se_t)
                     ]
                 else:
-                    t_all = [None] * p_cols
+                    t_stats = [None] * p_cols
 
+                alpha_val = float(beta_t[0])
                 for fi, fid in enumerate(factor_ids):
                     out.append({
-                        "ticker": ticker,
+                        "ticker": t,
                         "observation_date": obs_date,
                         "window": window,
                         "factor": fid,
-                        "beta": float(betas_ti[fi]),
-                        "t_stat": t_all[fi + 1],   # fi+1: skip intercept
+                        "beta": float(beta_t[fi + 1]),
+                        "t_stat": t_stats[fi + 1],
                         "alpha": alpha_val,
-                        "r_squared": r2,
-                        "n_obs": n,
+                        "r_squared": r2_t,
+                        "n_obs": window,
                     })
 
-    # Sort to match the original (ticker, observation_date, window, factor) order
     out.sort(key=lambda r: (
         r["ticker"], r["observation_date"], r["window"], r["factor"]
     ))
