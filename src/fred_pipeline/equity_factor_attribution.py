@@ -31,7 +31,9 @@ uses batched NumPy instead.
 from __future__ import annotations
 
 import math
+import os
 from bisect import bisect_right
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -266,6 +268,138 @@ def _full_init(
     return Ainv, state
 
 
+def _run_one_window(
+    window: int,
+    all_monthly_pairs: list,
+    monthly_ret: dict,
+    factor_ids: list,
+    fdates: dict,
+    min_obs: int,
+    all_tickers: list,
+    p_cols: int,
+) -> list[dict[str, Any]]:
+    """Rolling SM-OLS for one window size.
+
+    Pure function over read-only shared data; owns all its local mutable
+    state (Ainv, ticker_state).  Safe to run concurrently in threads because
+    NumPy releases the GIL for BLAS/LAPACK calls.
+    """
+    Ainv: Optional[np.ndarray] = None
+    ticker_state: dict[str, dict[str, Any]] = {}
+    slides_since_reinit = 0
+    out: list[dict[str, Any]] = []
+
+    for i in range(len(all_monthly_pairs)):
+        if i + 1 < window or window < min_obs:
+            continue
+
+        start = i + 1 - window
+        sl_yms = [all_monthly_pairs[j][0] for j in range(start, i + 1)]
+        obs_date = fdates[sl_yms[-1]]
+
+        batch = [t for t in all_tickers
+                 if all(ym in monthly_ret[t] for ym in sl_yms)]
+        if not batch:
+            Ainv = None
+            ticker_state = {}
+            slides_since_reinit = 0
+            continue
+
+        if Ainv is None or slides_since_reinit >= _SM_REINIT_EVERY:
+            Ainv, ticker_state = _full_init(
+                all_monthly_pairs, start, i + 1, batch, monthly_ret, p_cols
+            )
+            slides_since_reinit = 0
+        else:
+            x_out = np.concatenate([[1.0], all_monthly_pairs[start - 1][1]])
+            x_in  = np.concatenate([[1.0], all_monthly_pairs[i][1]])
+            ym_rem = all_monthly_pairs[start - 1][0]
+            ym_add = all_monthly_pairs[i][0]
+
+            stable = True
+            for sign, u in [(-1, x_out), (+1, x_in)]:
+                Au = Ainv @ u
+                denom = 1.0 + sign * float(u @ Au)
+                if abs(denom) < 1e-10:
+                    stable = False
+                    break
+                Ainv = Ainv - (sign / denom) * np.outer(Au, Au)
+
+            if not stable:
+                Ainv, ticker_state = _full_init(
+                    all_monthly_pairs, start, i + 1, batch, monthly_ret, p_cols
+                )
+                slides_since_reinit = 0
+            else:
+                Ainv = (Ainv + Ainv.T) * 0.5
+                slides_since_reinit += 1
+
+                new_state: dict[str, dict[str, Any]] = {}
+                for t in batch:
+                    if t in ticker_state:
+                        y_in  = monthly_ret[t].get(ym_add, 0.0)
+                        y_out = monthly_ret[t].get(ym_rem, 0.0)
+                        old = ticker_state[t]
+                        new_state[t] = {
+                            "Xty":   old["Xty"] + x_in * y_in - x_out * y_out,
+                            "sum_y":  old["sum_y"]  + y_in - y_out,
+                            "sum_y2": old["sum_y2"] + y_in ** 2 - y_out ** 2,
+                        }
+                    else:
+                        y_t = np.array(
+                            [monthly_ret[t][ym] for ym in sl_yms], dtype=float
+                        )
+                        F_sl = np.stack(
+                            [all_monthly_pairs[j][1] for j in range(start, i + 1)]
+                        )
+                        X_sl = np.column_stack([np.ones(window), F_sl])
+                        new_state[t] = {
+                            "Xty":   X_sl.T @ y_t,
+                            "sum_y":  float(y_t.sum()),
+                            "sum_y2": float((y_t ** 2).sum()),
+                        }
+                ticker_state = new_state
+
+        diag_Ainv = np.diag(Ainv)
+        for t in batch:
+            state = ticker_state[t]
+            Xty_t  = state["Xty"]
+            beta_t = Ainv @ Xty_t
+
+            sum_y2_t = state["sum_y2"]
+            sum_y_t  = state["sum_y"]
+
+            sse_t  = max(0.0, sum_y2_t - float(Xty_t @ beta_t))
+            sst_t  = sum_y2_t - sum_y_t ** 2 / window
+            r2_t   = max(0.0, 1.0 - sse_t / sst_t) if sst_t > 1e-14 else 0.0
+            s2_t   = sse_t / (window - p_cols)
+
+            if s2_t > 0.0:
+                se_t = np.sqrt(np.maximum(s2_t * diag_Ainv, 0.0))
+                t_stats: list[Optional[float]] = [
+                    float(b / s) if s > 1e-14 else None
+                    for b, s in zip(beta_t, se_t)
+                ]
+            else:
+                t_stats = [None] * p_cols
+
+            alpha_val = float(beta_t[0])
+            for fi, fid in enumerate(factor_ids):
+                out.append({
+                    "ticker": t,
+                    "observation_date": obs_date,
+                    "window": window,
+                    "factor": fid,
+                    "beta": float(beta_t[fi + 1]),
+                    "t_stat": t_stats[fi + 1],
+                    "alpha": alpha_val,
+                    "r_squared": r2_t,
+                    "n_obs": window,
+                })
+
+    return out
+
+
 def compute_equity_factor_attribution(
     equity_return_rows: Iterable[dict[str, Any]],
     factor_score_rows: Iterable[dict[str, Any]],
@@ -284,6 +418,9 @@ def compute_equity_factor_attribution(
     Xty/sum updates and O(K²) beta = Ainv @ Xty multiplies.  Falls back to
     full reinitialisation on numerical instability or every
     ``_SM_REINIT_EVERY`` slides to prevent floating-point drift.
+    Tier-4: all window sizes are dispatched concurrently via
+    ``ThreadPoolExecutor``; NumPy releases the GIL for BLAS/LAPACK calls so
+    threads achieve real parallelism without pickling shared input data.
     """
     if cfg is None:
         cfg = load_equity_factor_config()
@@ -319,131 +456,23 @@ def compute_equity_factor_attribution(
 
     all_tickers = sorted(monthly_ret)
     p_cols = 1 + n_factors  # intercept + K factors
+    sorted_windows = sorted(cfg.windows)
+
+    # Tier-4: dispatch each window to a thread; NumPy releases the GIL for
+    # BLAS/LAPACK calls so windows run in parallel without pickling overhead.
+    n_workers = min(len(sorted_windows), os.cpu_count() or 1)
     out: list[dict[str, Any]] = []
-
-    for window in sorted(cfg.windows):
-        Ainv: Optional[np.ndarray] = None
-        ticker_state: dict[str, dict[str, Any]] = {}
-        slides_since_reinit = 0
-
-        for i in range(len(all_monthly_pairs)):
-            if i + 1 < window or window < cfg.min_obs:
-                continue
-
-            start = i + 1 - window
-            sl_yms = [all_monthly_pairs[j][0] for j in range(start, i + 1)]
-            obs_date = fdates[sl_yms[-1]]
-
-            # Tickers eligible for this window (returns present every month)
-            batch = [t for t in all_tickers
-                     if all(ym in monthly_ret[t] for ym in sl_yms)]
-            if not batch:
-                Ainv = None
-                ticker_state = {}
-                slides_since_reinit = 0
-                continue
-
-            if Ainv is None or slides_since_reinit >= _SM_REINIT_EVERY:
-                # --- Full initialisation ---
-                Ainv, ticker_state = _full_init(
-                    all_monthly_pairs, start, i + 1, batch, monthly_ret, p_cols
-                )
-                slides_since_reinit = 0
-            else:
-                # --- Sherman-Morrison incremental update ---
-                x_out = np.concatenate([[1.0], all_monthly_pairs[start - 1][1]])
-                x_in  = np.concatenate([[1.0], all_monthly_pairs[i][1]])
-                ym_rem = all_monthly_pairs[start - 1][0]
-                ym_add = all_monthly_pairs[i][0]
-
-                # Two rank-1 updates: remove x_out then add x_in
-                stable = True
-                for sign, u in [(-1, x_out), (+1, x_in)]:
-                    Au = Ainv @ u
-                    denom = 1.0 + sign * float(u @ Au)
-                    if abs(denom) < 1e-10:
-                        stable = False
-                        break
-                    Ainv = Ainv - (sign / denom) * np.outer(Au, Au)
-
-                if not stable:
-                    Ainv, ticker_state = _full_init(
-                        all_monthly_pairs, start, i + 1, batch, monthly_ret, p_cols
-                    )
-                    slides_since_reinit = 0
-                else:
-                    # Symmetrise to suppress floating-point skew accumulation
-                    Ainv = (Ainv + Ainv.T) * 0.5
-                    slides_since_reinit += 1
-
-                    # Per-ticker O(K) / O(1) incremental updates
-                    new_state: dict[str, dict[str, Any]] = {}
-                    for t in batch:
-                        if t in ticker_state:
-                            y_in  = monthly_ret[t].get(ym_add, 0.0)
-                            y_out = monthly_ret[t].get(ym_rem, 0.0)
-                            old = ticker_state[t]
-                            new_state[t] = {
-                                "Xty":   old["Xty"] + x_in * y_in - x_out * y_out,
-                                "sum_y":  old["sum_y"]  + y_in - y_out,
-                                "sum_y2": old["sum_y2"] + y_in ** 2 - y_out ** 2,
-                            }
-                        else:
-                            # Ticker newly eligible — compute its state from scratch
-                            y_t = np.array(
-                                [monthly_ret[t][ym] for ym in sl_yms], dtype=float
-                            )
-                            # Reconstruct X for this ticker's Xty only
-                            F_sl = np.stack(
-                                [all_monthly_pairs[j][1] for j in range(start, i + 1)]
-                            )
-                            X_sl = np.column_stack([np.ones(window), F_sl])
-                            new_state[t] = {
-                                "Xty":   X_sl.T @ y_t,
-                                "sum_y":  float(y_t.sum()),
-                                "sum_y2": float((y_t ** 2).sum()),
-                            }
-                    ticker_state = new_state
-
-            # --- Emit output rows ---
-            diag_Ainv = np.diag(Ainv)
-            for t in batch:
-                state = ticker_state[t]
-                Xty_t  = state["Xty"]
-                beta_t = Ainv @ Xty_t           # O(K²), shared Ainv
-
-                sum_y2_t = state["sum_y2"]
-                sum_y_t  = state["sum_y"]
-
-                # SSE = y'y - beta'(X'y)  (from normal equations: X'X beta = X'y)
-                sse_t  = max(0.0, sum_y2_t - float(Xty_t @ beta_t))
-                # SST = Σy² - (Σy)²/n    (numerically stable, no intermediate mean)
-                sst_t  = sum_y2_t - sum_y_t ** 2 / window
-                r2_t   = max(0.0, 1.0 - sse_t / sst_t) if sst_t > 1e-14 else 0.0
-                s2_t   = sse_t / (window - p_cols)
-
-                if s2_t > 0.0:
-                    se_t = np.sqrt(np.maximum(s2_t * diag_Ainv, 0.0))
-                    t_stats: list[Optional[float]] = [
-                        float(b / s) if s > 1e-14 else None
-                        for b, s in zip(beta_t, se_t)
-                    ]
-                else:
-                    t_stats = [None] * p_cols
-
-                alpha_val = float(beta_t[0])
-                for fi, fid in enumerate(factor_ids):
-                    out.append({
-                        "ticker": t,
-                        "observation_date": obs_date,
-                        "window": window,
-                        "factor": fid,
-                        "beta": float(beta_t[fi + 1]),
-                        "t_stat": t_stats[fi + 1],
-                        "alpha": alpha_val,
-                        "r_squared": r2_t,
-                        "n_obs": window,
-                    })
+    with ThreadPoolExecutor(max_workers=n_workers) as pool:
+        futs = {
+            pool.submit(
+                _run_one_window,
+                w, all_monthly_pairs, monthly_ret,
+                factor_ids, fdates, cfg.min_obs, all_tickers, p_cols,
+            ): w
+            for w in sorted_windows
+        }
+        for fut in as_completed(futs):
+            out.extend(fut.result())
 
     out.sort(key=lambda r: (
         r["ticker"], r["observation_date"], r["window"], r["factor"]
