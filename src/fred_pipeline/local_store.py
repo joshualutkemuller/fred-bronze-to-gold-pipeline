@@ -371,11 +371,22 @@ CREATE TABLE IF NOT EXISTS gold_equity_factor_attribution (
     ticker TEXT, observation_date TEXT, window INTEGER, factor INTEGER,
     beta REAL, t_stat REAL, alpha REAL, r_squared REAL, n_obs INTEGER
 );
+CREATE TABLE IF NOT EXISTS gold_equity_factor_implied_return (
+    ticker TEXT, observation_date TEXT, window INTEGER,
+    implied_return REAL, factor_return REAL, alpha_return REAL,
+    realized_return REAL, residual_return REAL
+);
 CREATE TABLE IF NOT EXISTS gold_recession_probability_daily (
     observation_date TEXT, recession_prob REAL, prob_recession_3m REAL,
     prob_recession_6m REAL, prob_recession_12m REAL, logit_score REAL,
     n_features INTEGER, n_obs_training INTEGER, model_vintage TEXT,
     is_backfilled INTEGER NOT NULL DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS gold_inflation_forecast (
+    series_id TEXT, forecast_date TEXT, horizon_months INTEGER,
+    forecast_value REAL, lower_80 REAL, upper_80 REAL, lower_95 REAL,
+    upper_95 REAL, model_type TEXT, lag_order INTEGER,
+    model_vintage TEXT, n_obs_training INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS audit_etl_run (
@@ -493,6 +504,26 @@ SELECT cik, ratio_name, observation_date, value,
            PARTITION BY ratio_name, observation_date ORDER BY value DESC
        ) AS rank_desc
 FROM gold_fred_company_ratios;
+
+-- Tier-7: indexes on the core query paths.
+--
+-- gold_v_latest_revised: ROW_NUMBER() OVER (PARTITION BY series_id ORDER BY realtime_start DESC)
+--   → covering index lets SQLite sort each partition without a full table scan.
+-- read_silver / merge_silver: filter + sort on (series_id, observation_date).
+-- restate_start: DISTINCT observation_date WHERE series_id = ? ORDER BY DESC LIMIT N.
+-- gold_fred_latest_observation: read by series_id in Gold rebuild + downstream joins.
+-- gold_macro_factor_scores: queried by observation_date in anomaly + attribution.
+-- gold_equity_factor_attribution: queried by (ticker, window) in implied-return.
+CREATE INDEX IF NOT EXISTS ix_silver_obs_sid_rt
+    ON silver_fred_observation(series_id, realtime_start DESC);
+CREATE INDEX IF NOT EXISTS ix_silver_obs_sid_date
+    ON silver_fred_observation(series_id, observation_date);
+CREATE INDEX IF NOT EXISTS ix_gold_latest_sid
+    ON gold_fred_latest_observation(series_id);
+CREATE INDEX IF NOT EXISTS ix_factor_scores_date
+    ON gold_macro_factor_scores(observation_date);
+CREATE INDEX IF NOT EXISTS ix_equity_attr_ticker_window
+    ON gold_equity_factor_attribution(ticker, window);
 """
 
 
@@ -515,6 +546,13 @@ class LocalWarehouse:
         self.db_path = db_path
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row
+        # Tier-6 SQLite performance tuning: WAL journal, relaxed fsync,
+        # 64 MB page cache, 256 MB mmap.  These survive reconnects via the
+        # journal_mode pragma (WAL is persisted); the others are session-level.
+        self.conn.execute("PRAGMA journal_mode=WAL")
+        self.conn.execute("PRAGMA synchronous=NORMAL")
+        self.conn.execute("PRAGMA cache_size=-65536")    # 64 MB
+        self.conn.execute("PRAGMA mmap_size=268435456")  # 256 MB
         self.conn.executescript(_SCHEMA)
         self.conn.commit()
 
@@ -937,6 +975,7 @@ class LocalWarehouse:
         # ML-5: Equity factor attribution (rolling OLS vs PCA macro factors).
         from fred_pipeline.equity_factor_attribution import (
             compute_equity_factor_attribution,
+            compute_equity_factor_implied_return,
             load_equity_factor_config,
         )
         ef_cfg = None
@@ -944,13 +983,18 @@ class LocalWarehouse:
             ef_cfg = load_equity_factor_config()
         except Exception:
             pass
+        attribution_rows = compute_equity_factor_attribution(
+            eq_return_rows, pca["scores"], cfg=ef_cfg
+        )
         self.conn.execute("DELETE FROM gold_equity_factor_attribution")
+        self._insert("gold_equity_factor_attribution", attribution_rows)
+
+        # ML-5b: Factor-implied return decomposition.
+        self.conn.execute("DELETE FROM gold_equity_factor_implied_return")
         self._insert(
-            "gold_equity_factor_attribution",
-            compute_equity_factor_attribution(
-                eq_return_rows,
-                pca["scores"],
-                cfg=ef_cfg,
+            "gold_equity_factor_implied_return",
+            compute_equity_factor_implied_return(
+                attribution_rows, pca["scores"], eq_return_rows, cfg=ef_cfg
             ),
         )
 
@@ -976,6 +1020,22 @@ class LocalWarehouse:
                 regime_rows=regime_rows,
                 cfg=rec_cfg,
             ),
+        )
+
+        # ML-6: Short-horizon inflation forecasting (AR + VAR on CPI/PCE MoM).
+        from fred_pipeline.inflation_model import (
+            compute_inflation_forecast,
+            load_inflation_forecast_config,
+        )
+        inf_cfg = None
+        try:
+            inf_cfg = load_inflation_forecast_config()
+        except Exception:
+            pass
+        self.conn.execute("DELETE FROM gold_inflation_forecast")
+        self._insert(
+            "gold_inflation_forecast",
+            compute_inflation_forecast(latest, cfg=inf_cfg),
         )
 
         self.conn.commit()
@@ -1007,7 +1067,9 @@ class LocalWarehouse:
             "macro_factor_scores", "macro_factor_loadings",
             "macro_anomaly_scores",
             "equity_factor_attribution",
+            "equity_factor_implied_return",
             "recession_probability_daily",
+            "inflation_forecast",
         )}
 
     def point_in_time_features(self, as_of: str) -> list[dict[str, Any]]:

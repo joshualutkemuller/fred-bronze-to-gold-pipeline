@@ -1240,6 +1240,7 @@ def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
     from fred_pipeline.anomaly import compute_macro_anomaly_scores
     from fred_pipeline.equity_factor_attribution import (
         compute_equity_factor_attribution,
+        compute_equity_factor_implied_return,
         load_equity_factor_config,
     )
     from fred_pipeline.macro_pca import compute_macro_factor_scores
@@ -1380,6 +1381,44 @@ def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
                 "n_obs_training", "CAST(model_vintage AS DATE) AS model_vintage",
                 "is_backfilled"])
 
+    # ML-6: Short-horizon inflation forecasting (AR + VAR on CPI/PCE MoM).
+    from fred_pipeline.inflation_model import (
+        compute_inflation_forecast,
+        load_inflation_forecast_config,
+    )
+    inf_cfg = None
+    try:
+        inf_cfg = load_inflation_forecast_config()
+    except Exception:
+        pass
+    inf_series = list(inf_cfg.series if inf_cfg else ("CPIAUCSL", "PCEPI"))
+    inf_pairs = list(inf_cfg.var_pairs if inf_cfg else [("CPIAUCSL", "PCEPI")])
+    all_inf_ids = list({s for s in inf_series} | {s for pair in inf_pairs for s in pair})
+    _write("inflation_forecast",
+           compute_inflation_forecast(
+               _collect_latest(config, spark, all_inf_ids), cfg=inf_cfg
+           ),
+           StructType([
+               StructField("series_id", StringType()),
+               StructField("forecast_date", StringType()),
+               StructField("horizon_months", IntegerType()),
+               StructField("forecast_value", DoubleType()),
+               StructField("lower_80", DoubleType()),
+               StructField("upper_80", DoubleType()),
+               StructField("lower_95", DoubleType()),
+               StructField("upper_95", DoubleType()),
+               StructField("model_type", StringType()),
+               StructField("lag_order", IntegerType()),
+               StructField("model_vintage", StringType()),
+               StructField("n_obs_training", IntegerType()),
+           ]), ["series_id",
+                "CAST(forecast_date AS DATE) AS forecast_date",
+                "horizon_months", "forecast_value",
+                "lower_80", "upper_80", "lower_95", "upper_95",
+                "model_type", "lag_order",
+                "CAST(model_vintage AS DATE) AS model_vintage",
+                "n_obs_training"])
+
     # ML-5: equity factor attribution — uses in-memory pca["scores"].
     eq_return_table = config.table("gold", "equity_return_daily")
     eq_return_rows = [
@@ -1393,8 +1432,11 @@ def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
         ef_cfg = load_equity_factor_config()
     except Exception:
         pass
+    eq_attribution_rows = compute_equity_factor_attribution(
+        eq_return_rows, pca["scores"], cfg=ef_cfg
+    )
     _write("equity_factor_attribution",
-           compute_equity_factor_attribution(eq_return_rows, pca["scores"], cfg=ef_cfg),
+           eq_attribution_rows,
            StructType([
                StructField("ticker", StringType()),
                StructField("observation_date", StringType()),
@@ -1407,6 +1449,24 @@ def _build_ml_pipeline(config: PipelineConfig, spark: Any) -> None:
                StructField("n_obs", IntegerType()),
            ]), ["ticker", "CAST(observation_date AS DATE) AS observation_date",
                 "window", "factor", "beta", "t_stat", "alpha", "r_squared", "n_obs"])
+
+    # ML-5b: Factor-implied return decomposition.
+    _write("equity_factor_implied_return",
+           compute_equity_factor_implied_return(
+               eq_attribution_rows, pca["scores"], eq_return_rows, cfg=ef_cfg
+           ),
+           StructType([
+               StructField("ticker", StringType()),
+               StructField("observation_date", StringType()),
+               StructField("window", IntegerType()),
+               StructField("implied_return", DoubleType()),
+               StructField("factor_return", DoubleType()),
+               StructField("alpha_return", DoubleType()),
+               StructField("realized_return", DoubleType()),
+               StructField("residual_return", DoubleType()),
+           ]), ["ticker", "CAST(observation_date AS DATE) AS observation_date",
+                "window", "implied_return", "factor_return", "alpha_return",
+                "realized_return", "residual_return"])
 
 
 def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
@@ -1476,6 +1536,8 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
         "macro_anomaly_scores",
         "recession_probability_daily",
         "equity_factor_attribution",
+        "equity_factor_implied_return",
+        "inflation_forecast",
     ):
         results[name] = "ok"
     return results

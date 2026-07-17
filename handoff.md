@@ -1200,7 +1200,7 @@ One row per ticker per date (forward-filled betas, current factor scores).
 
 ---
 
-## Phase ML-6: Short-Horizon Inflation Forecasting (~3 days)
+## Phase ML-6: Short-Horizon Inflation Forecasting ✅ DONE
 
 **New table: `gold.inflation_forecast`**  
 **New module: `src/fred_pipeline/inflation_model.py`**
@@ -1239,6 +1239,15 @@ re-estimate monthly to avoid daily refitting cost).
 `horizon_months` (1/3/6/12), `forecast_value`, `lower_80`, `upper_80`,
 `lower_95`, `upper_95`, `model_type` (`ar` / `var`), `lag_order`,
 `model_vintage`, `n_obs_training`.
+
+**Implemented:**
+- `src/fred_pipeline/inflation_model.py` — AR(p)/VAR(p) engines with BIC lag selection,
+  recursive h-step forecasting, and fixed-coefficient residual bootstrap CIs (500 draws).
+- `config/inflation_forecast.yml` — default config (CPIAUCSL + PCEPI, horizons 1/3/6/12m).
+- `gold_inflation_forecast` DDL in `local_store.py`; wired into `build_gold()` for both
+  the SQLite and Spark/Delta backends.
+- Catalog entry in `global_views.py` (POWERBI_CATALOG).
+- `tests/test_inflation_model.py` — 46 tests covering all primitives and the main engine.
 
 ---
 
