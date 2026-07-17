@@ -54,7 +54,21 @@ fred-bronze-to-gold-pipeline/
 ├── config/               # config.example.yaml template (real config.yaml git-ignored)
 ├── manifests/            # YAML series universe (per-domain + per-source) + JSON schema
 ├── src/fred_pipeline/    # the Python package (pure core + Spark I/O)
-│   └── sources/          # pluggable source clients (base + fred/bls/eia/…/sec)
+│   ├── config.py, pipeline.py, cli.py, backfill.py, replay.py
+│   │                     #   entrypoints/foundation — stay at the top level
+│   ├── sources/          # pluggable source clients (base + fred/bls/eia/…/sec)
+│   ├── catalogs/         # manifest model, API-driven discovery, meta-table sync
+│   ├── gold_config/          # config-driven Gold-feature loaders (spreads, curve
+│   │                     #   tenors, regime playbook, cross-series, …)
+│   ├── io/               # storage backends: Warehouse abstraction, local SQLite,
+│   │                     #   Spark/Delta I/O
+│   ├── data/                 # Bronze/Silver: raw payload retention, normalization
+│   ├── ml/                # statistical/ML models (PCA, Nelson-Siegel, recession
+│   │                     #   probability, anomaly detection, inflation forecast)
+│   ├── governance/        # audit/lineage, metadata drift+lifecycle, notifications
+│   ├── validation/        # data-quality rules
+│   └── writer/            # Gold-layer builder engines (feature tables, quant
+│                          #   transforms, terminal/equity/regime/z-score views)
 ├── sql/                  # Unity Catalog DDL (00..60, parameterized by {{catalog}})
 ├── resources/            # Databricks Asset Bundle jobs (main + per-source templates)
 ├── databricks.yml        # Asset Bundle (dev/test/prod targets)
