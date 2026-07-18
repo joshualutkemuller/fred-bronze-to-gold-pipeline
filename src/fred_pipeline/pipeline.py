@@ -14,7 +14,6 @@ from __future__ import annotations
 import logging
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from contextlib import ExitStack
 from typing import Any, Iterable, Optional
 
 from fred_pipeline.audit import EtlRun, RunStatus
@@ -392,13 +391,22 @@ class FredPipeline:
 
         # Phase 1 (sequential): decide each series' load window. This reads the
         # warehouse (one SQLite/Delta connection), so it must not run
-        # concurrently with itself or with phase 3's writes.
+        # concurrently with itself or with later writes. Series audit rows are
+        # opened in manifest order so the final run object stays deterministic
+        # even though extraction finishes out of order.
+        series_runs = [
+            run.start_series(spec.series_id, load_type=spec.load_type.value)
+            for spec in specs
+        ]
+        run.series_total = len(series_runs)
         plans = [self._plan_extract(spec, force_full=force_full) for spec in specs]
+        work_items = list(zip(specs, plans, series_runs))
 
-        # Phase 2 (source-aware thread pools): network-bound, rate-limited API
-        # calls. Each source has its own client/rate limiter and worker cap, so
-        # low-quota sources (notably Tiingo) cannot consume the whole pool.
-        outcomes = [None] * len(specs)
+        # Phase 2/3 (source-aware extraction, streaming finish): network-bound
+        # fetches run in per-source pools, while Bronze/Silver/DQ/audit writes
+        # happen immediately as each future completes on this main thread. This
+        # avoids losing completed FRED/Stooq work when a low-quota source is
+        # still sleeping in retry/backoff.
         grouped: dict[str, list[tuple[int, SeriesSpec, tuple[Optional[str], str]]]] = (
             defaultdict(list)
         )
@@ -409,20 +417,51 @@ class FredPipeline:
         for source in grouped:
             if source in self._clients or source in SOURCE_FACTORIES:
                 self._client_for_source(source)  # build clients before threads race
-        with ExitStack() as stack:
-            futures = {}
+        pools: list[ThreadPoolExecutor] = []
+        futures = {}
+        completed = 0
+        try:
             for source, items in grouped.items():
                 workers = _extract_workers_for_source(self.config, source)
-                pool = stack.enter_context(ThreadPoolExecutor(max_workers=workers))
+                pool = ThreadPoolExecutor(
+                    max_workers=workers,
+                    thread_name_prefix=f"{source}-extract",
+                )
+                pools.append(pool)
+                log.info(
+                    "Submitted %d %s series (%d workers, %d rpm)",
+                    len(items), source, workers, _rate_limit_for_source(self.config, source),
+                )
                 for idx, spec, plan in items:
                     futures[pool.submit(self._safe_extract, spec, plan)] = idx
-            for fut in as_completed(futures):
-                outcomes[futures[fut]] = fut.result()
 
-        # Phase 3 (sequential): bronze/silver/DQ + all warehouse writes + audit
-        # bookkeeping, in original spec order.
-        for spec, (_observation_start, load_type), outcome in zip(specs, plans, outcomes):
-            self._finish_series(run, spec, load_type, outcome)
+            for fut in as_completed(futures):
+                idx = futures[fut]
+                spec, (_observation_start, load_type), sr = work_items[idx]
+                outcome = fut.result()
+                self._finish_series(run, spec, load_type, outcome, series_run=sr)
+                completed += 1
+                self._update_run_progress(run, total=len(specs))
+                self._persist_incremental_audit(run, sr)
+                if (
+                    completed == len(futures)
+                    or completed % 25 == 0
+                    or sr.status == RunStatus.FAILED
+                ):
+                    log.info(
+                        "Run %s progress: %d/%d completed (%d ok / %d failed)",
+                        run.run_id, completed, len(futures),
+                        run.series_succeeded, run.series_failed,
+                    )
+        except BaseException:
+            for fut in futures:
+                fut.cancel()
+            for pool in pools:
+                pool.shutdown(wait=False, cancel_futures=True)
+            raise
+        else:
+            for pool in pools:
+                pool.shutdown(wait=True)
 
         run.finalize()
 
@@ -507,9 +546,15 @@ class FredPipeline:
             return exc
 
     def _finish_series(
-        self, run: EtlRun, spec: SeriesSpec, load_type: str, outcome: Any
+        self,
+        run: EtlRun,
+        spec: SeriesSpec,
+        load_type: str,
+        outcome: Any,
+        *,
+        series_run: Any = None,
     ) -> None:
-        sr = run.start_series(spec.series_id, load_type=spec.load_type.value)
+        sr = series_run or run.start_series(spec.series_id, load_type=spec.load_type.value)
         sr.load_type = load_type
         try:
             if isinstance(outcome, Exception):
@@ -562,6 +607,32 @@ class FredPipeline:
         except Exception as exc:  # isolate per-series failures
             sr.complete(RunStatus.FAILED, error_message=str(exc))
             log.exception("Series %s failed", spec.series_id)
+
+    def _update_run_progress(self, run: EtlRun, *, total: int) -> None:
+        run.series_total = total
+        run.series_succeeded = sum(
+            1 for s in run.series_runs if s.status == RunStatus.SUCCEEDED
+        )
+        run.series_failed = sum(
+            1 for s in run.series_runs if s.status == RunStatus.FAILED
+        )
+        run.status = RunStatus.RUNNING
+
+    def _persist_incremental_audit(self, run: EtlRun, series_run: Any) -> None:
+        if not (self.persist_audit and self.warehouse is not None):
+            return
+        if not getattr(self.warehouse, "supports_incremental_audit", False):
+            return
+        try:
+            persist_run_state = getattr(self.warehouse, "persist_run_state")
+            persist_series_run = getattr(self.warehouse, "persist_series_run")
+            persist_run_state(run)
+            persist_series_run(series_run)
+        except Exception:
+            log.exception(
+                "Failed to persist incremental audit for run %s series %s",
+                run.run_id, series_run.series_id,
+            )
 
     def _plan_extract(
         self, spec: SeriesSpec, *, force_full: bool = False

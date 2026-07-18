@@ -2,9 +2,10 @@
 
 How to go from "I have an API key for EIA/BEA/BLS/…" to a fully built
 Bronze → Silver → Gold database. Three steps: provide the keys, activate the
-series, run. Nothing else — Gold (including the market-terminal analytical
-views) rebuilds automatically at the end of every non-dry run; there is no
-separate "build gold" command.
+series, run. By default, Gold (including the market-terminal analytical views)
+rebuilds automatically at the end of every non-dry run; for long local runs you
+can use `--no-gold` and then `fred-pipeline gold` to separate API extraction
+from the heavy analytical rebuild.
 
 The pipeline only demands keys for sources that have **active** series in the
 manifests: a FRED-only run never asks for an EIA key, and vice versa. If an
@@ -175,6 +176,11 @@ sqlite3 fred_local.db "SELECT series_id, status, error_message
   `FRED_SOURCE_EXTRACT_WORKERS` only when your quota supports it. Request-rate
   caps can be tuned with `--source-rate-limits` or `FRED_SOURCE_RATE_LIMITS`;
   retryable `429`/server responses honor upstream `Retry-After` when present.
+* **Extraction progress is streamed.** Completed series are written to
+  Bronze/Silver and local SQLite audit tables as soon as their fetch finishes,
+  even while other source pools are still retrying or sleeping. Long local runs
+  should log submitted source pools and periodic `Run ... progress: X/Y`
+  messages instead of staying silent until every source future has completed.
 * **Gold always rebuilds.** Every persisted run finishes by rebuilding all
   Gold tables — the classic feature tables *and* the market-terminal views
   (`docs/market_terminal_gold_views.md`). Tables whose inputs aren't ingested

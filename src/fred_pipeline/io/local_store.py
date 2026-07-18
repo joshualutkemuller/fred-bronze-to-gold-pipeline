@@ -30,7 +30,7 @@ import sqlite3
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable, Iterable, Optional, Sequence
 
-from fred_pipeline.audit import EtlRun
+from fred_pipeline.audit import EtlRun, EtlSeriesRun
 from fred_pipeline.config import PipelineConfig
 from fred_pipeline.manifest import Manifest
 from fred_pipeline.meta import build_meta_rows
@@ -580,6 +580,8 @@ def _encode(value: Any) -> Any:
 
 
 class LocalWarehouse:
+    supports_incremental_audit = True
+
     """A SQLite-file implementation of the Warehouse protocol."""
 
     def __init__(self, config: PipelineConfig, db_path: str = "fred_local.db"):
@@ -1168,9 +1170,20 @@ class LocalWarehouse:
         self.conn.commit()
         return self._insert("gold_release_calendar", rows)
 
-    def persist_run(self, run: EtlRun) -> None:
+    def persist_run_state(self, run: EtlRun) -> None:
         self._insert("audit_etl_run", [run.to_row()], upsert_keys=["run_id"])
-        self._insert("audit_etl_series_run", [s.to_row() for s in run.series_runs])
+
+    def persist_series_run(self, series_run: EtlSeriesRun) -> None:
+        self.conn.execute(
+            "DELETE FROM audit_etl_series_run WHERE run_id = ? AND series_id = ?",
+            (series_run.run_id, series_run.series_id),
+        )
+        self._insert("audit_etl_series_run", [series_run.to_row()])
+
+    def persist_run(self, run: EtlRun) -> None:
+        self.persist_run_state(run)
+        for series_run in run.series_runs:
+            self.persist_series_run(series_run)
 
     def persist_dq(self, run_id: str, report: QualityReport) -> None:
         self._insert("audit_data_quality_result", dq_rows(run_id, report))
