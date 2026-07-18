@@ -32,6 +32,12 @@ default:
   # Concurrent extraction workers (thread pool; extraction is I/O-bound and
   # still rate-limited by rate_limit_per_minute above).
   extract_workers: 8
+  # Optional per-source worker caps/overrides. Tiingo defaults to a conservative
+  # cap to avoid hourly quota bursts; override when your account allows it.
+  # source_extract_workers: "fred=16,stooq=8,tiingo=1"
+  # Optional per-source request-rate caps. Defaults are conservative for
+  # keyless/quota-sensitive sources (currently stooq=20/min, tiingo=10/min).
+  # source_rate_limits: "fred=60,stooq=20,tiingo=5"
 
   # --- Additional data sources (see fred_pipeline.sources) ---
   # All optional: every source manifest (manifests/eia_energy.yml,

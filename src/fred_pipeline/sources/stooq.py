@@ -154,7 +154,7 @@ class StooqClient(HTTPSource):
     def observations_endpoint(self, series_id: str) -> str:
         """Lineage string recorded in Bronze (the download path)."""
         ticker, _field = _parse_series_id(series_id)
-        return f"q/d/l/?s={_stooq_symbol(ticker)}&i=d"
+        return f"q/d/l?s={_stooq_symbol(ticker)}&i=d"
 
     # ---- SourceClient contract ------------------------------------------
 
@@ -175,7 +175,7 @@ class StooqClient(HTTPSource):
             params["d1"] = str(observation_start).replace("-", "")[:8]
         if observation_end:
             params["d2"] = str(observation_end).replace("-", "")[:8]
-        text = self._request("q/d/l/", params, as_text=True)
+        text = self._request("q/d/l", params, as_text=True)
         return {"format": "csv", "field": field, "text": text}
 
     def normalize(

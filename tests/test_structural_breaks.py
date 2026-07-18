@@ -122,6 +122,36 @@ def test_chow_scan_detects_known_break():
     assert abs((bd - START).days - 49) <= 10
 
 
+def test_chow_scan_matches_pointwise_chow_f_at():
+    """The optimized prefix-sum scan should preserve the brute-force result."""
+    import random
+
+    rng = random.Random(20260718)
+    n = 140
+    xs = [float(i) + rng.gauss(0, 0.25) for i in range(n)]
+    ys = [1.5 + 0.7 * x + rng.gauss(0, 0.15) for x in xs[:70]]
+    ys += [-8.0 + 1.15 * x + rng.gauss(0, 0.15) for x in xs[70:]]
+    dates = [START + timedelta(days=i) for i in range(n)]
+
+    bd, f, p, pre_n, post_n = _chow_scan(dates, xs, ys, min_segment=12)
+
+    trim = max(12, int(0.15 * n))
+    pointwise = [
+        (tau, _chow_f_at(xs, ys, tau))
+        for tau in range(trim, n - trim + 1)
+    ]
+    best_tau, best_f = max(
+        ((tau, f_at) for tau, f_at in pointwise if f_at is not None),
+        key=lambda item: item[1],
+    )
+
+    assert bd == dates[best_tau - 1]
+    assert f == pytest.approx(best_f)
+    assert p is not None and 0.0 <= p <= 1.0
+    assert pre_n == best_tau
+    assert post_n == n - best_tau
+
+
 def test_chow_scan_too_few_obs():
     dates = [START + timedelta(days=i) for i in range(5)]
     xs = [1.0, 2.0, 3.0, 4.0, 5.0]

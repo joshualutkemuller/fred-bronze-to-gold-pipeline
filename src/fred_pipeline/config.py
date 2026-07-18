@@ -57,6 +57,8 @@ _SETTING_FIELDS = (
     "request_timeout_seconds",
     "max_retries",
     "rate_limit_per_minute",
+    "source_extract_workers",
+    "source_rate_limits",
     "raw_volume_path",
     "restate_last_n",
     "alert_webhook_url",
@@ -80,6 +82,8 @@ _ENV_OVERRIDES = {
     "request_timeout_seconds": "FRED_REQUEST_TIMEOUT_SECONDS",
     "max_retries": "FRED_MAX_RETRIES",
     "rate_limit_per_minute": "FRED_RATE_LIMIT_PER_MINUTE",
+    "source_extract_workers": "FRED_SOURCE_EXTRACT_WORKERS",
+    "source_rate_limits": "FRED_SOURCE_RATE_LIMITS",
     "raw_volume_path": "FRED_RAW_VOLUME_PATH",
     "restate_last_n": "FRED_RESTATE_LAST_N",
     "alert_webhook_url": "FRED_ALERT_WEBHOOK_URL",
@@ -207,6 +211,14 @@ class PipelineConfig:
     request_timeout_seconds: int = 30
     max_retries: int = 5
     rate_limit_per_minute: int = 120
+    # Optional comma-separated per-source worker overrides, e.g.
+    # ``fred=16,stooq=8,tiingo=1``. Unspecified sources use the default
+    # source-aware caps in ``pipeline._extract_workers_for_source``.
+    source_extract_workers: str = ""
+    # Optional comma-separated per-source request-rate overrides, e.g.
+    # ``fred=60,stooq=20,tiingo=10``. Unspecified sources use each client's
+    # conservative default.
+    source_rate_limits: str = ""
     raw_volume_path: str = ""
     restate_last_n: int = 90
     # Concurrent extraction workers (thread pool). Extraction is I/O-bound and

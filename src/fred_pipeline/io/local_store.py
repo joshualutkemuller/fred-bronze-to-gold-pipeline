@@ -25,8 +25,10 @@ from __future__ import annotations
 
 import datetime as _dt
 import json
+import os
 import sqlite3
-from typing import Any, Iterable, Optional, Sequence
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Callable, Iterable, Optional, Sequence
 
 from fred_pipeline.audit import EtlRun
 from fred_pipeline.config import PipelineConfig
@@ -73,6 +75,26 @@ def _gold_feature_impls():
             "python", daily_feature_matrix, compute_feature_transforms,
             compute_curve_spreads, compute_revision_stats,
         )
+
+
+def _compute_parallel(tasks: dict[str, Callable[[], Any]]) -> dict[str, Any]:
+    """Run independent Gold computations in parallel, returning by task name.
+
+    SQLite writes stay serial in ``build_gold``; this helper is only for pure
+    dict/list-in → dict/list-out engines that do not touch the connection.
+    """
+    if not tasks:
+        return {}
+    if len(tasks) == 1:
+        name, fn = next(iter(tasks.items()))
+        return {name: fn()}
+    max_workers = min(len(tasks), os.cpu_count() or 1)
+    out: dict[str, Any] = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(fn): name for name, fn in tasks.items()}
+        for fut in as_completed(futures):
+            out[futures[fut]] = fut.result()
+    return out
 
 
 # DDL for the SQLite mirror of the Delta tables. Kept in one place for clarity.
@@ -819,6 +841,7 @@ class LocalWarehouse:
             compute_credit_spread_rolling,
             compute_curve_spread_daily,
             compute_curve_spread_rolling,
+            compute_fomc_probability,
             compute_funding_features,
             compute_inflation_explorer,
             compute_macro_dashboard,
@@ -844,7 +867,42 @@ class LocalWarehouse:
                 build_dim_date(min(obs_dates), max(obs_dates), usrec),
             )
 
-        dash = compute_macro_dashboard(latest)
+        # Independent pure-Python Gold engines can compute in parallel; writes
+        # remain serial below because SQLite has a single writer.
+        from fred_pipeline.global_views import (
+            compute_global_inflation,
+            compute_global_policy_rates,
+            powerbi_catalog_rows,
+        )
+        from fred_pipeline.regime_stats import (
+            compute_macro_regime,
+            compute_series_correlation,
+            compute_series_lead_lag,
+            compute_series_structural_breaks,
+        )
+
+        computed = _compute_parallel({
+            "dashboard": lambda: compute_macro_dashboard(latest),
+            "curve": lambda: compute_treasury_curve(latest),
+            "curve_spread_daily": lambda: compute_curve_spread_daily(latest),
+            "spread_inversion_episode": lambda: compute_spread_inversion_episodes(latest),
+            "benchmark_rate_board": lambda: compute_benchmark_rate_board(latest),
+            "funding": lambda: compute_funding_features(latest),
+            "credit_spread_daily": lambda: compute_credit_spread_daily(latest),
+            "inflation": lambda: compute_inflation_explorer(latest),
+            "curve_spread_rolling": lambda: compute_curve_spread_rolling(latest),
+            "credit_spread_rolling": lambda: compute_credit_spread_rolling(latest),
+            "treasury_curve_rolling": lambda: compute_treasury_curve_rolling(latest),
+            "macro_regime_daily": lambda: compute_macro_regime(latest),
+            "series_correlation": lambda: compute_series_correlation(latest),
+            "series_lead_lag": lambda: compute_series_lead_lag(latest),
+            "series_structural_breaks": lambda: compute_series_structural_breaks(latest),
+            "fomc": lambda: compute_fomc_probability(latest),
+            "global_inflation": lambda: compute_global_inflation(latest),
+            "global_policy_rates": lambda: compute_global_policy_rates(latest),
+        })
+
+        dash = computed["dashboard"]
         self.conn.execute("DELETE FROM gold_macro_indicator_dashboard")
         self._insert("gold_macro_indicator_dashboard", dash["dashboard"])
         self.conn.execute("DELETE FROM gold_macro_indicator_sparkline")
@@ -852,7 +910,7 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_macro_category_summary")
         self._insert("gold_macro_category_summary", dash["category_summary"])
 
-        curve = compute_treasury_curve(latest)
+        curve = computed["curve"]
         self.conn.execute("DELETE FROM gold_treasury_curve")
         self._insert("gold_treasury_curve", curve["curve"])
         self.conn.execute("DELETE FROM gold_treasury_curve_metrics")
@@ -862,27 +920,27 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_yield_curve_ns_factors")
         self._insert("gold_yield_curve_ns_factors", ns_factor_rows)
         self.conn.execute("DELETE FROM gold_curve_spread_daily")
-        self._insert("gold_curve_spread_daily", compute_curve_spread_daily(latest))
+        self._insert("gold_curve_spread_daily", computed["curve_spread_daily"])
         self.conn.execute("DELETE FROM gold_spread_inversion_episode")
         self._insert("gold_spread_inversion_episode",
-                     compute_spread_inversion_episodes(latest))
+                     computed["spread_inversion_episode"])
 
         # Phase 4 rates complex: BMRK benchmark board, FUND funding tape +
         # stress gauge, CRDT credit spreads (configs under config/).
         self.conn.execute("DELETE FROM gold_benchmark_rate_board")
         self._insert("gold_benchmark_rate_board",
-                     compute_benchmark_rate_board(latest))
-        funding = compute_funding_features(latest)
+                     computed["benchmark_rate_board"])
+        funding = computed["funding"]
         self.conn.execute("DELETE FROM gold_funding_tape_daily")
         self._insert("gold_funding_tape_daily", funding["tape"])
         self.conn.execute("DELETE FROM gold_funding_stress_daily")
         self._insert("gold_funding_stress_daily", funding["stress"])
-        credit_rows = compute_credit_spread_daily(latest)
+        credit_rows = computed["credit_spread_daily"]
         self.conn.execute("DELETE FROM gold_credit_spread_daily")
         self._insert("gold_credit_spread_daily", credit_rows)
 
         # Phase 2 Inflation Explorer (config/inflation_items.yml).
-        inflation = compute_inflation_explorer(latest)
+        inflation = computed["inflation"]
         self.conn.execute("DELETE FROM gold_inflation_explorer")
         self._insert("gold_inflation_explorer", inflation["explorer"])
         self.conn.execute("DELETE FROM gold_inflation_contribution")
@@ -892,40 +950,31 @@ class LocalWarehouse:
         # for the spread, credit, and curve daily tables.
         self.conn.execute("DELETE FROM gold_curve_spread_rolling")
         self._insert("gold_curve_spread_rolling",
-                     compute_curve_spread_rolling(latest))
+                     computed["curve_spread_rolling"])
         self.conn.execute("DELETE FROM gold_credit_spread_rolling")
         self._insert("gold_credit_spread_rolling",
-                     compute_credit_spread_rolling(latest))
+                     computed["credit_spread_rolling"])
         self.conn.execute("DELETE FROM gold_treasury_curve_rolling")
         self._insert("gold_treasury_curve_rolling",
-                     compute_treasury_curve_rolling(latest))
+                     computed["treasury_curve_rolling"])
 
         # Phase 5: regime playbook + statistical lab (config/regime.yml,
         # config/stats_pairs.yml).
-        from fred_pipeline.regime_stats import (
-            compute_macro_regime,
-            compute_series_correlation,
-            compute_series_lead_lag,
-            compute_series_structural_breaks,
-        )
-        regime_rows = compute_macro_regime(latest)
+        regime_rows = computed["macro_regime_daily"]
         self.conn.execute("DELETE FROM gold_macro_regime_daily")
         self._insert("gold_macro_regime_daily", regime_rows)
         self.conn.execute("DELETE FROM gold_series_correlation")
-        self._insert("gold_series_correlation",
-                     compute_series_correlation(latest))
+        self._insert("gold_series_correlation", computed["series_correlation"])
         self.conn.execute("DELETE FROM gold_series_lead_lag")
-        self._insert("gold_series_lead_lag", compute_series_lead_lag(latest))
+        self._insert("gold_series_lead_lag", computed["series_lead_lag"])
         self.conn.execute("DELETE FROM gold_series_structural_breaks")
         self._insert("gold_series_structural_breaks",
-                     compute_series_structural_breaks(latest))
+                     computed["series_structural_breaks"])
 
         # docs/handoffs/terminal_phase0_gaps.md item 3: FOMC rate
         # probabilities (config/fomc.yml) — option A, no CME connector;
         # derived from already-ingested FRED short-rate/target series.
-        from fred_pipeline.terminal_views import compute_fomc_probability
-
-        fomc = compute_fomc_probability(latest)
+        fomc = computed["fomc"]
         self.conn.execute("DELETE FROM gold_fomc_probability")
         self._insert("gold_fomc_probability", fomc["probability"])
         self.conn.execute("DELETE FROM gold_fomc_meeting_path")
@@ -933,16 +982,11 @@ class LocalWarehouse:
 
         # Phase 6: global inflation / policy rates + the Power BI catalog
         # (config/global_series.yml; catalog from global_views.POWERBI_CATALOG).
-        from fred_pipeline.global_views import (
-            compute_global_inflation,
-            compute_global_policy_rates,
-            powerbi_catalog_rows,
-        )
         self.conn.execute("DELETE FROM gold_global_inflation")
-        self._insert("gold_global_inflation", compute_global_inflation(latest))
+        self._insert("gold_global_inflation", computed["global_inflation"])
         self.conn.execute("DELETE FROM gold_global_policy_rates")
         self._insert("gold_global_policy_rates",
-                     compute_global_policy_rates(latest))
+                     computed["global_policy_rates"])
         self.conn.execute("DELETE FROM gold_powerbi_catalog")
         self._insert("gold_powerbi_catalog", powerbi_catalog_rows())
 

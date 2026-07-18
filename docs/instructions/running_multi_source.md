@@ -108,11 +108,33 @@ Useful flags for `fred-pipeline run`:
 | Flag | Effect |
 |---|---|
 | `--series ID1,ID2` | run only those series (they must be `active`) |
+| `--source fred,stooq` | run only active series from those sources |
+| `--exclude-source tiingo` | skip active series from those sources |
 | `--full` | force a full-history re-pull, ignoring the incremental restate watermark |
+| `--no-gold` | extract/write Bronze + Silver, but skip the Gold rebuild |
 | `--dry-run` | extract + validate in memory; no writes, no Gold |
 | `--local --db-path f.db` | persist to SQLite instead of Databricks/Delta |
+| `--extract-workers N` | override the global extraction thread count |
+| `--source-workers fred=16,tiingo=1` | override per-source extraction thread counts |
+| `--rate-limit-per-minute N` | override the FRED request rate limit |
+| `--source-rate-limits fred=60,stooq=20,tiingo=5` | override per-source request-rate caps |
 | `--env dev\|test\|prod` | pick the environment / catalog |
 | *(no `--local`)* | Databricks/Spark backend — run inside a workspace job |
+
+Rate-safe local full run, separating API extraction from the heavy Gold build:
+
+```bash
+fred-pipeline run --local --db-path fred_local.db --full --no-gold \
+  --source-workers fred=8,stooq=2,tiingo=1 \
+  --source-rate-limits fred=60,stooq=20,tiingo=5
+fred-pipeline gold --local --db-path fred_local.db
+```
+
+Rebuild Gold from already-persisted Silver without calling external APIs:
+
+```bash
+fred-pipeline gold --local --db-path fred_local.db
+```
 
 Exit codes: `0` = succeeded or partial, `1` = failed, `2` = an active source
 is missing its API key (the message names the env var).
@@ -147,12 +169,19 @@ sqlite3 fred_local.db "SELECT series_id, status, error_message
   only the last `restate_last_n` observations per series (default 90) to
   capture revisions; `--full` overrides. See
   `docs/incremental_loading.md`.
+* **Extraction is source-aware.** Active sources run in separate thread pools
+  with separate client-side rate limiters. Tiingo defaults to a low worker cap
+  to avoid hourly quota bursts; override with `--source-workers` or
+  `FRED_SOURCE_EXTRACT_WORKERS` only when your quota supports it. Request-rate
+  caps can be tuned with `--source-rate-limits` or `FRED_SOURCE_RATE_LIMITS`;
+  retryable `429`/server responses honor upstream `Retry-After` when present.
 * **Gold always rebuilds.** Every persisted run finishes by rebuilding all
   Gold tables — the classic feature tables *and* the market-terminal views
   (`docs/market_terminal_gold_views.md`). Tables whose inputs aren't ingested
   yet are simply empty and fill in as you activate series (e.g. every
   `is_recession` column stays NULL until `USREC` in `macro_flags.yml` is
-  activated).
+  activated). Use `--no-gold` plus the standalone `gold` command when you want
+  to separate API extraction retries from the heavy local Gold rebuild.
 
 Related docs: [`architecture.md`](architecture.md) ·
 [`adding_a_source.md`](adding_a_source.md) ·
