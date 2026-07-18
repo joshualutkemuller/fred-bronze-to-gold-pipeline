@@ -792,6 +792,51 @@ CREATE TABLE IF NOT EXISTS gold.series_structural_breaks (
 USING DELTA;
 
 -- ============================================================================
+-- docs/handoffs/terminal_phase0_gaps.md item 3: FOMC rate probabilities
+-- (config/fomc.yml). DECIDED option A — no CME connector; derived entirely
+-- from already-ingested FRED short-rate/target series (DFEDTARL/DFEDTARU/
+-- EFFR, DGS1MO/DGS3MO/DGS6MO/DGS1). The distribution math and meeting-
+-- chaining loop are ported from the sibling market_terminal project's
+-- reference futures-based engine (macro_data_etl/src/analytics/
+-- fed_probability.py); only the futures settlement price is replaced —
+-- with a forward-rate bootstrap off the short end of the Treasury curve.
+-- Computed by fred_pipeline.terminal_views.compute_fomc_probability and
+-- written by fred_pipeline.gold._build_regime_stats; DDL provisions shapes
+-- only.
+-- ============================================================================
+
+-- One row per FOMC meeting x 25bp outcome bucket: outcome_bps is the ladder
+-- rung (rate_before +/- n*step, in bps), probability is that bucket's share
+-- (sums to ~1 per meeting_date). target_lower_bps/target_upper_bps are the
+-- CURRENT target range (constant across a run), for context alongside the
+-- per-bucket outcome. model_vintage stamps the curve snapshot date the
+-- probabilities were derived from (re-computed every run). Only meetings on
+-- or after model_vintage are included.
+CREATE TABLE IF NOT EXISTS gold.fomc_probability (
+    meeting_date      DATE,
+    target_lower_bps  INT,
+    target_upper_bps  INT,
+    outcome_bps       INT,
+    probability       DOUBLE,
+    model_vintage     DATE,
+    n_inputs          INT
+)
+USING DELTA;
+
+-- One row per FOMC meeting: the probability-weighted expected rate
+-- (implied_rate), its move vs. the prior meeting's expected rate
+-- (implied_move_bps), and the cumulative move since model_vintage
+-- (cumulative_move_bps) — the "implied path" line chart.
+CREATE TABLE IF NOT EXISTS gold.fomc_meeting_path (
+    meeting_date         DATE,
+    implied_rate         DOUBLE,
+    implied_move_bps     DOUBLE,
+    cumulative_move_bps  DOUBLE,
+    model_vintage        DATE
+)
+USING DELTA;
+
+-- ============================================================================
 -- Phase 6 global tables + Power BI catalog (docs/market_terminal_gold_views
 -- .md §4.9 global modules). Computed by fred_pipeline.global_views (config:
 -- config/global_series.yml) and written by
@@ -849,6 +894,29 @@ CREATE TABLE IF NOT EXISTS gold.powerbi_catalog (
     grain           STRING,
     intended_visual STRING,
     description     STRING
+)
+USING DELTA;
+
+-- ============================================================================
+-- docs/handoffs/terminal_phase0_gaps.md item 1: forward-looking economic
+-- release calendar (terminal module CAL). The curated set in
+-- config/release_calendar.yml, joined against a live FRED releases/dates
+-- pull. Intentionally NOT point-in-time (it's a re-fetched schedule, not a
+-- revised observation) — fetched_at stamps staleness for the terminal.
+-- Written directly by fred_pipeline.pipeline.FredPipeline.run() via
+-- Warehouse.write_release_calendar() (full overwrite each run), not by the
+-- build_gold() SQL below — there is nothing pre-ingested to derive this
+-- from.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS gold.release_calendar (
+    release_id                INT,
+    release_name              STRING,
+    release_date              DATE,
+    importance                STRING,
+    econ_category             STRING,
+    representative_series_id  STRING,
+    is_future                 BOOLEAN,
+    fetched_at                STRING
 )
 USING DELTA;
 

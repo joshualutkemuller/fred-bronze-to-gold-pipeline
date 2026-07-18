@@ -35,11 +35,15 @@ from __future__ import annotations
 
 import calendar
 from bisect import bisect_right
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Iterable, Optional
 
 from fred_pipeline.catalog_config import CatalogEntry, load_series_catalog
 from fred_pipeline.curve_config import TenorDef, load_curve_defs
+from fred_pipeline.gold_config.fomc_config import FOMCConfig, load_fomc_config
+from fred_pipeline.gold_config.release_calendar_config import (
+    ReleaseCalendarEntry, load_release_calendar_config,
+)
 from fred_pipeline.inflation_config import InflationItemDef, load_inflation_items
 from fred_pipeline.rates_complex_config import (
     BenchmarkBoardConfig,
@@ -1174,3 +1178,236 @@ def compute_treasury_curve_rolling(
                 "zscore": row["zscore"],
             })
     return out
+
+
+def compute_release_calendar(
+    release_dates: Iterable[dict[str, Any]],
+    entries: Optional[Iterable[ReleaseCalendarEntry]] = None,
+    *,
+    fetched_at: Optional[str] = None,
+    as_of: Optional[date] = None,
+) -> list[dict[str, Any]]:
+    """``gold.release_calendar`` (terminal module CAL): the curated releases
+    from ``config/release_calendar.yml``, filtered from a raw FRED
+    ``releases/dates`` pull (:meth:`FredClient.get_release_dates`).
+
+    Unlike every other table in this module, the input isn't a Silver
+    observation history — it's a live snapshot of FRED's forward release
+    schedule, so ``fetched_at`` stamps when it was pulled (staleness marker)
+    and ``is_future`` is computed relative to ``as_of`` (defaults to today).
+    Rows for releases not in the curated config are dropped; multiple raw
+    rows for the same ``(release_id, date)`` collapse to one.
+    """
+    if entries is None:
+        entries = load_release_calendar_config()
+    by_id = {e.release_id: e for e in entries}
+    if not by_id:
+        return []
+
+    stamp = fetched_at or datetime.now(timezone.utc).isoformat()
+    today = as_of or date.today()
+
+    seen: set[tuple[int, str]] = set()
+    out: list[dict[str, Any]] = []
+    for row in release_dates:
+        release_id = row.get("release_id")
+        entry = by_id.get(release_id)
+        if entry is None:
+            continue
+        release_date = row.get("date")
+        if not release_date:
+            continue
+        key = (release_id, release_date)
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            is_future = date.fromisoformat(release_date) >= today
+        except ValueError:
+            is_future = None
+        out.append({
+            "release_id": entry.release_id,
+            "release_name": entry.release_name,
+            "release_date": release_date,
+            "importance": entry.importance,
+            "econ_category": entry.econ_category,
+            "representative_series_id": entry.representative_series_id,
+            "is_future": is_future,
+            "fetched_at": stamp,
+        })
+    return sorted(out, key=lambda r: (r["release_date"], r["release_id"]))
+
+
+def _last_on_or_before(
+    series: list[tuple[date, float]], as_of: date,
+) -> Optional[float]:
+    """Latest value at or before ``as_of`` from a ``_group_sorted`` series."""
+    pos = bisect_right(series, (as_of, float("inf"))) - 1
+    return series[pos][1] if pos >= 0 else None
+
+
+def _zero_yield_at_months(
+    curve: list[tuple[int, float]], months: float,
+) -> Optional[float]:
+    """Interpolate the zero-coupon yield (percent) at ``months`` from a
+    ``(tenor_months, yield_pct)`` curve sorted ascending by tenor. Clamps to
+    the nearest tenor's yield beyond either end (flat extrapolation)."""
+    if not curve:
+        return None
+    if months <= curve[0][0]:
+        return curve[0][1]
+    if months >= curve[-1][0]:
+        return curve[-1][1]
+    for (m1, y1), (m2, y2) in zip(curve, curve[1:]):
+        if m1 <= months <= m2:
+            if m2 == m1:
+                return y1
+            frac = (months - m1) / (m2 - m1)
+            return y1 + frac * (y2 - y1)
+    return curve[-1][1]  # pragma: no cover - unreachable given the bounds above
+
+
+def _fomc_outcome_ladder(
+    rate_before: float, rate_after: float, step_bps: int, n_outcomes: int = 7,
+) -> dict[float, float]:
+    """Distribute probability across a ``step_bps`` ladder around
+    ``rate_before`` (percent), splitting the two bracketing rungs around
+    ``rate_after`` by linear interpolation.
+
+    Ported from ``multi_outcome_distribution`` in the sibling
+    ``market_terminal`` project's reference engine
+    (``macro_data_etl/src/analytics/fed_probability.py``) — the distribution
+    math is source-agnostic (it only needs ``rate_before``/``rate_after``,
+    not a futures price), so it carries over unchanged from the CME-based
+    original; only how ``rate_after`` is derived differs (see
+    :func:`compute_fomc_probability`).
+    """
+    step = step_bps / 100
+    mid_idx = n_outcomes // 2
+    outcomes = [round(rate_before + (i - mid_idx) * step, 4) for i in range(n_outcomes)]
+    probs = {o: 0.0 for o in outcomes}
+
+    if rate_after <= outcomes[0]:
+        probs[outcomes[0]] = 1.0
+    elif rate_after >= outcomes[-1]:
+        probs[outcomes[-1]] = 1.0
+    else:
+        for lo, hi in zip(outcomes, outcomes[1:]):
+            if lo <= rate_after <= hi:
+                p_upper = (rate_after - lo) / (hi - lo)
+                probs[lo] += 1.0 - p_upper
+                probs[hi] += p_upper
+                break
+
+    return {k: round(v, 6) for k, v in probs.items() if v > 0.0001}
+
+
+def compute_fomc_probability(
+    latest_rows: Iterable[dict[str, Any]],
+    cfg: Optional[FOMCConfig] = None,
+    *,
+    as_of: Optional[date] = None,
+) -> dict[str, list[dict[str, Any]]]:
+    """``gold.fomc_probability`` + ``gold.fomc_meeting_path`` (terminal module
+    FOMC): CME-FedWatch-style meeting hike/cut/hold odds, computed WITHOUT a
+    CME feed (locked decision, ``docs/handoffs/terminal_phase0_gaps.md`` item
+    3) — derived entirely from FRED short-rate/target series already
+    ingested.
+
+    The distribution math (:func:`_fomc_outcome_ladder`) and the meeting-
+    chaining loop (each meeting's ``rate_before`` = the previous meeting's
+    resolved ``expected_rate``) are ported from the reference futures-based
+    engine. What replaces the futures price: the short end of the Treasury
+    curve (``config/fomc.yml`` ``tenors``) is treated as a zero-coupon curve
+    and bootstrapped for the implied *incremental* forward rate between each
+    pair of consecutive meeting horizons — ``f`` s.t. ``(1+y1)**t1 *
+    (1+f)**(t2-t1) == (1+y2)**t2`` — which plays the same role as the
+    reference engine's day-weighted implied post-meeting rate, without
+    needing a futures settlement price. The first meeting's window runs from
+    ``as_of`` (t=0) to the first meeting, so it degenerates to the curve's
+    own yield at that horizon; ``rate_before`` for the first meeting is the
+    current effective rate (``effective_rate_series``).
+
+    Only meetings on or after ``as_of`` are included (a resolved meeting has
+    no probability distribution left to compute).
+    """
+    if cfg is None:
+        cfg = load_fomc_config()
+    if cfg is None:
+        return {"probability": [], "meeting_path": []}
+
+    today = as_of or date.today()
+    by_series = _group_sorted(latest_rows)
+
+    curve: list[tuple[int, float]] = []
+    for tenor in cfg.tenors:
+        y = _last_on_or_before(by_series.get(tenor.series_id, []), today)
+        if y is not None:
+            curve.append((tenor.tenor_months, y))
+    curve.sort(key=lambda p: p[0])
+    if len(curve) < 2:
+        return {"probability": [], "meeting_path": []}
+
+    effr = _last_on_or_before(by_series.get(cfg.effective_rate_series, []), today)
+    target_low = _last_on_or_before(by_series.get(cfg.target_low_series, []), today)
+    target_high = _last_on_or_before(by_series.get(cfg.target_high_series, []), today)
+    if effr is None:
+        if target_low is None or target_high is None:
+            return {"probability": [], "meeting_path": []}
+        effr = (target_low + target_high) / 2
+    target_lower_bps = round(target_low * 100) if target_low is not None else None
+    target_upper_bps = round(target_high * 100) if target_high is not None else None
+
+    meetings = [d for d in cfg.meeting_dates if d >= today]
+    if not meetings:
+        return {"probability": [], "meeting_path": []}
+
+    n_inputs = len(curve)
+    model_vintage = today.isoformat()
+    rate_before = effr
+    prev_t, prev_y = 0.0, effr
+    cumulative_move_bps = 0.0
+
+    probability_rows: list[dict[str, Any]] = []
+    path_rows: list[dict[str, Any]] = []
+    for meeting_date in meetings:
+        t = (meeting_date - today).days / 365.0
+        months = (meeting_date - today).days / 30.4375
+        y = _zero_yield_at_months(curve, months)
+        if y is None:
+            break
+        if t - prev_t < 1e-6:
+            rate_after = y
+        else:
+            rate_after = (
+                ((1 + y / 100) ** t / (1 + prev_y / 100) ** prev_t)
+                ** (1 / (t - prev_t)) - 1
+            ) * 100
+
+        distribution = _fomc_outcome_ladder(rate_before, rate_after, cfg.bucket_step_bps)
+        expected = sum(rate * prob for rate, prob in distribution.items())
+        implied_move_bps = round((expected - rate_before) * 100, 1)
+        cumulative_move_bps = round(cumulative_move_bps + implied_move_bps, 1)
+
+        for outcome_rate, prob in sorted(distribution.items()):
+            probability_rows.append({
+                "meeting_date": meeting_date.isoformat(),
+                "target_lower_bps": target_lower_bps,
+                "target_upper_bps": target_upper_bps,
+                "outcome_bps": round(outcome_rate * 100),
+                "probability": prob,
+                "model_vintage": model_vintage,
+                "n_inputs": n_inputs,
+            })
+        path_rows.append({
+            "meeting_date": meeting_date.isoformat(),
+            "implied_rate": round(expected, 4),
+            "implied_move_bps": implied_move_bps,
+            "cumulative_move_bps": cumulative_move_bps,
+            "model_vintage": model_vintage,
+        })
+
+        rate_before = expected
+        prev_t, prev_y = t, y
+
+    return {"probability": probability_rows, "meeting_path": path_rows}

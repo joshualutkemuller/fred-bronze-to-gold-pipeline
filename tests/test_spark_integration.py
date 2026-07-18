@@ -258,3 +258,57 @@ def test_curve_spread_sql_supports_ratio_op_with_zero_guard(spark):
     assert len(out) == 1
     assert out[0]["observation_date"] == "2024-01-01"
     assert out[0]["value"] == pytest.approx(2.5)
+
+
+def test_fomc_tables_build_end_to_end_on_spark(spark, monkeypatch):
+    """Unlike the primitive-level tests above, this calls the real
+    ``fred_pipeline.writer.gold._build_regime_stats`` (not hand-written
+    equivalent SQL) — the two ``gold.fomc_probability`` / ``gold.
+    fomc_meeting_path`` ``_write(...)`` calls (StructType + selectExpr casts)
+    are new enough, and specific enough to Spark's DataFrame API, that a
+    pure-Python unit test of ``compute_fomc_probability`` alone (see
+    tests/test_fomc_probability.py) can't catch a schema/cast mismatch.
+    ``config.table()`` normally returns 3-level Unity-Catalog names
+    (``catalog.schema.table``); vanilla local Spark has no such catalog
+    registered, so ``PipelineConfig.catalog`` is monkeypatched to
+    ``spark_catalog`` (Spark's built-in default catalog, which *is*
+    resolvable), matching how the rest of this module avoids 3-level
+    naming."""
+    from fred_pipeline.config import Environment, PipelineConfig
+    from fred_pipeline.writer.gold import _build_regime_stats
+
+    monkeypatch.setattr(PipelineConfig, "catalog", property(lambda self: "spark_catalog"))
+    monkeypatch.setenv("FRED_FOMC_CONFIG_FILE", "config/fomc.yml")
+    monkeypatch.setenv("FRED_REGIME_FILE", "/nonexistent/regime.yml")
+    monkeypatch.setenv("FRED_STATS_PAIRS_FILE", "/nonexistent/stats_pairs.yml")
+
+    config = PipelineConfig(environment=Environment.DEV, fred_api_key="k")
+    spark.sql("CREATE DATABASE IF NOT EXISTS spark_catalog.gold")
+
+    rows = [
+        {"series_id": "EFFR", "observation_date": "2026-07-17", "realtime_start": "2026-07-17", "value": 4.33, "is_missing": False},
+        {"series_id": "DFEDTARL", "observation_date": "2026-07-17", "realtime_start": "2026-07-17", "value": 4.25, "is_missing": False},
+        {"series_id": "DFEDTARU", "observation_date": "2026-07-17", "realtime_start": "2026-07-17", "value": 4.50, "is_missing": False},
+        {"series_id": "DGS1MO", "observation_date": "2026-07-17", "realtime_start": "2026-07-17", "value": 4.30, "is_missing": False},
+        {"series_id": "DGS3MO", "observation_date": "2026-07-17", "realtime_start": "2026-07-17", "value": 4.10, "is_missing": False},
+        {"series_id": "DGS6MO", "observation_date": "2026-07-17", "realtime_start": "2026-07-17", "value": 3.95, "is_missing": False},
+        {"series_id": "DGS1", "observation_date": "2026-07-17", "realtime_start": "2026-07-17", "value": 3.70, "is_missing": False},
+    ]
+    _silver_df(spark, rows).write.format("delta").mode("overwrite").saveAsTable(
+        config.table("gold", "fred_latest_observation")
+    )
+
+    _build_regime_stats(config, spark)
+
+    prob = spark.sql(
+        f"SELECT meeting_date, SUM(probability) AS total "
+        f"FROM {config.table('gold', 'fomc_probability')} GROUP BY meeting_date"
+    ).collect()
+    assert len(prob) == 12  # config/fomc.yml has 12 scheduled meetings
+    for row in prob:
+        assert row["total"] == pytest.approx(1.0, abs=1e-6)
+
+    path = spark.sql(
+        f"SELECT COUNT(*) AS n FROM {config.table('gold', 'fomc_meeting_path')}"
+    ).collect()
+    assert path[0]["n"] == 12

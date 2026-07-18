@@ -207,6 +207,40 @@ def test_list_series_respects_max_results(fake_session_cls, fake_response_cls):
     assert [s["id"] for s in out] == ["A"]
 
 
+def test_get_release_dates_paginates(fake_session_cls, fake_response_cls):
+    # page 1 fills the page (limit=2) -> keep going; page 2 short -> stop
+    session = fake_session_cls([
+        fake_response_cls({"release_dates": [
+            {"release_id": 10, "release_name": "CPI", "date": "2026-08-12"},
+            {"release_id": 50, "release_name": "Employment", "date": "2026-08-07"},
+        ]}),
+        fake_response_cls({"release_dates": [
+            {"release_id": 53, "release_name": "GDP", "date": "2026-08-27"},
+        ]}),
+    ])
+    client = _make_client(session)
+    out = client.get_release_dates(
+        realtime_start="2026-07-17", realtime_end="2026-11-17", limit=2,
+    )
+    assert [r["release_id"] for r in out] == [10, 50, 53]
+    assert len(session.calls) == 2
+    assert session.calls[1]["params"]["offset"] == 2
+
+
+def test_get_release_dates_passes_params(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([fake_response_cls({"release_dates": []})])
+    client = _make_client(session)
+    client.get_release_dates(
+        realtime_start="2026-07-17", realtime_end="2026-11-17",
+        include_release_dates_with_no_data=True, sort_order="asc",
+    )
+    params = session.calls[0]["params"]
+    assert params["realtime_start"] == "2026-07-17"
+    assert params["realtime_end"] == "2026-11-17"
+    assert params["sort_order"] == "asc"
+    assert params["include_release_dates_with_no_data"] == "true"
+
+
 def test_rate_limiter_sleeps_when_too_fast():
     slept = []
     now = [0.0]

@@ -260,6 +260,15 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "Chow F-stat / p-value, pre/post segment means, CUSUM max deviation, and significance flag. "
            "Chow scans all candidate break dates (15% trim) under y ~ 1 + x and picks the max-F date; "
            "CUSUM accumulates full-sample OLS residuals and reports the first 5%-boundary crossing."),
+    _entry("fomc_probability", "fact", "FOMC", "1 / meeting x outcome bucket",
+           "stacked probability bars per meeting",
+           "Hike/cut/hold odds per FOMC meeting (config/fomc.yml), option A: derived from FRED "
+           "short-rate/target series (no CME connector) via a Treasury-curve forward-rate bootstrap, "
+           "not futures settlement prices. outcome_bps ladder sums to ~1 probability per meeting_date."),
+    _entry("fomc_meeting_path", "fact", "FOMC", "1 / meeting",
+           "implied-path line chart",
+           "Probability-weighted expected rate per meeting, its move vs. the prior meeting, and the "
+           "cumulative move since model_vintage."),
     _entry("global_inflation", "fact", "GCPI", "1 / country x print",
            "map / heat table by region",
            "CPI YoY by country: change, trend, streaks, vs-target gap."),
@@ -288,6 +297,11 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "generic line", "MoM/diff/YoY/expanding-z transforms per series."),
     _entry("powerbi_catalog", "reference", "ALL", "1 / gold object",
            "documentation page", "This catalog."),
+    _entry("release_calendar", "fact", "CAL", "1 / release x scheduled date",
+           "forward calendar / agenda list",
+           "Curated FRED release schedule (config/release_calendar.yml): importance, econ_category, "
+           "representative_series_id, is_future, fetched_at. Not point-in-time — a re-fetched schedule, "
+           "written directly by FredPipeline.run(), not build_gold()."),
     _entry("ml_feature_matrix", "fact", "ML", "1 / date x feature",
            "generic table / heatmap",
            "Tidy ML feature matrix: one row per (date, feature_name) with the configured transform value, feeding the PCA and anomaly engines."),

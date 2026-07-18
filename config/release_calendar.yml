@@ -1,0 +1,35 @@
+# Economic release calendar (gold.release_calendar, terminal module CAL).
+# See src/fred_pipeline/gold_config/release_calendar_config.py for field
+# semantics.
+#
+# A curated subset of FRED's ~300 releases (not all of them) — the ones the
+# terminal's CAL module actually surfaces. `release_id` and `release_name`
+# are confirmed live against https://api.stlouisfed.org/fred/releases (2026-
+# 07-17); `representative_series_id` is confirmed active in this pipeline's
+# manifests, so the terminal can join a release to its headline print.
+#
+# importance: HIGH / MEDIUM / LOW — drives the terminal's desk-sensitivity
+# tagging; econ_category matches the categories used elsewhere in Gold
+# (dim_series.econ_category, macro_category_summary).
+#
+# NOT included: release_id 101 (FOMC Press Release). Verified live against
+# /fred/release/dates over a realistic 120-day forward window: unlike every
+# release below (which return clean, correctly-spaced dates), 101 degenerates
+# into a placeholder for nearly every business day rather than the ~8
+# scheduled meetings/year — an upstream FRED data characteristic for this
+# release_id specifically, not a bug in this pipeline's fetch/filter logic.
+# FOMC decision dates are already covered far better by the dedicated,
+# live-verified Fed-published calendar in config/fomc.yml (gold.
+# fomc_probability / gold.fomc_meeting_path).
+
+releases:
+  - {release_id: 50,  release_name: Employment Situation,                             importance: HIGH,   econ_category: labor,       representative_series_id: PAYEMS}
+  - {release_id: 10,  release_name: Consumer Price Index,                             importance: HIGH,   econ_category: inflation,   representative_series_id: CPIAUCSL}
+  - {release_id: 54,  release_name: Personal Income and Outlays,                      importance: HIGH,   econ_category: inflation,   representative_series_id: PCEPI}
+  - {release_id: 53,  release_name: Gross Domestic Product,                           importance: HIGH,   econ_category: growth,      representative_series_id: GDPC1}
+  - {release_id: 9,   release_name: Advance Monthly Sales for Retail and Food Services, importance: MEDIUM, econ_category: growth,      representative_series_id: RSAFS}
+  - {release_id: 46,  release_name: Producer Price Index,                             importance: MEDIUM, econ_category: inflation,   representative_series_id: PPIACO}
+  - {release_id: 13,  release_name: "G.17 Industrial Production and Capacity Utilization", importance: MEDIUM, econ_category: growth, representative_series_id: INDPRO}
+  - {release_id: 27,  release_name: New Residential Construction,                     importance: MEDIUM, econ_category: housing,     representative_series_id: HOUST}
+  - {release_id: 291, release_name: Existing Home Sales,                              importance: MEDIUM, econ_category: housing,     representative_series_id: EXHOSLUSM495S}
+  - {release_id: 180, release_name: Unemployment Insurance Weekly Claims Report,      importance: LOW,     econ_category: labor,       representative_series_id: ICSA}

@@ -972,6 +972,44 @@ def _build_regime_stats(config: PipelineConfig, spark: Any) -> None:
          "cusum_max", "is_significant",
          "CAST(as_of_date AS DATE) AS as_of_date"])
 
+    # docs/handoffs/terminal_phase0_gaps.md item 3: FOMC rate probabilities
+    # (config/fomc.yml) — option A, no CME connector; derived from
+    # already-ingested FRED short-rate/target series.
+    from fred_pipeline.gold_config.fomc_config import load_fomc_config
+    from fred_pipeline.terminal_views import compute_fomc_probability
+
+    fomc_cfg = load_fomc_config()
+    if fomc_cfg is not None:
+        fomc_ids = sorted(
+            {t.series_id for t in fomc_cfg.tenors}
+            | {fomc_cfg.target_low_series, fomc_cfg.target_high_series,
+               fomc_cfg.effective_rate_series}
+        )
+        fomc = compute_fomc_probability(
+            _collect_latest(config, spark, fomc_ids), fomc_cfg
+        )
+        _write("fomc_probability", fomc["probability"], StructType([
+            StructField("meeting_date", StringType()),
+            StructField("target_lower_bps", IntegerType()),
+            StructField("target_upper_bps", IntegerType()),
+            StructField("outcome_bps", IntegerType()),
+            StructField("probability", DoubleType()),
+            StructField("model_vintage", StringType()),
+            StructField("n_inputs", IntegerType()),
+        ]), ["CAST(meeting_date AS DATE) AS meeting_date",
+             "target_lower_bps", "target_upper_bps", "outcome_bps",
+             "probability", "CAST(model_vintage AS DATE) AS model_vintage",
+             "n_inputs"])
+        _write("fomc_meeting_path", fomc["meeting_path"], StructType([
+            StructField("meeting_date", StringType()),
+            StructField("implied_rate", DoubleType()),
+            StructField("implied_move_bps", DoubleType()),
+            StructField("cumulative_move_bps", DoubleType()),
+            StructField("model_vintage", StringType()),
+        ]), ["CAST(meeting_date AS DATE) AS meeting_date", "implied_rate",
+             "implied_move_bps", "cumulative_move_bps",
+             "CAST(model_vintage AS DATE) AS model_vintage"])
+
 
 def _build_global_views(config: PipelineConfig, spark: Any) -> None:
     """Build the Phase-6 global tables + the Power BI catalog

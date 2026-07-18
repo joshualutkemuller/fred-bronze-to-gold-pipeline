@@ -314,6 +314,9 @@ class FredPipeline:
             except Exception:
                 log.exception("Gold refresh failed for run %s", run.run_id)
 
+        if self.warehouse is not None:
+            self._refresh_release_calendar(run)
+
         self._persist_run(run)
         self._notify(run)
         log.info(
@@ -335,6 +338,39 @@ class FredPipeline:
             )
         except Exception:  # never let notification issues fail a run
             log.exception("Notification step failed for run %s", run.run_id)
+
+    def _refresh_release_calendar(self, run: EtlRun) -> None:
+        """Refresh ``gold.release_calendar`` (terminal module CAL).
+
+        Unlike every Gold table built from already-warehoused Silver data,
+        release *dates* are forward-looking metadata with nothing to derive
+        from in storage, so this fetches live from FRED and writes directly
+        — the only place in the pipeline a Gold table is populated outside
+        ``build_gold()``. Failure here must not fail the run.
+        """
+        try:
+            from datetime import date, timedelta
+
+            from fred_pipeline.gold_config.release_calendar_config import (
+                load_release_calendar_config,
+            )
+            from fred_pipeline.writer.terminal_views import compute_release_calendar
+
+            today = date.today()
+            fred_client = self._client_for_source("fred")
+            release_dates = fred_client.get_release_dates(
+                realtime_start=today.isoformat(),
+                realtime_end=(today + timedelta(days=120)).isoformat(),
+            )
+            cfg = load_release_calendar_config()
+            rows = compute_release_calendar(release_dates, cfg, as_of=today)
+            self.warehouse.write_release_calendar(rows)
+            log.info(
+                "Release calendar refreshed for run %s (%d rows)",
+                run.run_id, len(rows),
+            )
+        except Exception:
+            log.exception("Release calendar refresh failed for run %s", run.run_id)
 
     # ---- per-series -----------------------------------------------------
 

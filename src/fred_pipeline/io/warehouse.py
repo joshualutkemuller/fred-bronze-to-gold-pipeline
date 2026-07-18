@@ -35,6 +35,7 @@ class Warehouse(Protocol):
     def build_gold(self) -> dict[str, str]: ...
     def write_lifecycle(self, rows: list[dict[str, Any]]) -> int: ...
     def write_drift(self, rows: list[dict[str, Any]]) -> int: ...
+    def write_release_calendar(self, rows: list[dict[str, Any]]) -> int: ...
     def persist_run(self, run: EtlRun) -> None: ...
     def persist_dq(self, run_id: str, report: QualityReport) -> None: ...
     def close(self) -> None: ...
@@ -136,6 +137,33 @@ class SparkWarehouse:
         return append_rows(
             self.spark, rows, self.config.table("meta", "fred_series_drift")
         )
+
+    def write_release_calendar(self, rows: list[dict[str, Any]]) -> int:
+        # Full-refresh (not append): it's a re-fetched forward schedule, not
+        # an accumulating observation history, so overwrite each run.
+        from pyspark.sql.types import (
+            BooleanType, IntegerType, StringType, StructField, StructType,
+        )
+
+        schema = StructType([
+            StructField("release_id", IntegerType()),
+            StructField("release_name", StringType()),
+            StructField("release_date", StringType()),
+            StructField("importance", StringType()),
+            StructField("econ_category", StringType()),
+            StructField("representative_series_id", StringType()),
+            StructField("is_future", BooleanType()),
+            StructField("fetched_at", StringType()),
+        ])
+        self.spark.createDataFrame(rows, schema=schema).selectExpr(
+            "release_id", "release_name",
+            "CAST(release_date AS DATE) AS release_date",
+            "importance", "econ_category", "representative_series_id",
+            "is_future", "fetched_at",
+        ).write.format("delta").mode("overwrite").option(
+            "overwriteSchema", "true"
+        ).saveAsTable(self.config.table("gold", "release_calendar"))
+        return len(rows)
 
     def persist_run(self, run: EtlRun) -> None:
         from fred_pipeline.spark_io import append_rows

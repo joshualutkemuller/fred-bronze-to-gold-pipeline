@@ -386,6 +386,24 @@ order `granger_lags`) denormalized onto every row; `as_of_date` is the last
 common observation. p-values are exact F-distribution tails computed in pure
 Python (regularized incomplete beta — no SciPy).
 
+#### `gold.fomc_probability` / `gold.fomc_meeting_path`
+FOMC rate probabilities (`config/fomc.yml`, terminal module FOMC) — **option
+A, no CME connector** (decided in `docs/handoffs/terminal_phase0_gaps.md`
+item 3): derived entirely from already-ingested FRED short-rate/target
+series (`DFEDTARL`/`DFEDTARU`/`EFFR`, `DGS1MO`/`DGS3MO`/`DGS6MO`/`DGS1`), not
+CME Fed Funds futures. `fomc_probability`: one row per meeting × 25bp
+outcome bucket — `outcome_bps` (the ladder rung) and `probability` (sums to
+~1 per `meeting_date`), plus the current `target_lower_bps`/
+`target_upper_bps` for context. `fomc_meeting_path`: one row per meeting —
+`implied_rate` (probability-weighted expected rate), `implied_move_bps` (vs.
+the prior meeting), `cumulative_move_bps` (vs. `model_vintage`, the curve
+snapshot date). The distribution math and meeting-chaining are ported from
+the sibling `market_terminal` project's futures-based reference engine
+(`macro_data_etl/src/analytics/fed_probability.py`); only the futures
+settlement price is replaced — with a forward-rate bootstrap off the short
+end of the Treasury curve (`(1+y1)^t1 · (1+f)^(t2−t1) = (1+y2)^t2` between
+consecutive meeting horizons).
+
 #### `gold.global_inflation`
 GCPI (`config/global_series.yml`): one row per country × print — CPI YoY in
 percent (`level` entries are already YoY rates, e.g. World Bank
@@ -409,6 +427,19 @@ The report author's manifest: one row per Gold object with `object_type`
 `intended_visual`, and a description. Single source of truth is
 `fred_pipeline.global_views.POWERBI_CATALOG`; a test fails if a `gold_*`
 table is added without a catalog row.
+
+#### `gold.release_calendar`
+The curated forward economic-release schedule (`config/release_calendar.yml`,
+terminal module CAL): one row per `release_id` × scheduled `release_date` —
+`importance` (HIGH/MEDIUM/LOW), `econ_category`, `representative_series_id`
+(joins the release to its headline print), `is_future`, and `fetched_at`
+(staleness stamp). **Not point-in-time** — it's a re-fetched schedule, not a
+revised observation, so there's no vintage history. Unlike every other Gold
+table, this one is populated directly by
+`fred_pipeline.pipeline.FredPipeline.run()` calling FRED's
+`releases/dates` live and `Warehouse.write_release_calendar()` (full
+overwrite each run) — `build_gold()` never touches it, since release dates
+aren't derived from anything already in Silver.
 
 #### `gold.equity_return_daily`
 Equity price return (`source: stooq`; scalar-explode `<ticker>:close` Silver

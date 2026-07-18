@@ -316,6 +316,15 @@ CREATE TABLE IF NOT EXISTS gold_series_structural_breaks (
     cusum_max REAL, is_significant INTEGER NOT NULL DEFAULT 0,
     as_of_date TEXT
 );
+-- FOMC rate probabilities (option A, no CME connector; config/fomc.yml).
+CREATE TABLE IF NOT EXISTS gold_fomc_probability (
+    meeting_date TEXT, target_lower_bps INTEGER, target_upper_bps INTEGER,
+    outcome_bps INTEGER, probability REAL, model_vintage TEXT, n_inputs INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_fomc_meeting_path (
+    meeting_date TEXT, implied_rate REAL, implied_move_bps REAL,
+    cumulative_move_bps REAL, model_vintage TEXT
+);
 CREATE TABLE IF NOT EXISTS gold_global_inflation (
     country TEXT, iso3 TEXT, region TEXT, series_id TEXT,
     observation_date TEXT, cpi_yoy_pct REAL, change_pp REAL, trend TEXT,
@@ -387,6 +396,16 @@ CREATE TABLE IF NOT EXISTS gold_inflation_forecast (
     forecast_value REAL, lower_80 REAL, upper_80 REAL, lower_95 REAL,
     upper_95 REAL, model_type TEXT, lag_order INTEGER,
     model_vintage TEXT, n_obs_training INTEGER
+);
+
+-- Forward-looking economic release calendar (terminal module CAL). Not
+-- point-in-time (it's a re-fetched schedule, not a revised observation) —
+-- fetched_at stamps staleness. Written directly by FredPipeline.run() via
+-- Warehouse.write_release_calendar(), not by build_gold().
+CREATE TABLE IF NOT EXISTS gold_release_calendar (
+    release_id INTEGER, release_name TEXT, release_date TEXT,
+    importance TEXT, econ_category TEXT, representative_series_id TEXT,
+    is_future INTEGER, fetched_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS audit_etl_run (
@@ -901,6 +920,17 @@ class LocalWarehouse:
         self._insert("gold_series_structural_breaks",
                      compute_series_structural_breaks(latest))
 
+        # docs/handoffs/terminal_phase0_gaps.md item 3: FOMC rate
+        # probabilities (config/fomc.yml) — option A, no CME connector;
+        # derived from already-ingested FRED short-rate/target series.
+        from fred_pipeline.terminal_views import compute_fomc_probability
+
+        fomc = compute_fomc_probability(latest)
+        self.conn.execute("DELETE FROM gold_fomc_probability")
+        self._insert("gold_fomc_probability", fomc["probability"])
+        self.conn.execute("DELETE FROM gold_fomc_meeting_path")
+        self._insert("gold_fomc_meeting_path", fomc["meeting_path"])
+
         # Phase 6: global inflation / policy rates + the Power BI catalog
         # (config/global_series.yml; catalog from global_views.POWERBI_CATALOG).
         from fred_pipeline.global_views import (
@@ -1086,6 +1116,13 @@ class LocalWarehouse:
 
     def write_drift(self, rows: list[dict[str, Any]]) -> int:
         return self._insert("meta_fred_series_drift", rows)
+
+    def write_release_calendar(self, rows: list[dict[str, Any]]) -> int:
+        # Full-refresh (not append): it's a re-fetched forward schedule, not
+        # an accumulating observation history, so overwrite each run.
+        self.conn.execute("DELETE FROM gold_release_calendar")
+        self.conn.commit()
+        return self._insert("gold_release_calendar", rows)
 
     def persist_run(self, run: EtlRun) -> None:
         self._insert("audit_etl_run", [run.to_row()], upsert_keys=["run_id"])

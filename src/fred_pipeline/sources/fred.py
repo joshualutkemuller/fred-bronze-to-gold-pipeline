@@ -319,3 +319,45 @@ class FredClient(HTTPSource):
     def search_series(self, search_text: str, **kwargs: Any) -> list[dict[str, Any]]:
         """Full-text search over the FRED catalog."""
         return self.list_series("series/search", {"search_text": search_text}, **kwargs)
+
+    def get_release_dates(
+        self,
+        *,
+        realtime_start: Optional[str] = None,
+        realtime_end: Optional[str] = None,
+        include_release_dates_with_no_data: bool = True,
+        sort_order: str = "asc",
+        limit: int = 1000,
+    ) -> list[dict[str, Any]]:
+        """Page through ``releases/dates``: every release's scheduled/actual
+        date in ``[realtime_start, realtime_end]``, across all releases.
+
+        Returns rows of ``{release_id, release_name, release_last_updated,
+        date}`` (unlike :meth:`list_series`, this endpoint's payload key is
+        ``release_dates``, not ``seriess``). Used for the forward-looking
+        economic release calendar (``gold.release_calendar``), not tied to
+        any single series.
+        """
+        params: dict[str, Any] = {
+            "sort_order": sort_order,
+            "include_release_dates_with_no_data": str(
+                include_release_dates_with_no_data
+            ).lower(),
+        }
+        if realtime_start:
+            params["realtime_start"] = realtime_start
+        if realtime_end:
+            params["realtime_end"] = realtime_end
+
+        collected: list[dict[str, Any]] = []
+        offset = 0
+        while True:
+            page = dict(params)
+            page.update({"limit": min(limit, 1000), "offset": offset})
+            payload = self._request("releases/dates", page)
+            batch = payload.get("release_dates") or []
+            collected.extend(batch)
+            offset += len(batch)
+            if not batch or len(batch) < page["limit"]:
+                break
+        return collected

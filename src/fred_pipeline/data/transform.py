@@ -201,9 +201,18 @@ def daily_feature_matrix(latest_rows: Iterable[dict[str, Any]]) -> list[dict[str
     if not parsed:
         return []
 
-    min_d = min(p[1] for p in parsed)
     max_d = max(p[1] for p in parsed)
     series_ids = sorted({p[0] for p in parsed})
+
+    # Per-series first observation: start each series' daily calendar at its
+    # own first obs, not the global min. A global min cross-joined a
+    # centuries-long calendar onto every series (one 1600s-era series forces
+    # ~300y of daily rows), producing hundreds of millions of all-NULL leading
+    # rows. Bounding per series is output-identical for every non-leading row.
+    series_start: dict[str, date] = {}
+    for s, d, _v in parsed:
+        if s not in series_start or d < series_start[s]:
+            series_start[s] = d
 
     # native[(series, date)] = value on that series' actual release date
     native: dict[tuple[str, date], Optional[float]] = {(s, d): v for s, d, v in parsed}
@@ -211,7 +220,7 @@ def daily_feature_matrix(latest_rows: Iterable[dict[str, Any]]) -> list[dict[str
     out: list[dict[str, Any]] = []
     for sid in series_ids:
         last_val: Optional[float] = None
-        cur = min_d
+        cur = series_start[sid]
         while cur <= max_d:
             raw = native.get((sid, cur), None)
             if (sid, cur) in native:

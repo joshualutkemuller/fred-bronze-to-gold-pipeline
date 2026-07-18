@@ -78,12 +78,24 @@ def daily_feature_matrix_frame(latest_rows: Iterable[dict[str, Any]]) -> pl.Data
                     "raw_value": pl.Float64, "value": pl.Float64}
         )
 
-    min_d = df["_date"].min()
     max_d = df["_date"].max()
-    series_ids = sorted(df["series_id"].unique().to_list())
 
-    calendar = pl.DataFrame({"as_of_date": pl.date_range(min_d, max_d, "1d", eager=True)})
-    panel = calendar.join(pl.DataFrame({"series_id": series_ids}), how="cross")
+    # Per-series daily calendar: each series spans from ITS OWN first
+    # observation to the global max date, not the global min. Using a global
+    # min cross-joined a centuries-long calendar (a single 1600s-era series
+    # forces ~300y of daily rows) onto every series, producing hundreds of
+    # millions of all-NULL leading rows (forward_fill leaves pre-start rows
+    # NULL). Bounding per series is output-identical for every non-leading row
+    # while cutting the row count ~7x on the full universe.
+    panel = (
+        df.group_by("series_id")
+        .agg(pl.col("_date").min().alias("_start"))
+        .with_columns(
+            pl.date_ranges(pl.col("_start"), max_d, "1d").alias("as_of_date")
+        )
+        .explode("as_of_date")
+        .select("series_id", "as_of_date")
+    )
 
     native = df.select(
         pl.col("series_id"),

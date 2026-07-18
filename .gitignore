@@ -37,3 +37,8 @@ config/*.local.yaml
 .idea/
 .vscode/
 .DS_Store
+fred_local.db-shm
+.gitignore
+fred_local.db-wal
+.gitignore
+fred_local.db.old-schema-bak
