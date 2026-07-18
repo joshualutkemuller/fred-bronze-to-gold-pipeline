@@ -2,13 +2,15 @@ import textwrap
 
 import pytest
 
-from fred_pipeline.config import Environment, PipelineConfig, load_config_file
+from fred_pipeline.config import PipelineConfig, load_config_file
 
 # Env vars that could leak in from the surrounding shell and skew precedence tests.
 _ENV_VARS = [
     "FRED_API_KEY", "FRED_BASE_URL", "FRED_SECRET_SCOPE", "FRED_SECRET_KEY",
     "FRED_REQUEST_TIMEOUT_SECONDS", "FRED_MAX_RETRIES",
-    "FRED_RATE_LIMIT_PER_MINUTE", "FRED_RAW_VOLUME_PATH", "FRED_CONFIG_FILE",
+    "FRED_RATE_LIMIT_PER_MINUTE", "FRED_EXTRACT_WORKERS",
+    "FRED_SOURCE_EXTRACT_WORKERS", "FRED_SOURCE_RATE_LIMITS",
+    "FRED_RAW_VOLUME_PATH", "FRED_CONFIG_FILE",
     "BLS_API_KEY", "EIA_API_KEY", "BEA_API_KEY", "CENSUS_API_KEY", "SEC_USER_AGENT",
 ]
 
@@ -80,9 +82,15 @@ def test_env_var_overrides_file(tmp_path, monkeypatch):
     path = _write(tmp_path, "fred_api_key: file-key\nrate_limit_per_minute: 30\n")
     monkeypatch.setenv("FRED_API_KEY", "env-key")
     monkeypatch.setenv("FRED_RATE_LIMIT_PER_MINUTE", "77")
+    monkeypatch.setenv("FRED_EXTRACT_WORKERS", "12")
+    monkeypatch.setenv("FRED_SOURCE_EXTRACT_WORKERS", "fred=12,tiingo=1")
+    monkeypatch.setenv("FRED_SOURCE_RATE_LIMITS", "fred=60,tiingo=5")
     cfg = PipelineConfig.resolve(environment="dev", config_file=path)
     assert cfg.fred_api_key == "env-key"
     assert cfg.rate_limit_per_minute == 77  # coerced to int
+    assert cfg.extract_workers == 12
+    assert cfg.source_extract_workers == "fred=12,tiingo=1"
+    assert cfg.source_rate_limits == "fred=60,tiingo=5"
 
 
 def test_explicit_arg_overrides_everything(tmp_path, monkeypatch):

@@ -12,7 +12,9 @@ finishing as ``PARTIAL`` rather than losing all progress.
 from __future__ import annotations
 
 import logging
-from concurrent.futures import ThreadPoolExecutor
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import ExitStack
 from typing import Any, Iterable, Optional
 
 from fred_pipeline.audit import EtlRun, RunStatus
@@ -49,7 +51,7 @@ def _make_fred(config: PipelineConfig) -> SourceClient:
         base_url=config.fred_base_url,
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
-        rate_limit_per_minute=config.rate_limit_per_minute,
+        rate_limit_per_minute=_rate_limit_for_source(config, "fred"),
     )
 
 
@@ -59,6 +61,7 @@ def _make_bls(config: PipelineConfig) -> SourceClient:
         api_key=getattr(config, "bls_api_key", "") or None,
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "bls"),
     )
 
 
@@ -68,6 +71,7 @@ def _make_eia(config: PipelineConfig) -> SourceClient:
         api_key=getattr(config, "eia_api_key", "") or "",
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "eia"),
     )
 
 
@@ -75,6 +79,7 @@ def _make_treasury(config: PipelineConfig) -> SourceClient:
     return TreasuryClient(
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "treasury"),
     )
 
 
@@ -82,6 +87,7 @@ def _make_worldbank(config: PipelineConfig) -> SourceClient:
     return WorldBankClient(
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "worldbank"),
     )
 
 
@@ -91,6 +97,7 @@ def _make_bea(config: PipelineConfig) -> SourceClient:
         api_key=getattr(config, "bea_api_key", "") or "",
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "bea"),
     )
 
 
@@ -100,6 +107,7 @@ def _make_census(config: PipelineConfig) -> SourceClient:
         api_key=getattr(config, "census_api_key", "") or None,
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "census"),
     )
 
 
@@ -113,6 +121,7 @@ def _make_sec(config: PipelineConfig) -> SourceClient:
         period=resolve_sec_period(),
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "sec"),
     )
 
 
@@ -121,6 +130,7 @@ def _make_stooq(config: PipelineConfig) -> SourceClient:
     return StooqClient(
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "stooq"),
     )
 
 
@@ -129,6 +139,7 @@ def _make_ishares(config: PipelineConfig) -> SourceClient:
     return ISharesClient(
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "ishares"),
     )
 
 
@@ -138,6 +149,7 @@ def _make_tiingo(config: PipelineConfig) -> SourceClient:
         api_key=getattr(config, "tiingo_api_key", "") or "",
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "tiingo"),
     )
 
 
@@ -182,6 +194,82 @@ def missing_source_keys(
         if attr and not getattr(config, attr, ""):
             missing[source] = attr
     return missing
+
+
+def _parse_source_int_overrides(raw: str, setting: str) -> dict[str, int]:
+    """Parse ``fred=16,tiingo=1`` style per-source integer overrides."""
+    out: dict[str, int] = {}
+    for part in (raw or "").split(","):
+        item = part.strip()
+        if not item:
+            continue
+        if "=" not in item:
+            raise ValueError(
+                f"{setting} entries must look like 'source=N'"
+            )
+        source, value = item.split("=", 1)
+        source = source.strip().lower()
+        if not source:
+            raise ValueError(f"{setting} contains an empty source")
+        n = int(value.strip())
+        if n < 1:
+            raise ValueError(f"{setting} values must be >= 1")
+        out[source] = n
+    return out
+
+
+def _parse_source_worker_overrides(raw: str) -> dict[str, int]:
+    return _parse_source_int_overrides(raw, "source_extract_workers")
+
+
+def _parse_source_rate_overrides(raw: str) -> dict[str, int]:
+    return _parse_source_int_overrides(raw, "source_rate_limits")
+
+
+def _rate_limit_for_source(config: PipelineConfig, source: str) -> int:
+    """Request-per-minute cap for one source client."""
+    source = source.lower()
+    overrides = _parse_source_rate_overrides(config.source_rate_limits)
+    if source in overrides:
+        return overrides[source]
+    if "*" in overrides:
+        return overrides["*"]
+    defaults = {
+        "fred": config.rate_limit_per_minute,
+        "bls": 25,
+        "eia": 60,
+        "treasury": 120,
+        "worldbank": 60,
+        "bea": 100,
+        "census": 30,
+        "sec": 300,
+        "stooq": 20,
+        "ishares": 30,
+        "tiingo": 10,
+    }
+    return defaults.get(source, 60)
+
+
+def _extract_workers_for_source(config: PipelineConfig, source: str) -> int:
+    """Worker count for one source-specific extraction pool.
+
+    FRED can use the configured default because its shared rate limiter still
+    gates aggregate request issuance. Tiingo gets a conservative default cap to
+    reduce quota-burst 429s; callers can override any source with
+    ``source_extract_workers`` / ``FRED_SOURCE_EXTRACT_WORKERS``.
+    """
+    total = max(1, config.extract_workers)
+    overrides = _parse_source_worker_overrides(config.source_extract_workers)
+    source = source.lower()
+    if source in overrides:
+        return overrides[source]
+    if "*" in overrides:
+        return overrides["*"]
+    if source in {"tiingo", "stooq"}:
+        return min(2, total)
+    if source == "worldbank":
+        return min(8, total)
+    return total
 
 
 class FredPipeline:
@@ -244,6 +332,8 @@ class FredPipeline:
         triggered_by: str = "",
         build_gold_layer: bool = True,
         series: Optional[list[str]] = None,
+        sources: Optional[list[str]] = None,
+        exclude_sources: Optional[list[str]] = None,
         force_full: bool = False,
     ) -> EtlRun:
         manifests = load_manifests(manifest_path)
@@ -254,6 +344,19 @@ class FredPipeline:
             missing = wanted - {s.series_id for s in specs}
             if missing:
                 log.warning("Requested series not found/active: %s", sorted(missing))
+        if sources:
+            wanted_sources = {s.lower() for s in sources}
+            specs = [
+                s for s in specs
+                if (getattr(s, "source", "fred") or "fred").lower() in wanted_sources
+            ]
+        if exclude_sources:
+            blocked_sources = {s.lower() for s in exclude_sources}
+            specs = [
+                s for s in specs
+                if (getattr(s, "source", "fred") or "fred").lower()
+                not in blocked_sources
+            ]
         log.info("Loaded %d active series from %s", len(specs), manifest_path)
         if self.warehouse is not None:
             try:
@@ -292,13 +395,29 @@ class FredPipeline:
         # concurrently with itself or with phase 3's writes.
         plans = [self._plan_extract(spec, force_full=force_full) for spec in specs]
 
-        # Phase 2 (thread pool): the network-bound, rate-limited FRED calls.
-        # Workers share one FredClient/RateLimiter, so the aggregate request
-        # rate is still capped — concurrency here overlaps response wait and
-        # per-series retry backoff rather than exceeding the configured rate.
-        workers = max(1, self.config.extract_workers)
-        with ThreadPoolExecutor(max_workers=workers) as pool:
-            outcomes = list(pool.map(self._safe_extract, specs, plans))
+        # Phase 2 (source-aware thread pools): network-bound, rate-limited API
+        # calls. Each source has its own client/rate limiter and worker cap, so
+        # low-quota sources (notably Tiingo) cannot consume the whole pool.
+        outcomes = [None] * len(specs)
+        grouped: dict[str, list[tuple[int, SeriesSpec, tuple[Optional[str], str]]]] = (
+            defaultdict(list)
+        )
+        for idx, (spec, plan) in enumerate(zip(specs, plans)):
+            grouped[(getattr(spec, "source", "fred") or "fred").lower()].append(
+                (idx, spec, plan)
+            )
+        for source in grouped:
+            if source in self._clients or source in SOURCE_FACTORIES:
+                self._client_for_source(source)  # build clients before threads race
+        with ExitStack() as stack:
+            futures = {}
+            for source, items in grouped.items():
+                workers = _extract_workers_for_source(self.config, source)
+                pool = stack.enter_context(ThreadPoolExecutor(max_workers=workers))
+                for idx, spec, plan in items:
+                    futures[pool.submit(self._safe_extract, spec, plan)] = idx
+            for fut in as_completed(futures):
+                outcomes[futures[fut]] = fut.result()
 
         # Phase 3 (sequential): bronze/silver/DQ + all warehouse writes + audit
         # bookkeeping, in original spec order.
@@ -314,7 +433,7 @@ class FredPipeline:
             except Exception:
                 log.exception("Gold refresh failed for run %s", run.run_id)
 
-        if self.warehouse is not None:
+        if build_gold_layer and self.warehouse is not None:
             self._refresh_release_calendar(run)
 
         self._persist_run(run)

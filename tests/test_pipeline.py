@@ -2,7 +2,11 @@ from fred_pipeline.audit import RunStatus
 from fred_pipeline.config import Environment, PipelineConfig
 from fred_pipeline.fred_client import FredAPIError
 from fred_pipeline.manifest import SeriesSpec, ValidationProfile
-from fred_pipeline.pipeline import FredPipeline
+from fred_pipeline.pipeline import (
+    FredPipeline,
+    _extract_workers_for_source,
+    _rate_limit_for_source,
+)
 
 
 def _config():
@@ -119,9 +123,116 @@ def test_run_from_manifest_series_filter(observations_payload, fake_client_cls):
     assert set(client.requested) == {"DGS10", "GDP"}
 
 
+def test_run_source_filters(observations_payload, fake_client_cls):
+    fred_client = fake_client_cls({"DGS10": observations_payload})
+    stooq_client = fake_client_cls({"SPY:close": observations_payload})
+    tiingo_client = fake_client_cls({"SPY:adjClose": observations_payload})
+    pipe = FredPipeline(
+        _config(),
+        clients={
+            "fred": fred_client,
+            "stooq": stooq_client,
+            "tiingo": tiingo_client,
+        },
+        spark=None,
+        persist_audit=False,
+    )
+    specs = [
+        _spec("DGS10", source="fred"),
+        _spec("SPY:close", source="stooq", vintage_enabled=False),
+        _spec("SPY:adjClose", source="tiingo", vintage_enabled=False),
+    ]
+
+    run = pipe.run(specs, build_gold_layer=False)
+
+    assert run.series_succeeded == 3
+    assert fred_client.requested == ["DGS10"]
+    assert stooq_client.requested == ["SPY:close"]
+    assert tiingo_client.requested == ["SPY:adjClose"]
+
+
+def test_run_from_manifest_source_include_exclude(
+    tmp_path, observations_payload, fake_client_cls
+):
+    manifest = tmp_path / "sources.yml"
+    manifest.write_text(
+        "name: sources\n"
+        "series:\n"
+        "  - {series_id: DGS10, title: DGS10, category: rates, frequency: d, active: true}\n"
+        "  - {series_id: SPY:close, title: SPY, category: equity, frequency: d, source: stooq, active: true, vintage_enabled: false}\n"
+        "  - {series_id: SPY:adjClose, title: SPY TR, category: equity, frequency: d, source: tiingo, active: true, vintage_enabled: false}\n"
+    )
+    fred_client = fake_client_cls({"DGS10": observations_payload})
+    stooq_client = fake_client_cls({"SPY:close": observations_payload})
+    tiingo_client = fake_client_cls({"SPY:adjClose": observations_payload})
+    pipe = FredPipeline(
+        _config(),
+        clients={
+            "fred": fred_client,
+            "stooq": stooq_client,
+            "tiingo": tiingo_client,
+        },
+        spark=None,
+        persist_audit=False,
+    )
+
+    run = pipe.run_from_manifest(
+        str(manifest),
+        sources=["fred", "stooq"],
+        exclude_sources=["stooq"],
+        build_gold_layer=False,
+    )
+
+    assert [sr.series_id for sr in run.series_runs] == ["DGS10"]
+    assert fred_client.requested == ["DGS10"]
+    assert stooq_client.requested == []
+    assert tiingo_client.requested == []
+
+
+def test_source_worker_defaults_and_overrides():
+    cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k", extract_workers=16)
+    assert _extract_workers_for_source(cfg, "fred") == 16
+    assert _extract_workers_for_source(cfg, "tiingo") == 2
+    assert _extract_workers_for_source(cfg, "stooq") == 2
+
+    cfg = PipelineConfig(
+        environment=Environment.DEV,
+        fred_api_key="k",
+        extract_workers=16,
+        source_extract_workers="fred=12,tiingo=1,*=3",
+    )
+    assert _extract_workers_for_source(cfg, "fred") == 12
+    assert _extract_workers_for_source(cfg, "tiingo") == 1
+    assert _extract_workers_for_source(cfg, "worldbank") == 3
+
+
+def test_source_rate_defaults_and_overrides():
+    cfg = PipelineConfig(
+        environment=Environment.DEV,
+        fred_api_key="k",
+        rate_limit_per_minute=90,
+    )
+    assert _rate_limit_for_source(cfg, "fred") == 90
+    assert _rate_limit_for_source(cfg, "stooq") == 20
+    assert _rate_limit_for_source(cfg, "tiingo") == 10
+    assert _rate_limit_for_source(cfg, "worldbank") == 60
+
+    cfg = PipelineConfig(
+        environment=Environment.DEV,
+        fred_api_key="k",
+        rate_limit_per_minute=90,
+        source_rate_limits="fred=60,stooq=15,tiingo=5,*=30",
+    )
+    assert _rate_limit_for_source(cfg, "fred") == 60
+    assert _rate_limit_for_source(cfg, "stooq") == 15
+    assert _rate_limit_for_source(cfg, "tiingo") == 5
+    assert _rate_limit_for_source(cfg, "worldbank") == 30
+
+
 def test_force_full_ignores_watermark(observations_payload):
     from fred_pipeline.local_store import LocalWarehouse
-    import tempfile, os
+    import os
+    import tempfile
 
     captured = []
 

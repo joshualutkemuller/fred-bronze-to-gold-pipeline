@@ -21,6 +21,7 @@ import random
 import threading
 import time
 from dataclasses import dataclass, field
+from email.utils import parsedate_to_datetime
 from typing import Any, Callable, Optional, Protocol, runtime_checkable
 
 try:  # requests is a light, ubiquitous dependency; import guarded for clarity.
@@ -184,7 +185,7 @@ class HTTPSource:
                 last_exc = self.error_cls(
                     f"HTTP {status} from {endpoint}", status
                 )
-                self._backoff(attempt)
+                self._backoff(attempt, resp)
                 continue
             # Non-retryable (e.g. 400 bad id, 403 bad key) or retries exhausted.
             detail = self._error_detail(resp)
@@ -209,7 +210,35 @@ class HTTPSource:
             url, json=query, timeout=self.timeout, headers=headers
         )
 
-    def _backoff(self, attempt: int) -> None:
+    def _backoff(self, attempt: int, resp: Any = None) -> None:
+        retry_after = self._retry_after_seconds(resp)
+        if retry_after is not None:
+            self._sleep(min(retry_after, 300.0))
+            return
         # Exponential backoff with full jitter, capped at 30s.
         delay = min(2 ** attempt, 30) + random.uniform(0, 0.5)
         self._sleep(delay)
+
+    def _retry_after_seconds(self, resp: Any = None) -> Optional[float]:
+        if resp is None:
+            return None
+        headers = getattr(resp, "headers", None) or {}
+        raw = None
+        if hasattr(headers, "get"):
+            raw = headers.get("Retry-After") or headers.get("retry-after")
+        if raw is None:
+            return None
+        text = str(raw).strip()
+        if not text:
+            return None
+        try:
+            return max(0.0, float(text))
+        except ValueError:
+            pass
+        try:
+            dt = parsedate_to_datetime(text)
+            if dt.tzinfo is None:
+                return None
+            return max(0.0, dt.timestamp() - time.time())
+        except Exception:
+            return None

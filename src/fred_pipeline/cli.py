@@ -31,7 +31,6 @@ import argparse
 import json
 import logging
 import sys
-from dataclasses import asdict
 from typing import Optional
 
 from fred_pipeline.config import Environment, PipelineConfig
@@ -287,15 +286,28 @@ def _cmd_run(args: argparse.Namespace) -> int:
     from fred_pipeline.pipeline import missing_source_keys
 
     config = PipelineConfig.resolve(
-        environment=Environment(args.env), config_file=args.config
+        environment=Environment(args.env),
+        config_file=args.config,
+        extract_workers=args.extract_workers,
+        rate_limit_per_minute=args.rate_limit_per_minute,
+        source_extract_workers=args.source_workers,
+        source_rate_limits=args.source_rate_limits,
     )
 
     # Require only the API keys the *active* sources actually need — a
     # BLS/EIA-only run shouldn't demand a FRED key (and BLS runs keyless).
     wanted = set(_parse_series(args.series) or [])
+    include_sources = {s.lower() for s in (_parse_series(args.source) or [])}
+    exclude_sources = {
+        s.lower() for s in (_parse_series(args.exclude_source) or [])
+    }
     active = all_series(load_manifests(args.manifests), active_only=True)
     if wanted:
         active = [s for s in active if s.series_id in wanted]
+    if include_sources:
+        active = [s for s in active if s.source.lower() in include_sources]
+    if exclude_sources:
+        active = [s for s in active if s.source.lower() not in exclude_sources]
     sources = sorted({s.source for s in active})
     missing = missing_source_keys(config, sources)
     if missing:
@@ -331,8 +343,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
         run = pipeline.run_from_manifest(
             args.manifests,
             triggered_by="cli-local" if args.local else "cli",
-            build_gold_layer=not args.dry_run,
+            build_gold_layer=not args.dry_run and not args.no_gold,
             series=_parse_series(args.series),
+            sources=_parse_series(args.source),
+            exclude_sources=_parse_series(args.exclude_source),
             force_full=args.full,
         )
     finally:
@@ -348,6 +362,29 @@ def _cmd_run(args: argparse.Namespace) -> int:
             f"FROM gold_fred_latest_observation LIMIT 10;'"
         )
     return 0 if run.status.value in ("succeeded", "partial") else 1
+
+
+def _cmd_gold(args: argparse.Namespace) -> int:
+    config = PipelineConfig.resolve(
+        environment=Environment(args.env), config_file=args.config
+    )
+    warehouse = None
+    if args.local:
+        from fred_pipeline.local_store import LocalWarehouse
+
+        warehouse = LocalWarehouse(config, db_path=args.db_path)
+        print(f"Using local SQLite backend: {args.db_path}")
+    else:
+        from fred_pipeline.spark_io import get_spark
+        from fred_pipeline.warehouse import SparkWarehouse
+
+        warehouse = SparkWarehouse(config, get_spark())
+    try:
+        result = warehouse.build_gold()
+    finally:
+        warehouse.close()
+    print(json.dumps(result, indent=2))
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -389,7 +426,37 @@ def build_parser() -> argparse.ArgumentParser:
                    help="comma-separated series ids to run (default: all active)")
     r.add_argument("--full", action="store_true",
                    help="force a full re-pull, ignoring the restate watermark")
+    r.add_argument("--no-gold", action="store_true",
+                   help="skip the Gold refresh after extracting/writing Silver")
+    r.add_argument("--source", default=None,
+                   help="comma-separated source names to include, e.g. fred,stooq")
+    r.add_argument("--exclude-source", default=None,
+                   help="comma-separated source names to skip, e.g. tiingo")
+    r.add_argument("--extract-workers", type=int, default=None,
+                   help="override concurrent extraction workers for this run")
+    r.add_argument("--rate-limit-per-minute", type=int, default=None,
+                   help="override FRED aggregate request rate for this run")
+    r.add_argument("--source-workers", default=None,
+                   help="per-source worker overrides, e.g. fred=16,tiingo=1")
+    r.add_argument("--source-rate-limits", default=None,
+                   help="per-source request-rate overrides, e.g. fred=60,tiingo=5")
     r.set_defaults(func=_cmd_run)
+
+    g = sub.add_parser(
+        "gold",
+        help="rebuild Gold from already persisted Bronze/Silver data",
+    )
+    g.add_argument("--env", default="dev", choices=[e.value for e in Environment])
+    g.add_argument(
+        "--config",
+        default=None,
+        help="path to a YAML config file "
+        "(default: $FRED_CONFIG_FILE or config/config.yaml)",
+    )
+    g.add_argument("--local", action="store_true",
+                   help="use a local SQLite backend")
+    g.add_argument("--db-path", default="fred_local.db")
+    g.set_defaults(func=_cmd_gold)
 
     d = sub.add_parser(
         "discover",

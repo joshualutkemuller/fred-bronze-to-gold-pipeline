@@ -93,6 +93,7 @@ def test_stooq_get_observations_uses_text_transport():
     assert params["s"] == "aapl.us" and params["d1"] == "20240101"
     rows = client.normalize("AAPL:close", payload)
     assert len(rows) == 3
+    assert url.endswith("/q/d/l")
 
 
 # ---- iShares holdings -------------------------------------------------------

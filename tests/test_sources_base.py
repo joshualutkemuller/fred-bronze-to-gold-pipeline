@@ -13,8 +13,9 @@ class _Source(HTTPSource):
     source_name = "TEST"
 
     def __init__(self, session, **kw):
+        sleep = kw.pop("sleep", lambda _s: None)
         super().__init__(base_url="https://example.test/api", session=session,
-                         sleep=lambda _s: None, **kw)
+                         sleep=sleep, **kw)
 
     def _default_query(self):
         return {"token": "abc"}
@@ -40,6 +41,23 @@ def test_shared_retry_then_success(fake_session_cls, fake_response_cls):
     out = _Source(session, max_retries=5).fetch("thing")
     assert out == {"ok": True}
     assert len(session.calls) == 3
+
+
+def test_retry_after_header_controls_retry_sleep(fake_session_cls, fake_response_cls):
+    sleeps = []
+    retry = fake_response_cls(None, status_code=429)
+    retry.headers = {"Retry-After": "7"}
+    session = fake_session_cls([
+        retry,
+        fake_response_cls({"ok": True}, status_code=200),
+    ])
+
+    out = _Source(
+        session, max_retries=1, rate_limit_per_minute=0, sleep=sleeps.append
+    ).fetch("thing")
+
+    assert out == {"ok": True}
+    assert sleeps == [7.0]
 
 
 def test_non_retryable_raises_source_error(fake_session_cls, fake_response_cls):
