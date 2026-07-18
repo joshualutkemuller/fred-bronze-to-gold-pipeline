@@ -455,16 +455,72 @@ def _chow_scan(
     """
     n = len(dates)
     trim = max(min_segment, int(0.15 * n))
+    k = 2
+
+    # Full-sample fit once (identical to the value _chow_f_at recomputed on
+    # every iteration); handles the singular/ridge case internally.
+    full = _ols_fit(xs, ys)
+    if full is None:
+        return None, None, None, 0, 0
+    full_rss = full[2]
+
+    # Prefix sums make each candidate break's segment RSS O(1) instead of a
+    # fresh O(n) OLS fit, turning the whole scan from O(n^2) into O(n). For a
+    # non-singular segment the closed-form RSS = Syy - b0*Sy - b1*Sxy is
+    # algebraically identical to summing squared residuals; near-constant
+    # (singular) segments fall back to the exact _ols_fit ridge path.
+    px = [0.0] * (n + 1)
+    py = [0.0] * (n + 1)
+    pxx = [0.0] * (n + 1)
+    pxy = [0.0] * (n + 1)
+    pyy = [0.0] * (n + 1)
+    for i in range(n):
+        xi, yi = xs[i], ys[i]
+        px[i + 1] = px[i] + xi
+        py[i + 1] = py[i] + yi
+        pxx[i + 1] = pxx[i] + xi * xi
+        pxy[i + 1] = pxy[i] + xi * yi
+        pyy[i + 1] = pyy[i] + yi * yi
+
+    def _seg_rss(a: int, b: int) -> Optional[float]:
+        m = b - a
+        if m < k:
+            return None
+        sx = px[b] - px[a]
+        sy = py[b] - py[a]
+        sxx = pxx[b] - pxx[a]
+        sxy = pxy[b] - pxy[a]
+        syy = pyy[b] - pyy[a]
+        det = m * sxx - sx * sx
+        if abs(det) <= 1e-12 * (abs(m * sxx) + 1.0):
+            fit = _ols_fit(xs[a:b], ys[a:b])  # singular → exact ridge path
+            return None if fit is None else fit[2]
+        b1 = (m * sxy - sx * sy) / det
+        b0 = (sy - b1 * sx) / m
+        rss = syy - b0 * sy - b1 * sxy
+        return rss if rss > 0.0 else 0.0
+
     best_tau: Optional[int] = None
     best_f: Optional[float] = None
     for tau in range(trim, n - trim + 1):
-        f = _chow_f_at(xs, ys, tau)
-        if f is not None and (best_f is None or f > best_f):
+        if tau < k or (n - tau) < k or (n - 2 * k) <= 0:
+            continue
+        left_rss = _seg_rss(0, tau)
+        right_rss = _seg_rss(tau, n)
+        if left_rss is None or right_rss is None:
+            continue
+        rss_u = left_rss + right_rss
+        if full_rss < 1e-12 and rss_u < 1e-12:
+            continue
+        rss_u = max(rss_u, 1e-12 * max(full_rss, 1.0))
+        f = ((full_rss - rss_u) / k) / (rss_u / (n - 2 * k))
+        f = max(0.0, f)
+        if best_f is None or f > best_f:
             best_f = f
             best_tau = tau
     if best_tau is None or best_f is None:
         return None, None, None, 0, 0
-    k, d2 = 2, n - 4
+    d2 = n - 4
     p = _f_sf(best_f, k, d2) if d2 > 0 else None
     return dates[best_tau - 1], best_f, p, best_tau, n - best_tau
 
