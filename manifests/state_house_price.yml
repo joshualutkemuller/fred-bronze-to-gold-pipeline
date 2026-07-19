@@ -1,0 +1,179 @@
+name: state_house_price
+description: >
+  Item 1 of docs/handoffs/series_discovery.md — state-level All-Transactions
+  House Price Index (FRED release 171 'House Price Index').
+  manifests/production_housing.yml already carries 38 of the 51 state-level
+  STHPI series; these are the 14 genuinely missing ones (AK, AR, DE, KS, LA,
+  MS, ND, NE, NM, NV, OK, SD, WV, WY). Verified live against FRED
+  (2026-07-19).
+version: 1
+
+series:
+  - series_id: AKSTHPI
+    title: "All-Transactions House Price Index for Alaska"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: ARSTHPI
+    title: "All-Transactions House Price Index for Arkansas"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: DESTHPI
+    title: "All-Transactions House Price Index for Delaware"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: KSSTHPI
+    title: "All-Transactions House Price Index for Kansas"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: LASTHPI
+    title: "All-Transactions House Price Index for Louisiana"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: MSSTHPI
+    title: "All-Transactions House Price Index for Mississippi"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: NDSTHPI
+    title: "All-Transactions House Price Index for North Dakota"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: NESTHPI
+    title: "All-Transactions House Price Index for Nebraska"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: NMSTHPI
+    title: "All-Transactions House Price Index for New Mexico"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: NVSTHPI
+    title: "All-Transactions House Price Index for Nevada"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: OKSTHPI
+    title: "All-Transactions House Price Index for Oklahoma"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: SDSTHPI
+    title: "All-Transactions House Price Index for South Dakota"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: WVSTHPI
+    title: "All-Transactions House Price Index for West Virginia"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+
+  - series_id: WYSTHPI
+    title: "All-Transactions House Price Index for Wyoming"
+    category: state_housing
+    frequency: q
+    units: "Index 1980:Q1=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, house_price]
+

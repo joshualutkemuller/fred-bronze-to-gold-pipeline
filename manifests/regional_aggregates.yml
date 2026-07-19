@@ -1,0 +1,350 @@
+name: regional_aggregates
+description: >
+  Item 1 of docs/handoffs/series_discovery.md — Census/BEA/BLS regional
+  aggregates (FRED categories 32043 'Census Regions', 32061 'BEA Regions',
+  32849 'BLS Regions'; Freddie Mac Regions (32233) checked and skipped
+  entirely — every series in all 5 sub-regions is DISCONTINUED on FRED). 28
+  series: 4 Census-region unemployment rates + 4 populations, 8 BEA-region
+  populations + 8 quarterly all-industry GDP levels, 4 BLS 'urban' regional
+  CPI headlines. Housing-starts and median-home-price series for the 4 Census
+  regions were also discovered but dropped — already ingested via
+  manifests/production_housing.yml. Verified live against FRED (2026-07-19).
+version: 1
+
+series:
+  - series_id: CMWRUR
+    title: "Unemployment Rate in Midwest Census Region"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, census_ur]
+
+  - series_id: CNERUR
+    title: "Unemployment Rate in Northeast Census Region"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, census_ur]
+
+  - series_id: CSOUUR
+    title: "Unemployment Rate in South Census Region"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, census_ur]
+
+  - series_id: CWSTUR
+    title: "Unemployment Rate in West Census Region"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, census_ur]
+
+  - series_id: CMWRPOP
+    title: "Resident Population in the Midwest Census Region"
+    category: state_labor
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, census_pop]
+
+  - series_id: CNERPOP
+    title: "Resident Population in the Northeast Census Region"
+    category: state_labor
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, census_pop]
+
+  - series_id: CSOUPOP
+    title: "Resident Population in the South Census Region"
+    category: state_labor
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, census_pop]
+
+  - series_id: CWSTPOP
+    title: "Resident Population in the West Census Region"
+    category: state_labor
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, census_pop]
+
+  - series_id: BEAFWPOP
+    title: "Resident Population in the Far West BEA Region"
+    category: state_growth
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_pop]
+
+  - series_id: BEAGLPOP
+    title: "Resident Population in the Great Lakes BEA Region"
+    category: state_growth
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_pop]
+
+  - series_id: BEAMEPOP
+    title: "Resident Population in the Mideast BEA Region"
+    category: state_growth
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_pop]
+
+  - series_id: BEANEPOP
+    title: "Resident Population in the New England BEA Region"
+    category: state_growth
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_pop]
+
+  - series_id: BEAPLPOP
+    title: "Resident Population in the Plains BEA Region"
+    category: state_growth
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_pop]
+
+  - series_id: BEARMPOP
+    title: "Resident Population in the Rocky Mountain BEA Region"
+    category: state_growth
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_pop]
+
+  - series_id: BEASEPOP
+    title: "Resident Population in the Southeast BEA Region"
+    category: state_growth
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_pop]
+
+  - series_id: BEASWPOP
+    title: "Resident Population in the Southwest BEA Region"
+    category: state_growth
+    frequency: a
+    units: "Thousands of Persons"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_pop]
+
+  - series_id: FWSTNQGSP
+    title: "Gross Domestic Product: All Industry Total in the Far West BEA Region"
+    category: state_growth
+    frequency: q
+    units: "Millions of Dollars"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_gdp]
+
+  - series_id: GLAKNQGSP
+    title: "Gross Domestic Product: All Industry Total in the Great Lakes BEA Region"
+    category: state_growth
+    frequency: q
+    units: "Millions of Dollars"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_gdp]
+
+  - series_id: MESTNQGSP
+    title: "Gross Domestic Product: All Industry Total in the Mideast BEA Region"
+    category: state_growth
+    frequency: q
+    units: "Millions of Dollars"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_gdp]
+
+  - series_id: NENGNQGSP
+    title: "Gross Domestic Product: All Industry Total in the New England BEA Region"
+    category: state_growth
+    frequency: q
+    units: "Millions of Dollars"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_gdp]
+
+  - series_id: PLNSNQGSP
+    title: "Gross Domestic Product: All Industry Total in the Plains BEA Region"
+    category: state_growth
+    frequency: q
+    units: "Millions of Dollars"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_gdp]
+
+  - series_id: RKMTNQGSP
+    title: "Gross Domestic Product: All Industry Total in the Rocky Mountain BEA Region"
+    category: state_growth
+    frequency: q
+    units: "Millions of Dollars"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_gdp]
+
+  - series_id: SESTNQGSP
+    title: "Gross Domestic Product: All Industry Total in the Southeast BEA Region"
+    category: state_growth
+    frequency: q
+    units: "Millions of Dollars"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_gdp]
+
+  - series_id: SWSTNQGSP
+    title: "Gross Domestic Product: All Industry Total in the Southwest BEA Region"
+    category: state_growth
+    frequency: q
+    units: "Millions of Dollars"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 5
+    tags: [regional, bea_gdp]
+
+  - series_id: CUUR0100SA0
+    title: "Consumer Price Index for All Urban Consumers: All Items in Northeast"
+    category: state_inflation
+    frequency: m
+    units: "Index 1982-1984=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 4
+    tags: [regional, bls_cpi]
+
+  - series_id: CUUR0200SA0
+    title: "Consumer Price Index for All Urban Consumers: All Items in Midwest"
+    category: state_inflation
+    frequency: m
+    units: "Index 1982-1984=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 4
+    tags: [regional, bls_cpi]
+
+  - series_id: CUUR0300SA0
+    title: "Consumer Price Index for All Urban Consumers: All Items in South"
+    category: state_inflation
+    frequency: m
+    units: "Index 1982-1984=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 4
+    tags: [regional, bls_cpi]
+
+  - series_id: CUUR0400SA0
+    title: "Consumer Price Index for All Urban Consumers: All Items in West"
+    category: state_inflation
+    frequency: m
+    units: "Index 1982-1984=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_panel
+    priority: 4
+    tags: [regional, bls_cpi]
+

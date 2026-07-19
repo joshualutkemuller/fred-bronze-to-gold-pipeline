@@ -1,0 +1,91 @@
+name: regional_fed_indicators
+description: >
+  Item 1 of docs/handoffs/series_discovery.md — flagship regional Federal
+  Reserve indicators (FRED category 3008 "U.S. Regional Data" > 32071
+  "Federal Reserve Districts"). Live discovery found that FRED's
+  Federal-Reserve-Districts category itself mostly carries district-level
+  H.4.1 balance-sheet/population data, not the well-known regional surveys —
+  those had to be located by name via FRED's search API instead. Verified
+  live against FRED (2026-07-19): all 5 ids below resolve, titles/units/
+  frequency match what FRED reports.
+
+  Cross-manifest dedup note: the initial discovery pass turned up 10
+  candidates, but 5 were already ingested elsewhere and dropped here —
+  CFNAI/NFCI (manifests/production_housing.yml), PCETRIM12M159SFRBDAL
+  (manifests/prices_extra.yml), GDPNOW (manifests/macro_flags.yml), STLFSI4
+  (manifests/money_banking.yml). This pipeline's regional-Fed-index coverage
+  was already better than docs/handoffs/series_discovery.md assumed; the
+  5 below are the actual net-new gap.
+
+  Coverage note: of the 12 Fed districts, only Boston, Minneapolis,
+  Richmond, and San Francisco have no distinctive, independently-popular
+  flagship indicator discoverable on FRED (checked "Fifth District Survey"/
+  "Richmond Fed Survey", "Tenth District Manufacturing Survey"/"Kansas City
+  [Fed] Manufacturing", "San Francisco Fed Cyclical Core PCE"/"News
+  Sentiment" — Richmond and Minneapolis returned nothing relevant; San
+  Francisco's one candidate, "San Francisco Tech Pulse", is DISCONTINUED on
+  FRED). Not every district publishing a flagship product elsewhere means
+  it's on FRED.
+version: 1
+
+series:
+  - series_id: GACDISA066MSFRBNY
+    title: "Empire State Manufacturing Survey: Current General Business Conditions (Diffusion Index, SA)"
+    category: regional_fed
+    frequency: m
+    units: Diffusion Index (SA)
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_survey
+    priority: 4
+    tags: [regional, fed_survey, manufacturing, new_york]
+
+  - series_id: GACDFSA066MSFRBPHI
+    title: "Philadelphia Fed Manufacturing Business Outlook Survey: Current General Activity (Diffusion Index, SA)"
+    category: regional_fed
+    frequency: m
+    units: Diffusion Index (SA)
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_survey
+    priority: 4
+    tags: [regional, fed_survey, manufacturing, philadelphia]
+
+  - series_id: BACTSAMFRBDAL
+    title: "Texas Manufacturing Outlook Survey: Current General Business Activity (Diffusion Index, SA)"
+    category: regional_fed
+    frequency: m
+    units: Diffusion Index (SA)
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: regional_survey
+    priority: 5
+    tags: [regional, fed_survey, manufacturing, dallas, texas]
+
+  - series_id: MEDCPIM094SFRBCLE
+    title: "Cleveland Fed Median CPI (Index Level, Dec 1982=100)"
+    category: regional_fed
+    frequency: m
+    units: Index Dec 1982=100
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: alt_inflation
+    priority: 4
+    min_value: 0
+    tags: [regional, fed_index, inflation, cleveland]
+
+  - series_id: KCFSI
+    title: Kansas City Financial Stress Index
+    category: regional_fed
+    frequency: m
+    units: Index
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: financial_conditions
+    priority: 3
+    tags: [regional, fed_index, financial_conditions, kansas_city]
