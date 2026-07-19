@@ -507,6 +507,18 @@ class FredPipeline:
         from in storage, so this fetches live from FRED and writes directly
         — the only place in the pipeline a Gold table is populated outside
         ``build_gold()``. Failure here must not fail the run.
+
+        Fetches **per curated release_id** (the singular ``release/dates``
+        endpoint, scoped server-side) rather than one unfiltered
+        ``releases/dates`` call across all ~300 FRED releases. FRED doesn't
+        support filtering the plural endpoint by ``release_id`` server-side,
+        so the unfiltered form has to fetch and paginate the entire global
+        calendar and filter client-side — confirmed live to take minutes
+        (offset-based pagination degrades sharply past the first page) even
+        though only ~10 releases are ever kept. Looping per release_id is a
+        few fast, independent calls instead of one slow one; a single
+        release_id failing (network blip, since-removed release) is logged
+        and skipped rather than losing the whole calendar.
         """
         try:
             from datetime import date, timedelta
@@ -518,11 +530,22 @@ class FredPipeline:
 
             today = date.today()
             fred_client = self._client_for_source("fred")
-            release_dates = fred_client.get_release_dates(
-                realtime_start=today.isoformat(),
-                realtime_end=(today + timedelta(days=120)).isoformat(),
-            )
             cfg = load_release_calendar_config()
+
+            release_dates: list[dict[str, Any]] = []
+            for entry in cfg:
+                try:
+                    release_dates.extend(fred_client.get_release_dates(
+                        release_id=entry.release_id,
+                        realtime_start=today.isoformat(),
+                        realtime_end=(today + timedelta(days=120)).isoformat(),
+                    ))
+                except Exception:
+                    log.exception(
+                        "Release dates fetch failed for release_id %s (run %s)",
+                        entry.release_id, run.run_id,
+                    )
+
             rows = compute_release_calendar(release_dates, cfg, as_of=today)
             self.warehouse.write_release_calendar(rows)
             log.info(
