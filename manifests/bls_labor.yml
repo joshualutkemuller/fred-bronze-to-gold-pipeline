@@ -2,7 +2,7 @@ name: bls_labor
 description: >
   Demonstration manifest for the multi-source capability: these series are
   pulled from the BLS Public Data API (source: bls) rather than FRED, and flow
-  through the same Bronze/Silver/Gold path. Shipped inactive (active: false) so
+  through the same Bronze/Silver/Gold path. Shipped inactive (active: true) so
   default runs don't fetch them; set active: true to enable once a BLS
   registration key is configured (keyless also works at a lower quota).
 version: 1
@@ -14,7 +14,7 @@ series:
     category: labor
     frequency: m
     units: Percent
-    active: false
+    active: true
     source: bls
     load_type: incremental
     expected_update_frequency: monthly

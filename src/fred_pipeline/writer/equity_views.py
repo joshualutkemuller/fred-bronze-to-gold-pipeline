@@ -3,9 +3,11 @@
 Equity sub-plan (handoff.md → "Equity Price & Total Return — Two-Source
 Sub-Plan"):
 
-  * :func:`compute_equity_return_daily` → ``gold.equity_return_daily``: daily
-    price return per ticker from the exploded Stooq ``<ticker>:close`` series
-    (split-adjusted close → clean price return).
+  * :func:`select_canonical_equity_price_rows` +
+    :func:`compute_equity_return_daily` → ``gold.equity_return_daily``: daily
+    return per ticker from the canonical close series. Stooq ``:close`` is
+    preferred when present; otherwise Tiingo ``:adjClose`` is mapped into the
+    same shape so Gold does not depend on Stooq availability.
   * :func:`compute_index_constituents` → ``gold.index_constituents``: the
     per-snapshot ETF constituent weights from ``<ETF>:<constituent>`` series.
   * :func:`compute_equity_total_return_index` →
@@ -18,11 +20,10 @@ Sub-Plan"):
     flagging dates where both sources diverge beyond a tolerance.
 
 **Source isolation.** Stooq and Tiingo both name a ``<ticker>:close`` series,
-so the callers pass **source-filtered** Silver rows (Stooq → price return,
-Tiingo → total return, iShares → constituents) rather than the merged
-latest-observation table — which would otherwise collapse the two ``:close``
-sources for the same ticker/date onto one row. The engines themselves stay
-source-agnostic (they just consume the rows handed to them).
+so the callers pass **source-filtered** Silver rows rather than the merged
+latest-observation table — which would otherwise collapse vendor rows for the
+same ticker/date onto one row. The engines themselves stay source-agnostic
+(they just consume the rows handed to them).
 """
 
 from __future__ import annotations
@@ -37,8 +38,9 @@ from fred_pipeline.equity_reconciliation_config import (
 )
 from fred_pipeline.features import _parse, _pct_change
 
-# Silver series_id suffix carrying the (split-adjusted) close.
+# Silver series_id suffixes carrying close-like price values.
 CLOSE_FIELD = "close"
+ADJ_CLOSE_FIELD = "adjClose"
 
 
 def _close_ticker(series_id: str) -> str | None:
@@ -49,17 +51,54 @@ def _close_ticker(series_id: str) -> str | None:
     return None
 
 
+def _field_ticker(series_id: str, wanted_field: str) -> str | None:
+    ticker, sep, field = series_id.partition(":")
+    if sep and field == wanted_field and ticker:
+        return ticker.upper()
+    return None
+
+
+def select_canonical_equity_price_rows(
+    stooq_rows: Iterable[dict[str, Any]],
+    tiingo_rows: Iterable[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Choose the rows used by ``gold.equity_return_daily``.
+
+    Stooq remains the preferred price-return source for tickers where it has
+    data. For tickers with no Stooq ``:close`` rows, Tiingo ``:adjClose`` rows
+    are converted into ``<ticker>:close`` rows so the existing return engine can
+    build the Gold table from the keyed Tiingo feed.
+    """
+    out: list[dict[str, Any]] = []
+    stooq_tickers: set[str] = set()
+    for row in stooq_rows:
+        ticker = _field_ticker(row.get("series_id", ""), CLOSE_FIELD)
+        if ticker is None:
+            continue
+        stooq_tickers.add(ticker)
+        out.append(dict(row))
+
+    for row in tiingo_rows:
+        ticker = _field_ticker(row.get("series_id", ""), ADJ_CLOSE_FIELD)
+        if ticker is None or ticker in stooq_tickers:
+            continue
+        mapped = dict(row)
+        mapped["series_id"] = f"{ticker}:close"
+        mapped["source"] = "tiingo"
+        out.append(mapped)
+    return out
+
+
 def compute_equity_return_daily(
     latest_rows: Iterable[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     """``gold.equity_return_daily``: one row per ticker × date from the
-    ``<ticker>:close`` Silver series — the close, the day-over-day price change
-    and simple return, and a cumulative price-return index (=100 at each
-    ticker's first observation). Stooq close is split-adjusted, so the simple
-    return is a clean price return (dividends excluded — that's the Tiingo
-    total-return slice). Multi-source note: only ``source='stooq'`` (or any
-    ``:close`` series) participates; a ticker with a single observation emits
-    that row with null return."""
+    ``<ticker>:close`` row stream — the close, the day-over-day price change
+    and simple return, and a cumulative return index (=100 at each ticker's
+    first observation). Callers should pass
+    :func:`select_canonical_equity_price_rows` when multiple vendors are
+    available. A ticker with a single observation emits that row with null
+    return."""
     by_ticker: dict[str, list[tuple[date, float]]] = {}
     for r in latest_rows:
         ticker = _close_ticker(r.get("series_id", ""))

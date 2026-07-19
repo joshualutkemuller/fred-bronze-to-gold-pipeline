@@ -27,6 +27,7 @@ from __future__ import annotations
 import csv
 import io
 import logging
+import re
 import time
 from typing import Any, Callable, Optional
 
@@ -41,6 +42,15 @@ FIELD_TO_HEADER = {
     "close": "Close", "volume": "Volume",
 }
 DEFAULT_FIELD = "close"
+STOOQ_KEY_HELP = (
+    "Stooq CSV downloads now require an API key. Set STOOQ_API_KEY / "
+    "stooq_api_key after generating one from Stooq's historical-data page."
+)
+_BLOCKED_PATTERNS = (
+    re.compile(r"requires javascript to verify your browser", re.I),
+    re.compile(r"access denied", re.I),
+    re.compile(r"get your apikey", re.I),
+)
 
 
 class StooqAPIError(SourceError):
@@ -126,6 +136,14 @@ def normalize_stooq_observations(
     return rows
 
 
+def _blocked_or_key_required(text: str) -> bool:
+    if not text:
+        return False
+    if any(pattern.search(text) for pattern in _BLOCKED_PATTERNS):
+        return True
+    return "<html" in text[:500].lower() and "Date,Open,High,Low,Close" not in text
+
+
 class StooqClient(HTTPSource):
     """Retrying, rate-limited Stooq CSV client (keyless)."""
 
@@ -134,6 +152,7 @@ class StooqClient(HTTPSource):
 
     def __init__(
         self,
+        api_key: str = "",
         base_url: str = "https://stooq.com",
         *,
         session: Any = None,
@@ -142,6 +161,7 @@ class StooqClient(HTTPSource):
         rate_limit_per_minute: int = 60,
         sleep: Callable[[float], None] = time.sleep,
     ):
+        self.api_key = api_key
         super().__init__(
             base_url=base_url,
             session=session,
@@ -151,10 +171,19 @@ class StooqClient(HTTPSource):
             sleep=sleep,
         )
 
+    def _default_query(self) -> dict[str, Any]:
+        return {"apikey": self.api_key} if self.api_key else {}
+
+    def _request_headers(self) -> dict[str, str]:
+        return {
+            "User-Agent": "Mozilla/5.0 (compatible; fred-pipeline/1.0)",
+            "Accept": "text/csv,text/plain,*/*",
+        }
+
     def observations_endpoint(self, series_id: str) -> str:
         """Lineage string recorded in Bronze (the download path)."""
         ticker, _field = _parse_series_id(series_id)
-        return f"q/d/l?s={_stooq_symbol(ticker)}&i=d"
+        return f"q/d/l/?s={_stooq_symbol(ticker)}&i=d"
 
     # ---- SourceClient contract ------------------------------------------
 
@@ -175,7 +204,9 @@ class StooqClient(HTTPSource):
             params["d1"] = str(observation_start).replace("-", "")[:8]
         if observation_end:
             params["d2"] = str(observation_end).replace("-", "")[:8]
-        text = self._request("q/d/l", params, as_text=True)
+        text = self._request("q/d/l/", params, as_text=True)
+        if _blocked_or_key_required(text):
+            raise StooqAPIError(f"{STOOQ_KEY_HELP} Series {series_id!r} was blocked.")
         return {"format": "csv", "field": field, "text": text}
 
     def normalize(

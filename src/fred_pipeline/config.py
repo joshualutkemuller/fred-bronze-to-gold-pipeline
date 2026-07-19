@@ -51,6 +51,7 @@ _SETTING_FIELDS = (
     "bea_api_key",
     "census_api_key",
     "sec_user_agent",
+    "stooq_api_key",
     "tiingo_api_key",
     "secret_scope",
     "secret_key",
@@ -76,6 +77,7 @@ _ENV_OVERRIDES = {
     "bea_api_key": "BEA_API_KEY",
     "census_api_key": "CENSUS_API_KEY",
     "sec_user_agent": "SEC_USER_AGENT",
+    "stooq_api_key": "STOOQ_API_KEY",
     "tiingo_api_key": "TIINGO_API_KEY",
     "secret_scope": "FRED_SECRET_SCOPE",
     "secret_key": "FRED_SECRET_KEY",
@@ -205,6 +207,7 @@ class PipelineConfig:
     bea_api_key: str = field(repr=False, default="")
     census_api_key: str = field(repr=False, default="")
     sec_user_agent: str = "fred-bronze-to-gold-pipeline (set SEC_USER_AGENT to your contact)"
+    stooq_api_key: str = field(repr=False, default="")  # Stooq CSV download key
     tiingo_api_key: str = field(repr=False, default="")  # equity total return
     secret_scope: str = "fred"
     secret_key: str = "api_key"
@@ -303,7 +306,7 @@ class PipelineConfig:
         # resources/source_jobs.yml). Optional: a missing secret leaves the key
         # empty; the source's client only raises if such a series is run.
         for field_name in ("bls_api_key", "eia_api_key", "bea_api_key",
-                           "census_api_key"):
+                           "census_api_key", "stooq_api_key", "tiingo_api_key"):
             if not settings.get(field_name) and dbutils is not None:
                 try:
                     settings[field_name] = dbutils.secrets.get(

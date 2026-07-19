@@ -276,7 +276,7 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "board table by region", "Policy rate, last move, stance, ex-post real rate."),
     _entry("equity_return_daily", "fact", "EQUITY", "1 / ticker x date",
            "line / return heatmap",
-           "Daily price return per ticker from split-adjusted Stooq close, with a cumulative price-return index."),
+           "Daily return per ticker from canonical close rows: Stooq close when available, otherwise Tiingo adjClose."),
     _entry("index_constituents", "fact", "EQUITY", "1 / ETF x constituent x snapshot",
            "weight treemap / table (filter is_latest_snapshot)",
            "ETF constituent weights exploded from daily holdings, with rank and latest-snapshot flag."),

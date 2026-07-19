@@ -321,14 +321,19 @@ def test_missing_source_keys():
     from fred_pipeline.pipeline import missing_source_keys
 
     cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k")  # no eia key
-    # fred satisfied, bls keyless (never required), eia missing
+    # fred satisfied, bls keyless (never required), eia/stooq missing
     assert missing_source_keys(cfg, ["fred", "bls"]) == {}
-    assert missing_source_keys(cfg, ["fred", "bls", "eia"]) == {"eia": "eia_api_key"}
+    assert missing_source_keys(cfg, ["fred", "bls", "eia", "stooq"]) == {
+        "eia": "eia_api_key",
+        "stooq": "stooq_api_key",
+    }
 
     cfg2 = PipelineConfig(environment=Environment.DEV, fred_api_key="",
-                          eia_api_key="e")
-    # fred required but empty; eia satisfied
-    assert missing_source_keys(cfg2, ["fred", "eia"]) == {"fred": "fred_api_key"}
+                          eia_api_key="e", stooq_api_key="s")
+    # fred required but empty; eia/stooq satisfied
+    assert missing_source_keys(cfg2, ["fred", "eia", "stooq"]) == {
+        "fred": "fred_api_key"
+    }
 
 
 def test_config_table_naming():

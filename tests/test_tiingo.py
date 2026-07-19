@@ -181,7 +181,7 @@ def test_stooq_and_tiingo_close_do_not_collide(tmp_path):
     results = wh.build_gold()
     assert results["equity_total_return_index"] == "ok"
 
-    # price-return table sees ONLY the Stooq close (200/202)
+    # price-return table prefers the available Stooq close (200/202)
     pr = wh.query("SELECT * FROM gold_equity_return_daily ORDER BY observation_date")
     assert [r["close"] for r in pr] == pytest.approx([200.0, 202.0])
     # total-return table sees ONLY the Tiingo close (100/101)

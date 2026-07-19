@@ -125,8 +125,9 @@ def _make_sec(config: PipelineConfig) -> SourceClient:
 
 
 def _make_stooq(config: PipelineConfig) -> SourceClient:
-    # Stooq is keyless daily OHLCV (equity price return).
+    # Stooq daily OHLCV (equity price return); CSV downloads may require a key.
     return StooqClient(
+        api_key=getattr(config, "stooq_api_key", "") or "",
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
         rate_limit_per_minute=_rate_limit_for_source(config, "stooq"),
@@ -170,11 +171,12 @@ SOURCE_FACTORIES = {
 
 # Sources that require an API key to call, mapped to the PipelineConfig
 # attribute holding it. Sources not listed can run keyless (BLS, Census,
-# Treasury, World Bank, SEC, Stooq, iShares).
+# Treasury, World Bank, SEC, iShares).
 SOURCE_KEY_REQUIREMENTS = {
     "fred": "fred_api_key",
     "eia": "eia_api_key",
     "bea": "bea_api_key",
+    "stooq": "stooq_api_key",
     "tiingo": "tiingo_api_key",
 }
 

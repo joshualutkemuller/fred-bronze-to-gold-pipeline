@@ -44,14 +44,15 @@ default:
   # bea_national_accounts.yml, equity_tiingo.yml, etc.) ships with
   # `active: false`, so the pipeline runs fine on FRED alone until you flip a
   # manifest to active AND set the matching key below (or its env var).
-  # EIA and BEA and Tiingo *require* a key (their client raises without one);
+  # EIA, BEA, Stooq, and Tiingo *require* a key (their clients raise without one);
   # BLS and Census work keyless at a lower daily quota; SEC needs a
   # descriptive User-Agent (contact info), not a key, or it 403s; Treasury,
-  # World Bank, and Stooq are fully keyless.
+  # World Bank, and iShares are fully keyless.
   bls_api_key: ""       # BLS_API_KEY    — optional, https://www.bls.gov/developers/api_signature_v2.htm
   eia_api_key: ""       # EIA_API_KEY    — required if any eia_* manifest is active, https://www.eia.gov/opendata/register.php
   bea_api_key: ""       # BEA_API_KEY    — required if any bea_* manifest is active (UserID), https://apps.bea.gov/API/signup/
   census_api_key: ""    # CENSUS_API_KEY — optional, https://api.census.gov/data/key_signup.html
+  stooq_api_key: ""     # STOOQ_API_KEY  — required if equity_stooq.yml is active; generate from a Stooq historical-data CSV link
   tiingo_api_key: ""    # TIINGO_API_KEY — required if equity_tiingo.yml is active, https://www.tiingo.com/account/api/token
   sec_user_agent: ""    # SEC_USER_AGENT — required if any sec_* manifest is active; e.g. "Your Name your@email.com"
 

@@ -3,7 +3,7 @@ description: >
   Demonstration manifest for the BEA API (source: bea), flowing through the same
   Bronze → Silver → Gold path as the other sources. Requires a free BEA key
   (UserID). series_id encodes '<dataset>:<table>:<line>:<frequency>'. Shipped
-  inactive (active: false); set active: true once a key is configured.
+  inactive (active: true); set active: true once a key is configured.
 version: 1
 
 series:
@@ -12,7 +12,7 @@ series:
     category: growth
     frequency: q
     units: Percent
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: quarterly
@@ -27,7 +27,7 @@ series:
     category: growth
     frequency: q
     units: Billions of Dollars
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: quarterly

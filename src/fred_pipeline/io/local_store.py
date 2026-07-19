@@ -992,20 +992,23 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_powerbi_catalog")
         self._insert("gold_powerbi_catalog", powerbi_catalog_rows())
 
-        # Equity slice: price return (Stooq), constituents (iShares), total
-        # return (Tiingo). Fed source-filtered Silver rows so the shared
-        # <ticker>:close namespace can't collapse Stooq and Tiingo onto one row
-        # (equity data is non-vintage → one row per (series_id, date) already).
+        # Equity slice: canonical price return, constituents (iShares), total
+        # return (Tiingo). Feed source-filtered Silver rows so the shared
+        # <ticker>:close namespace can't collapse vendor rows before canonical
+        # selection (equity data is non-vintage → one row per source/id/date).
         from fred_pipeline.equity_views import (
             compute_equity_price_reconciliation,
             compute_equity_return_daily,
             compute_equity_total_return_index,
             compute_index_constituents,
+            select_canonical_equity_price_rows,
         )
         stooq_rows = [r for r in silver if r.get("source") == "stooq"]
         ishares_rows = [r for r in silver if r.get("source") == "ishares"]
         tiingo_rows = [r for r in silver if r.get("source") == "tiingo"]
-        eq_return_rows = compute_equity_return_daily(stooq_rows)
+        eq_return_rows = compute_equity_return_daily(
+            select_canonical_equity_price_rows(stooq_rows, tiingo_rows)
+        )
         self.conn.execute("DELETE FROM gold_equity_return_daily")
         self._insert("gold_equity_return_daily", eq_return_rows)
         self.conn.execute("DELETE FROM gold_index_constituents")

@@ -29,7 +29,7 @@ Set environment variables (the recommended way — nothing lands in git):
 | Tiingo (equity total return) | `TIINGO_API_KEY` | **Required** for `tiingo` series — free account key (personal use) | https://www.tiingo.com |
 | US Treasury | — | Nothing needed (fully open) | — |
 | World Bank | — | Nothing needed (fully open) | — |
-| Stooq (equity prices) | — | Nothing needed (keyless CSV) | — |
+| Stooq (optional equity-price reconciliation) | `STOOQ_API_KEY` | Only needed if you reactivate `equity_stooq.yml`; Gold now falls back to Tiingo prices | Open `https://stooq.com/q/d/?s=spy.us&get_apikey`, complete captcha, copy the `apikey` from the CSV download link |
 | iShares/SSGA (ETF holdings) | — | Nothing needed (keyless CSV) | — |
 
 ```bash
@@ -37,6 +37,7 @@ export FRED_API_KEY="your-fred-key"
 export EIA_API_KEY="your-eia-key"
 export BEA_API_KEY="your-bea-key"
 export SEC_USER_AGENT="you@example.com"
+export STOOQ_API_KEY="your-stooq-key"
 # optional quota bumps:
 export BLS_API_KEY="your-bls-key"
 export CENSUS_API_KEY="your-census-key"
@@ -76,7 +77,7 @@ Manifests you may want to activate:
 | `bea_national_accounts.yml` | bea | NIPA tables |
 | `census_indicators.yml` | census | economic indicators |
 | `sec_financials.yml` | sec | company XBRL fundamentals |
-| `equity_stooq.yml` | stooq | broad ETFs + large-cap stocks (price return) |
+| `equity_stooq.yml` | stooq | optional/inactive broad ETFs + large-cap stocks for vendor reconciliation |
 | `etf_holdings.yml` | ishares | ETF constituent weights (`gold.index_constituents`) |
 | `equity_tiingo.yml` | tiingo | broad ETFs + stocks total return (needs `TIINGO_API_KEY`) |
 | `macro_flags.yml` | fred | `USREC` — lights up every `is_recession` column |

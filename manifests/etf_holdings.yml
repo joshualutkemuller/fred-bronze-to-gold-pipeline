@@ -18,7 +18,7 @@ series:
     category: equity
     frequency: d
     units: Weight Percent
-    active: false
+    active: true
     source: ishares
     vintage_enabled: false
     validation_profile: standard
