@@ -35,10 +35,10 @@ def test_plan_tiingo_constituent_pricing_selects_missing_and_stale_by_weight():
     assert plan.skipped_unpriceable == ("ESU6",)
     assert [(c.ticker, c.reason) for c in plan.candidates] == [
         ("NVDA", "missing"),
-        ("MSFT", "stale"),
         ("AMZN", "missing"),
+        ("MSFT", "stale"),
     ]
-    assert [c.ticker for c in plan.batch] == ["NVDA", "MSFT"]
+    assert [c.ticker for c in plan.batch] == ["NVDA", "AMZN"]
 
 
 def test_specs_for_tiingo_candidates_builds_active_tiingo_specs():

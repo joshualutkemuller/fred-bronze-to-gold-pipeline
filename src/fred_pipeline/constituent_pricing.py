@@ -135,7 +135,7 @@ def plan_tiingo_constituent_pricing(
             )
         )
 
-    candidates.sort(key=lambda c: (c.weight_rank, c.ticker))
+    candidates.sort(key=lambda c: (c.reason == "stale", c.weight_rank, c.ticker))
     batch = tuple(candidates[:limit])
     return ConstituentPricingPlan(
         index_etf=index_etf.upper(),
