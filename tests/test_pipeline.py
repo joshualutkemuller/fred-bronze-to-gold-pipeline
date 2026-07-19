@@ -145,6 +145,28 @@ def test_series_failure_is_isolated(observations_payload, fake_client_cls):
     assert "boom" in bad.error_message
 
 
+def test_tiingo_incremental_plan_uses_adjclose_watermark():
+    class Warehouse:
+        def __init__(self):
+            self.requested = []
+
+        def restate_start(self, series_id, n):
+            self.requested.append((series_id, n))
+            return "2026-07-17"
+
+    cfg = PipelineConfig(environment=Environment.DEV, tiingo_api_key="k")
+    wh = Warehouse()
+    pipe = FredPipeline(cfg, warehouse=wh, persist_audit=False)
+
+    start, load_type = pipe._plan_extract(
+        _spec("AAPL", source="tiingo", vintage_enabled=False)
+    )
+
+    assert start == "2026-07-17"
+    assert load_type == f"restate_last_{cfg.restate_last_n}"
+    assert wh.requested == [("AAPL:adjClose", cfg.restate_last_n)]
+
+
 def test_strict_profile_fails_run_on_dq(fake_client_cls):
     all_missing = {"observations": [
         {"date": "2024-01-01", "value": ".", "realtime_start": "2024-01-02",

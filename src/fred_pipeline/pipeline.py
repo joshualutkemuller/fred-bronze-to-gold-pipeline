@@ -650,7 +650,13 @@ class FredPipeline:
         if force_full or spec.load_type == LoadType.FULL or self.warehouse is None:
             return None, "full"
         n = spec.restate_records or self.config.restate_last_n
-        start = self.warehouse.restate_start(spec.series_id, n)
+        watermark_series_id = spec.series_id
+        if (getattr(spec, "source", "fred") or "fred").lower() == "tiingo":
+            # Tiingo manifests use the bare ticker, but Silver stores exploded
+            # scalar fields. Use adjClose as the date watermark for incremental
+            # reruns so an already-priced ticker does not refetch full history.
+            watermark_series_id = f"{spec.series_id.partition(':')[0]}:adjClose"
+        start = self.warehouse.restate_start(watermark_series_id, n)
         if start is None:
             return None, "full"  # first load: series not in the warehouse yet
         return start, f"restate_last_{n}"

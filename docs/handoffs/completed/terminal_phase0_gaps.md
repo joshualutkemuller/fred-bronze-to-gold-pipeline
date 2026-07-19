@@ -1,5 +1,12 @@
 # Pipeline build handoff: 3 gaps blocking terminal Phase 1
 
+**Status: ALL 3 ITEMS COMPLETE** (merged to `main` via PR #29, 2026-07-18).
+Item 2 was already built before this handoff was actioned; items 1 and 3 were
+built, tested (both backends, including a live Spark+Delta integration test
+for item 3), and verified against live FRED/Fed data. See the per-item
+verdicts below for exactly what shipped and what live-data quirks were found
+along the way.
+
 **Audience:** an agent working in **this** repo (`fred-bronze-to-gold-pipeline`).
 **Why:** the sibling `market_terminal` is cutting over to read macro/market data
 **only** from this Gold layer (its plan: `../market_terminal/docs/GOLD_DB_MIGRATION_HANDOFF.md`).
@@ -58,6 +65,18 @@ not a revised observation).
 **Verdict for the terminal:** once shipped, `CAL` becomes a clean Tier-A
 DB read. Until then it stays a flagged live exception.
 
+**Status: DONE.** Shipped as designed: `FredClient.get_release_dates()`,
+`config/release_calendar.yml` (curated), `terminal_views.
+compute_release_calendar`, `Warehouse.write_release_calendar` on both
+backends, wired into `FredPipeline.run()` (the one Gold table populated by a
+live fetch rather than `build_gold()`, per the design note above). **Live-data
+finding:** FRED release_id 101 ("FOMC Press Release") does not behave as a
+discrete ~8x/year event in `/fred/release(s)/dates` — over a 120-day forward
+window it degenerates into a placeholder for nearly every business day
+(confirmed live; every other curated release returns clean, correctly-spaced
+dates). Dropped from the curated list — FOMC coverage is already handled far
+better by item 3's dedicated, live-verified Fed calendar.
+
 ---
 
 ## 2. PCE item-level inflation — BEA manifest (extends `gold.inflation_explorer`)  *(no new code)*
@@ -98,6 +117,10 @@ like the CPI weights already do. Requires `BEA_API_KEY` at ingest time.
 **Verdict for the terminal:** ship `INFL` now with CPI-full + PCE-headline; the
 PCE drill fills in the moment this manifest is activated + verified. No terminal
 code change needed when it lands.
+
+**Status: DONE** (was already built before this handoff was actioned).
+`manifests/bea_pce_items.yml` and the PCE tree in `config/inflation_items.yml`
+exist exactly as scoped, with `tests/test_pce_items.py` covering both.
 
 ---
 
@@ -162,18 +185,37 @@ per meeting should sum to ~1 across buckets; assert this in tests.
 **Verdict for the terminal:** `FOMC` becomes a clean Gold read like REGIME —
 a compute module, no live external feed, no CME dependency.
 
+**Status: DONE.** Shipped as designed, with one resolved open question: the
+"implied path" input (left unspecified above) is a **forward-rate bootstrap
+off the short end of the Treasury curve** (`DGS1MO`/`DGS3MO`/`DGS6MO`/`DGS1`)
+— `f` s.t. `(1+y1)^t1 · (1+f)^(t2-t1) = (1+y2)^t2` between consecutive
+meeting horizons — chosen over simpler nearest-tenor bracketing because it
+gives a genuinely distinct expected move for every meeting rather than
+smearing the same yield across meetings 3+. The distribution ladder and
+meeting-chaining loop are ported verbatim from `macro_data_etl/src/
+analytics/fed_probability.py`; only the futures-price input is replaced.
+Meeting dates (`config/fomc.yml`) verified live against
+federalreserve.gov's published calendar through Dec 2027. Verified end-to-end
+on **both** backends, including a real local Spark+Delta session (`tests/
+test_spark_integration.py::test_fomc_tables_build_end_to_end_on_spark`) —
+probabilities sum to ~1.0 for every meeting on both.
+
 ---
 
 ## Summary
 
-| # | Item | Effort | New source client? | New manifest? | New Gold object | Blocks terminal |
-|---|---|---|---|---|---|---|
-| 1 | Release calendar | S | no (FRED client extension) | no (config only) | `gold.release_calendar` | `CAL` |
-| 2 | PCE item level | S–M | no (BEA already wired) | yes (`bea_pce_items.yml`) + config | *extends* `inflation_explorer`/`inflation_contribution` | `INFL` PCE drill |
-| 3 | FOMC probabilities (option A) | M | no (compute from Gold rates) | no (config only) | `gold.fomc_probability` + `fomc_meeting_path` | `FOMC` |
+| # | Item | Effort | New source client? | New manifest? | New Gold object | Blocks terminal | Status |
+|---|---|---|---|---|---|---|---|
+| 1 | Release calendar | S | no (FRED client extension) | no (config only) | `gold.release_calendar` | `CAL` | ✅ DONE |
+| 2 | PCE item level | S–M | no (BEA already wired) | yes (`bea_pce_items.yml`) + config | *extends* `inflation_explorer`/`inflation_contribution` | `INFL` PCE drill | ✅ DONE |
+| 3 | FOMC probabilities (option A) | M | no (compute from Gold rates) | no (config only) | `gold.fomc_probability` + `fomc_meeting_path` | `FOMC` | ✅ DONE |
 
-All three are decided and unblocked — build them. Item 3 is locked to **option A**
-(compute from FRED short-rate/target series already ingested; **no CME
-connector** — rejected on licensing/redistribution cost). None of the three block
-the rest of terminal Phase 1 (ECON/rates/credit/funding/markets), which read Gold
-objects that already exist.
+**All three are complete and merged to `main` (PR #29, 2026-07-18).** Item 3
+was locked to **option A** (compute from FRED short-rate/target series
+already ingested via a Treasury-curve forward-rate bootstrap; **no CME
+connector** — rejected on licensing/redistribution cost). None of the three
+blocked the rest of terminal Phase 1 (ECON/rates/credit/funding/markets),
+which read Gold objects that already existed. The terminal's `market_terminal`
+repo can now cut over `CAL` and `FOMC` to Tier-A Gold reads, and activate the
+PCE item-level drill in `INFL` once `manifests/bea_pce_items.yml` is verified
+and flipped to `active: true`.

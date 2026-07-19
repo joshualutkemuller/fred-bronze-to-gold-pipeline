@@ -138,6 +138,26 @@ Rebuild Gold from already-persisted Silver without calling external APIs:
 fred-pipeline gold --local --db-path fred_local.db
 ```
 
+Price ETF constituents from the latest iShares holdings:
+
+```bash
+# 1) Refresh holdings first; iShares stays the source of truth for membership.
+fred-pipeline run --local --db-path fred_local.db --series IVV --no-gold
+fred-pipeline gold --local --db-path fred_local.db
+
+# 2) See which current constituents are missing/stale in Tiingo.
+fred-pipeline price-constituents --db-path fred_local.db \
+  --index-etf IVV --max-symbols 25 --stale-days 7 --dry-run
+
+# 3) Pull the next quota-safe batch. The runner derives tickers dynamically
+#    from gold_index_constituents, pulls one at a time, and stops on Tiingo 429s.
+fred-pipeline price-constituents --db-path fred_local.db \
+  --index-etf IVV --max-symbols 25 --rate-limit-per-minute 5
+
+# 4) Rebuild Gold after one or more successful pricing batches.
+fred-pipeline gold --local --db-path fred_local.db
+```
+
 Exit codes: `0` = succeeded or partial, `1` = failed, `2` = an active source
 is missing its API key (the message names the env var).
 
@@ -171,6 +191,11 @@ sqlite3 fred_local.db "SELECT series_id, status, error_message
   only the last `restate_last_n` observations per series (default 90) to
   capture revisions; `--full` overrides. See
   `docs/incremental_loading.md`.
+* **Constituent pricing is dynamic.** iShares holdings populate
+  `gold_index_constituents`; `fred-pipeline price-constituents` reads that
+  current membership, compares it with Tiingo `:adjClose` freshness in Silver,
+  and runs only a capped batch of missing/stale tickers. No static constituent
+  pricing manifest is required.
 * **Extraction is source-aware.** Active sources run in separate thread pools
   with separate client-side rate limiters. Tiingo defaults to a low worker cap
   to avoid hourly quota bursts; override with `--source-workers` or

@@ -28,6 +28,7 @@ Reconcile manifests against live FRED metadata (drift + lifecycle)::
 from __future__ import annotations
 
 import argparse
+import datetime as _dt
 import json
 import logging
 import sys
@@ -387,6 +388,139 @@ def _cmd_gold(args: argparse.Namespace) -> int:
     return 0
 
 
+def _quota_limited(run) -> bool:
+    for series_run in run.series_runs:
+        message = (series_run.error_message or "").lower()
+        if "http 429" in message or "hourly request allocation" in message:
+            return True
+        if "rate limit" in message or "quota" in message:
+            return True
+    return False
+
+
+def _cmd_price_constituents(args: argparse.Namespace) -> int:
+    from fred_pipeline.config import _ENV_OVERRIDES
+    from fred_pipeline.constituent_pricing import (
+        plan_tiingo_constituent_pricing,
+        specs_for_tiingo_candidates,
+    )
+    from fred_pipeline.local_store import LocalWarehouse
+    from fred_pipeline.pipeline import missing_source_keys
+
+    config = PipelineConfig.resolve(
+        environment=Environment(args.env),
+        config_file=args.config,
+        source_extract_workers=f"tiingo={args.workers}",
+        source_rate_limits=f"tiingo={args.rate_limit_per_minute}",
+    )
+
+    as_of = None
+    if args.as_of_date:
+        try:
+            as_of = _dt.date.fromisoformat(args.as_of_date)
+        except ValueError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 2
+
+    warehouse = LocalWarehouse(config, db_path=args.db_path)
+    try:
+        constituent_rows = warehouse.query(
+            """
+            SELECT constituent AS ticker, weight_rank, weight_pct
+            FROM gold_index_constituents
+            WHERE index_etf = ? AND is_latest_snapshot = 1
+            ORDER BY weight_rank, constituent
+            """,
+            (args.index_etf.upper(),),
+        )
+        latest_price_rows = warehouse.query(
+            """
+            SELECT
+                substr(series_id, 1, instr(series_id, ':') - 1) AS ticker,
+                MAX(observation_date) AS latest_price_date
+            FROM silver_fred_observation
+            WHERE source = 'tiingo' AND series_id LIKE '%:adjClose'
+            GROUP BY ticker
+            """
+        )
+        plan = plan_tiingo_constituent_pricing(
+            constituent_rows,
+            latest_price_rows,
+            index_etf=args.index_etf,
+            as_of_date=as_of,
+            stale_days=args.stale_days,
+            limit=args.max_symbols,
+        )
+
+        summary = {
+            "index_etf": plan.index_etf,
+            "as_of_date": plan.as_of_date,
+            "stale_days": plan.stale_days,
+            "total_constituents": plan.total_constituents,
+            "already_fresh": plan.already_fresh,
+            "skipped_unpriceable": list(plan.skipped_unpriceable),
+            "candidates_total": len(plan.candidates),
+            "batch_size": len(plan.batch),
+            "batch": [c.__dict__ for c in plan.batch],
+        }
+        print(json.dumps(summary, indent=2))
+
+        if args.dry_run or not plan.batch:
+            return 0
+
+        missing = missing_source_keys(config, ["tiingo"])
+        if missing:
+            attr = missing["tiingo"]
+            env = _ENV_OVERRIDES.get(attr, attr.upper())
+            print(
+                f"ERROR: source 'tiingo' requires an API key. Set {env}, put "
+                f"{attr} in the config file, or configure a secret scope.",
+                file=sys.stderr,
+            )
+            return 2
+
+        pipeline = FredPipeline(
+            config, warehouse=warehouse, persist_audit=not args.no_audit
+        )
+        succeeded = 0
+        failed = 0
+        stopped_for_quota = False
+        run_rows = []
+        for spec in specs_for_tiingo_candidates(plan.batch):
+            run = pipeline.run(
+                [spec],
+                manifest_path=f"dynamic:{plan.index_etf}:tiingo_constituents",
+                triggered_by="cli-local-constituent-pricing",
+                build_gold_layer=False,
+            )
+            run_rows.append(run.to_row())
+            succeeded += run.series_succeeded
+            failed += run.series_failed
+            if _quota_limited(run):
+                stopped_for_quota = True
+                print(
+                    f"Stopping after {spec.series_id}: Tiingo quota/rate limit hit.",
+                    file=sys.stderr,
+                )
+                break
+
+        result = {
+            "series_attempted": succeeded + failed,
+            "series_succeeded": succeeded,
+            "series_failed": failed,
+            "stopped_for_quota": stopped_for_quota,
+            "runs": run_rows,
+        }
+        if args.rebuild_gold and succeeded:
+            result["gold"] = warehouse.build_gold()
+        print(json.dumps(result, default=str, indent=2))
+        if failed and not succeeded:
+            return 1
+        return 0
+    finally:
+        warehouse.close()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fred_pipeline", description=__doc__)
     parser.add_argument(
@@ -457,6 +591,40 @@ def build_parser() -> argparse.ArgumentParser:
                    help="use a local SQLite backend")
     g.add_argument("--db-path", default="fred_local.db")
     g.set_defaults(func=_cmd_gold)
+
+    pc = sub.add_parser(
+        "price-constituents",
+        help=(
+            "derive Tiingo pricing batches from latest ETF constituents "
+            "and pull only missing/stale tickers"
+        ),
+    )
+    pc.add_argument("--env", default="dev", choices=[e.value for e in Environment])
+    pc.add_argument(
+        "--config",
+        default=None,
+        help="path to a YAML config file "
+        "(default: $FRED_CONFIG_FILE or config/config.yaml)",
+    )
+    pc.add_argument("--db-path", default="fred_local.db")
+    pc.add_argument("--index-etf", default="IVV")
+    pc.add_argument("--as-of-date", default=None, help="YYYY-MM-DD; default today")
+    pc.add_argument("--stale-days", type=int, default=7)
+    pc.add_argument("--max-symbols", type=int, default=25)
+    pc.add_argument("--workers", type=int, default=1)
+    pc.add_argument("--rate-limit-per-minute", type=int, default=5)
+    pc.add_argument("--dry-run", action="store_true")
+    pc.add_argument(
+        "--rebuild-gold",
+        action="store_true",
+        help="rebuild Gold after successful constituent price pulls",
+    )
+    pc.add_argument(
+        "--no-audit",
+        action="store_true",
+        help="skip audit persistence for the per-symbol dynamic runs",
+    )
+    pc.set_defaults(func=_cmd_price_constituents)
 
     d = sub.add_parser(
         "discover",

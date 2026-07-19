@@ -454,7 +454,9 @@ ETF membership (`source: ishares`; `<ETF>:<constituent>` weight series
 exploded from the daily holdings CSV): one row per ETF × constituent ×
 snapshot date — `weight_pct`, `weight_rank` within the snapshot, and
 `is_latest_snapshot` (filter to that for current membership). Snapshot
-history accumulates through the normal incremental path.
+history accumulates through the normal incremental path. Constituent pricing is
+not part of the iShares feed; run `fred-pipeline price-constituents` to derive
+quota-sized Tiingo pricing batches from the latest membership.
 
 #### `gold.equity_total_return_index`
 True total return (`source: tiingo`; scalar-explode `<ticker>:close`,
