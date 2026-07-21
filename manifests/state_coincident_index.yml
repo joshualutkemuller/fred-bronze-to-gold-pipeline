@@ -1,0 +1,610 @@
+name: state_coincident_index
+description: >
+  Item 1 of docs/handoffs/series_discovery.md — Philadelphia Fed state
+  coincident economic activity indexes (FRED release 109 'State Coincident
+  Indexes'). 50 series, one per state (Philly Fed's coincident-index
+  methodology does not cover DC or territories). Verified live against FRED
+  (2026-07-19). Excluded USPHCI (the national aggregate, not a state).
+version: 1
+
+series:
+  - series_id: AKPHCI
+    title: "Coincident Economic Activity Index for Alaska"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: ALPHCI
+    title: "Coincident Economic Activity Index for Alabama"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: ARPHCI
+    title: "Coincident Economic Activity Index for Arkansas"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: AZPHCI
+    title: "Coincident Economic Activity Index for Arizona"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: CAPHCI
+    title: "Coincident Economic Activity Index for California"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: COPHCI
+    title: "Coincident Economic Activity Index for Colorado"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: CTPHCI
+    title: "Coincident Economic Activity Index for Connecticut"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: DEPHCI
+    title: "Coincident Economic Activity Index for Delaware"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: FLPHCI
+    title: "Coincident Economic Activity Index for Florida"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: GAPHCI
+    title: "Coincident Economic Activity Index for Georgia"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: HIPHCI
+    title: "Coincident Economic Activity Index for Hawaii"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: IAPHCI
+    title: "Coincident Economic Activity Index for Iowa"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: IDPHCI
+    title: "Coincident Economic Activity Index for Idaho"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: ILPHCI
+    title: "Coincident Economic Activity Index for Illinois"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: INPHCI
+    title: "Coincident Economic Activity Index for Indiana"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: KSPHCI
+    title: "Coincident Economic Activity Index for Kansas"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: KYPHCI
+    title: "Coincident Economic Activity Index for Kentucky"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: LAPHCI
+    title: "Coincident Economic Activity Index for Louisiana"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: MAPHCI
+    title: "Coincident Economic Activity Index for Massachusetts"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: MDPHCI
+    title: "Coincident Economic Activity Index for Maryland"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: MEPHCI
+    title: "Coincident Economic Activity Index for Maine"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: MIPHCI
+    title: "Coincident Economic Activity Index for Michigan"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: MNPHCI
+    title: "Coincident Economic Activity Index for Minnesota"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: MOPHCI
+    title: "Coincident Economic Activity Index for Missouri"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: MSPHCI
+    title: "Coincident Economic Activity Index for Mississippi"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: MTPHCI
+    title: "Coincident Economic Activity Index for Montana"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: NCPHCI
+    title: "Coincident Economic Activity Index for North Carolina"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: NDPHCI
+    title: "Coincident Economic Activity Index for North Dakota"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: NEPHCI
+    title: "Coincident Economic Activity Index for Nebraska"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: NHPHCI
+    title: "Coincident Economic Activity Index for New Hampshire"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: NJPHCI
+    title: "Coincident Economic Activity Index for New Jersey"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: NMPHCI
+    title: "Coincident Economic Activity Index for New Mexico"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: NVPHCI
+    title: "Coincident Economic Activity Index for Nevada"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: NYPHCI
+    title: "Coincident Economic Activity Index for New York"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: OHPHCI
+    title: "Coincident Economic Activity Index for Ohio"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: OKPHCI
+    title: "Coincident Economic Activity Index for Oklahoma"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: ORPHCI
+    title: "Coincident Economic Activity Index for Oregon"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: PAPHCI
+    title: "Coincident Economic Activity Index for Pennsylvania"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: RIPHCI
+    title: "Coincident Economic Activity Index for Rhode Island"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: SCPHCI
+    title: "Coincident Economic Activity Index for South Carolina"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: SDPHCI
+    title: "Coincident Economic Activity Index for South Dakota"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: TNPHCI
+    title: "Coincident Economic Activity Index for Tennessee"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: TXPHCI
+    title: "Coincident Economic Activity Index for Texas"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: UTPHCI
+    title: "Coincident Economic Activity Index for Utah"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: VAPHCI
+    title: "Coincident Economic Activity Index for Virginia"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: VTPHCI
+    title: "Coincident Economic Activity Index for Vermont"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: WAPHCI
+    title: "Coincident Economic Activity Index for Washington"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: WIPHCI
+    title: "Coincident Economic Activity Index for Wisconsin"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: WVPHCI
+    title: "Coincident Economic Activity Index for West Virginia"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+
+  - series_id: WYPHCI
+    title: "Coincident Economic Activity Index for Wyoming"
+    category: state_activity
+    frequency: m
+    units: "Index 2007=100"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, coincident_index]
+

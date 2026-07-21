@@ -6,10 +6,12 @@ from __future__ import annotations
 import pytest
 
 from fred_pipeline.sources.ishares import (
+    ISharesClient,
     build_equity_manifest,
     normalize_ishares_holdings,
 )
 from fred_pipeline.sources.stooq import (
+    STOOQ_KEY_HELP,
     StooqAPIError,
     _parse_series_id,
     _stooq_symbol,
@@ -19,6 +21,7 @@ from fred_pipeline.equity_views import (
     compute_equity_price_reconciliation,
     compute_equity_return_daily,
     compute_index_constituents,
+    select_canonical_equity_price_rows,
 )
 from fred_pipeline.equity_reconciliation_config import (
     EquityReconciliationConfig,
@@ -93,7 +96,45 @@ def test_stooq_get_observations_uses_text_transport():
     assert params["s"] == "aapl.us" and params["d1"] == "20240101"
     rows = client.normalize("AAPL:close", payload)
     assert len(rows) == 3
-    assert url.endswith("/q/d/l")
+    assert url.endswith("/q/d/l/")
+
+
+def test_stooq_get_observations_includes_api_key():
+    class FakeResp:
+        status_code = 200
+        text = _STOOQ_CSV
+
+        def json(self):
+            raise AssertionError("json() called on a CSV response")
+
+    class FakeSession:
+        def __init__(self):
+            self.last = None
+
+        def get(self, url, params=None, timeout=None, headers=None):
+            self.last = {"url": url, "params": params, "headers": headers}
+            return FakeResp()
+
+    from fred_pipeline.sources.stooq import StooqClient
+    sess = FakeSession()
+    client = StooqClient(api_key="stooq-key", session=sess, sleep=lambda _s: None)
+    client.get_observations("SPY:close")
+    assert sess.last["params"]["apikey"] == "stooq-key"
+    assert "Mozilla/5.0" in sess.last["headers"]["User-Agent"]
+
+
+def test_stooq_get_observations_raises_on_key_required_page(fake_response_cls):
+    class FakeSession:
+        def get(self, url, params=None, timeout=None, headers=None):
+            return fake_response_cls(
+                None,
+                text="<html><body>Get your apikey: open Stooq</body></html>",
+            )
+
+    from fred_pipeline.sources.stooq import StooqClient
+    client = StooqClient(session=FakeSession(), sleep=lambda _s: None)
+    with pytest.raises(StooqAPIError, match=STOOQ_KEY_HELP):
+        client.get_observations("SPY:close")
 
 
 # ---- iShares holdings -------------------------------------------------------
@@ -111,6 +152,53 @@ _IVV_CSV = (
 )
 
 
+_IVV_XML = """<?xml version="1.0"?>
+<ss:Workbook xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<ss:Worksheet ss:Name="Disclaimers">
+<ss:Table>
+<ss:Row><ss:Cell><ss:Data ss:Type="String">AT&T disclaimer text</ss:Data></ss:Cell></ss:Row>
+</ss:Table>
+</ss:Worksheet>
+<ss:Worksheet ss:Name="Holdings">
+<ss:Table>
+<ss:Row><ss:Cell><ss:Data ss:Type="String">Fund Holdings as of</ss:Data></ss:Cell><ss:Cell><ss:Data ss:Type="String">Jul 16, 2026</ss:Data></ss:Cell></ss:Row>
+<ss:Row><ss:Cell><ss:Data ss:Type="String"></ss:Data></ss:Cell></ss:Row>
+<ss:Row>
+<ss:Cell><ss:Data ss:Type="String">Ticker</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Name</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Sector</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Asset Class</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Market Value</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Weight (%)</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Notional Value</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Quantity</ss:Data></ss:Cell>
+</ss:Row>
+<ss:Row>
+<ss:Cell><ss:Data ss:Type="String">NVDA</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">NVIDIA CORP</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Information Technology</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Equity</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="Number">68846652955</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="Number">7.7417</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="Number">68846652955</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="Number">382000000</ss:Data></ss:Cell>
+</ss:Row>
+<ss:Row>
+<ss:Cell><ss:Data ss:Type="String">USD</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">US DOLLAR</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Cash</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="String">Cash</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="Number">1000</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="Number">0.01</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="Number">1000</ss:Data></ss:Cell>
+<ss:Cell><ss:Data ss:Type="Number">1000</ss:Data></ss:Cell>
+</ss:Row>
+</ss:Table>
+</ss:Worksheet>
+</ss:Workbook>
+"""
+
+
 def test_ishares_normalize_explodes_constituents():
     payload = {"format": "csv", "etf": "IVV", "text": _IVV_CSV}
     rows = normalize_ishares_holdings("IVV", payload)
@@ -118,8 +206,17 @@ def test_ishares_normalize_explodes_constituents():
         "IVV:AAPL", "IVV:MSFT", "IVV:NVDA"]          # USD cash row dropped
     assert all(r["observation_date"] == "2024-07-31" for r in rows)
     assert rows[0]["value"] == pytest.approx(6.95)
-    assert rows[0]["shares"] == pytest.approx(1000000)
+    assert "shares" not in rows[0]
     assert rows[0]["source"] == "ishares"
+
+
+def test_ishares_normalize_explodes_xml_workbook():
+    payload = {"format": "xml", "etf": "IVV", "text": _IVV_XML}
+    rows = normalize_ishares_holdings("IVV", payload)
+    assert [r["series_id"] for r in rows] == ["IVV:NVDA"]
+    assert rows[0]["observation_date"] == "2026-07-16"
+    assert rows[0]["value"] == pytest.approx(7.7417)
+    assert "shares" not in rows[0]
 
 
 def test_ishares_normalize_requires_asof_and_header():
@@ -131,6 +228,27 @@ def test_ishares_normalize_requires_asof_and_header():
     assert normalize_ishares_holdings(
         "IVV", {"format": "csv", "etf": "IVV",
                 "text": '"Fund Holdings as of","Jul 31, 2024"\nfoo,bar\n1,2\n'}) == []
+
+
+def test_ishares_get_observations_uses_absolute_url(fake_response_cls):
+    class FakeSession:
+        def __init__(self):
+            self.last = None
+
+        def get(self, url, params=None, timeout=None, headers=None):
+            self.last = (url, params)
+            return fake_response_cls(None, text=_IVV_CSV)
+
+    url = "https://files.example.test/IVV_holdings.csv?download=1"
+    sess = FakeSession()
+    client = ISharesClient(
+        holdings_urls={"IVV": url},
+        session=sess,
+        sleep=lambda _s: None,
+    )
+    payload = client.get_observations("IVV")
+    assert payload["text"] == _IVV_CSV
+    assert sess.last == (url, {})
 
 
 def test_build_equity_manifest_from_holdings():
@@ -178,6 +296,32 @@ def test_equity_return_ignores_non_close_and_missing():
     out = compute_equity_return_daily(rows)
     assert [r["ticker"] for r in out] == ["AAPL"]       # one valid close row
     assert out[0]["close"] == pytest.approx(100.0)
+
+
+def test_select_canonical_equity_price_rows_falls_back_to_tiingo_adjclose():
+    stooq_rows = [
+        {"source": "stooq", "series_id": "AAPL:close",
+         "observation_date": "2024-01-02", "value": 100.0,
+         "is_missing": False},
+    ]
+    tiingo_rows = [
+        {"source": "tiingo", "series_id": "AAPL:adjClose",
+         "observation_date": "2024-01-02", "value": 101.0,
+         "is_missing": False},
+        {"source": "tiingo", "series_id": "MSFT:adjClose",
+         "observation_date": "2024-01-02", "value": 200.0,
+         "is_missing": False},
+        {"source": "tiingo", "series_id": "MSFT:close",
+         "observation_date": "2024-01-02", "value": 201.0,
+         "is_missing": False},
+    ]
+
+    rows = select_canonical_equity_price_rows(stooq_rows, tiingo_rows)
+
+    assert [(r["source"], r["series_id"], r["value"]) for r in rows] == [
+        ("stooq", "AAPL:close", 100.0),
+        ("tiingo", "MSFT:close", 200.0),
+    ]
 
 
 def _weight_row(etf, constituent, date, weight):
@@ -265,6 +409,44 @@ def test_equity_local_build_gold(tmp_path):
     cons = wh.query("SELECT * FROM gold_index_constituents "
                     "WHERE is_latest_snapshot = 1 ORDER BY weight_rank")
     assert [r["constituent"] for r in cons] == ["AAPL", "MSFT"]
+    wh.close()
+
+
+def test_equity_local_build_gold_uses_tiingo_when_stooq_absent(tmp_path):
+    from fred_pipeline.config import Environment, PipelineConfig
+    from fred_pipeline.local_store import LocalWarehouse
+
+    wh = LocalWarehouse(
+        PipelineConfig(environment=Environment.DEV, fred_api_key="k"),
+        db_path=str(tmp_path / "eq_tiingo.db"),
+    )
+    silver = []
+    for i, (close, adj_close) in enumerate([(100.0, 100.0), (101.0, 102.0)]):
+        date = f"2024-01-0{i + 2}"
+        for field, value in (
+            ("close", close),
+            ("adjClose", adj_close),
+            ("divCash", 0.0),
+            ("splitFactor", 1.0),
+        ):
+            silver.append({
+                "source": "tiingo", "series_id": f"AAPL:{field}",
+                "observation_date": date, "realtime_start": "",
+                "realtime_end": "", "value": value, "raw_value": str(value),
+                "is_missing": 0, "row_hash": f"tg-{field}-{i}",
+                "revision_number": 1, "ingested_at": "2024-02-01T00:00:00",
+                "run_id": "r1",
+            })
+    wh.merge_silver(silver)
+    results = wh.build_gold()
+    assert results["equity_return_daily"] == "ok"
+    assert results["equity_total_return_index"] == "ok"
+
+    ret = wh.query("SELECT * FROM gold_equity_return_daily ORDER BY observation_date")
+    assert [r["ticker"] for r in ret] == ["AAPL", "AAPL"]
+    assert ret[0]["close"] == pytest.approx(100.0)
+    assert ret[1]["close"] == pytest.approx(102.0)
+    assert ret[1]["price_return"] == pytest.approx(0.02)
     wh.close()
 
 

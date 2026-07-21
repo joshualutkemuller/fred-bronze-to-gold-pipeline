@@ -241,6 +241,34 @@ def test_get_release_dates_passes_params(fake_session_cls, fake_response_cls):
     assert params["include_release_dates_with_no_data"] == "true"
 
 
+def test_get_release_dates_without_release_id_hits_plural_endpoint(
+    fake_session_cls, fake_response_cls,
+):
+    session = fake_session_cls([fake_response_cls({"release_dates": []})])
+    client = _make_client(session)
+    client.get_release_dates(realtime_start="2026-07-17", realtime_end="2026-11-17")
+    assert session.calls[0]["url"].endswith("/releases/dates")
+    assert "release_id" not in session.calls[0]["params"]
+
+
+def test_get_release_dates_with_release_id_hits_singular_scoped_endpoint(
+    fake_session_cls, fake_response_cls,
+):
+    """release_id set -> the singular, server-side-scoped endpoint (fast),
+    not the unfiltered plural one (confirmed live to degrade badly under
+    offset pagination — see get_release_dates's docstring)."""
+    session = fake_session_cls([fake_response_cls({"release_dates": [
+        {"release_id": 101, "date": "2026-07-29"},
+    ]})])
+    client = _make_client(session)
+    out = client.get_release_dates(
+        release_id=101, realtime_start="2026-07-17", realtime_end="2026-11-17",
+    )
+    assert session.calls[0]["url"].endswith("/release/dates")
+    assert session.calls[0]["params"]["release_id"] == 101
+    assert out == [{"release_id": 101, "date": "2026-07-29"}]
+
+
 def test_rate_limiter_sleeps_when_too_fast():
     slept = []
     now = [0.0]

@@ -165,7 +165,10 @@ class HTTPSource:
         """Fetch with retry + rate limiting. Returns parsed JSON by default; with
         ``as_text=True`` returns the raw response body as a string (for CSV
         sources like Stooq / ETF-holdings files)."""
-        url = f"{self.base_url}/{endpoint}"
+        if endpoint.startswith(("http://", "https://")):
+            url = endpoint
+        else:
+            url = f"{self.base_url}/{endpoint.lstrip('/')}"
         query = {**params, **self._default_query()}
 
         last_exc: Optional[Exception] = None

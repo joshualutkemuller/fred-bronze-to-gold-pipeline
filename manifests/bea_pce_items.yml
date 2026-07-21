@@ -10,7 +10,7 @@ description: >
   full table; normalize_bea_observations selects the correct LineNumber), so the
   16 series below cost only one network round-trip per scheduled ingest run.
 
-  Shipped inactive (active: false). To enable:
+  Shipped inactive (active: true). To enable:
     1. Obtain a free BEA API key from https://apps.bea.gov/API/signup/
     2. Set the BEA_API_KEY environment variable (or equivalent secret).
     3. Verify line numbers against the live BEA table:
@@ -30,7 +30,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -46,7 +46,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -63,7 +63,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -79,7 +79,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -95,7 +95,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -111,7 +111,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -127,7 +127,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -144,7 +144,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -160,7 +160,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -176,7 +176,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -192,7 +192,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -208,7 +208,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -225,7 +225,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -241,7 +241,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -257,7 +257,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -273,7 +273,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -289,7 +289,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -305,7 +305,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -321,7 +321,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -337,7 +337,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly
@@ -353,7 +353,7 @@ series:
     category: inflation
     frequency: m
     units: Index 2017=100
-    active: false
+    active: true
     source: bea
     load_type: incremental
     expected_update_frequency: monthly

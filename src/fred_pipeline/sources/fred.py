@@ -323,27 +323,43 @@ class FredClient(HTTPSource):
     def get_release_dates(
         self,
         *,
+        release_id: Optional[int] = None,
         realtime_start: Optional[str] = None,
         realtime_end: Optional[str] = None,
         include_release_dates_with_no_data: bool = True,
         sort_order: str = "asc",
         limit: int = 1000,
     ) -> list[dict[str, Any]]:
-        """Page through ``releases/dates``: every release's scheduled/actual
-        date in ``[realtime_start, realtime_end]``, across all releases.
+        """Page through release dates in ``[realtime_start, realtime_end]``.
 
-        Returns rows of ``{release_id, release_name, release_last_updated,
-        date}`` (unlike :meth:`list_series`, this endpoint's payload key is
-        ``release_dates``, not ``seriess``). Used for the forward-looking
-        economic release calendar (``gold.release_calendar``), not tied to
-        any single series.
+        With ``release_id`` set, hits the **singular** ``release/dates``
+        endpoint, scoped server-side to that one release — fast (confirmed
+        live: a single release, even over an 18-month window, returns in
+        well under a second). Without it, hits the **plural**
+        ``releases/dates`` endpoint for *all* releases at once — FRED does
+        not support filtering that endpoint by ``release_id`` server-side
+        (confirmed live: the parameter is silently ignored), and with
+        ``include_release_dates_with_no_data=true`` the unfiltered result
+        set is large enough that offset-based pagination degrades sharply
+        after the first page (page 1: ~1s; page 2+: 30s+ timeouts observed
+        live) — avoid this form for anything but a one-off full-catalog
+        pull; prefer looping per curated ``release_id`` instead (see
+        :func:`fred_pipeline.pipeline.FredPipeline._refresh_release_calendar`).
+
+        Returns rows of ``{release_id, date}`` (the singular endpoint) or
+        ``{release_id, release_name, release_last_updated, date}`` (the
+        plural one) — unlike :meth:`list_series`, this endpoint's payload
+        key is ``release_dates``, not ``seriess``.
         """
+        endpoint = "release/dates" if release_id else "releases/dates"
         params: dict[str, Any] = {
             "sort_order": sort_order,
             "include_release_dates_with_no_data": str(
                 include_release_dates_with_no_data
             ).lower(),
         }
+        if release_id:
+            params["release_id"] = release_id
         if realtime_start:
             params["realtime_start"] = realtime_start
         if realtime_end:
@@ -354,7 +370,7 @@ class FredClient(HTTPSource):
         while True:
             page = dict(params)
             page.update({"limit": min(limit, 1000), "offset": offset})
-            payload = self._request("releases/dates", page)
+            payload = self._request(endpoint, page)
             batch = payload.get("release_dates") or []
             collected.extend(batch)
             offset += len(batch)

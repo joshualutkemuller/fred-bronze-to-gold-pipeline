@@ -442,19 +442,21 @@ overwrite each run) — `build_gold()` never touches it, since release dates
 aren't derived from anything already in Silver.
 
 #### `gold.equity_return_daily`
-Equity price return (`source: stooq`; scalar-explode `<ticker>:close` Silver
-series): one row per ticker × date — the split-adjusted `close`,
-`price_change` and `price_return` (simple, day-over-day), and
-`price_return_index` (cumulative, =100 at each ticker's first observation).
-Dividends excluded — total return is the planned Tiingo slice
-(`gold.equity_total_return_index`).
+Canonical equity daily return: one row per ticker × date from Stooq
+`<ticker>:close` when available, otherwise Tiingo `<ticker>:adjClose` mapped
+into the same close shape. Columns: `close`, `price_change`, `price_return`
+(simple, day-over-day), and `price_return_index` (cumulative, =100 at each
+ticker's first observation). True dividend/split reconstruction remains in
+`gold.equity_total_return_index`.
 
 #### `gold.index_constituents`
 ETF membership (`source: ishares`; `<ETF>:<constituent>` weight series
 exploded from the daily holdings CSV): one row per ETF × constituent ×
 snapshot date — `weight_pct`, `weight_rank` within the snapshot, and
 `is_latest_snapshot` (filter to that for current membership). Snapshot
-history accumulates through the normal incremental path.
+history accumulates through the normal incremental path. Constituent pricing is
+not part of the iShares feed; run `fred-pipeline price-constituents` to derive
+quota-sized Tiingo pricing batches from the latest membership.
 
 #### `gold.equity_total_return_index`
 True total return (`source: tiingo`; scalar-explode `<ticker>:close`,

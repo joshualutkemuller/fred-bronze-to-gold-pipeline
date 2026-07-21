@@ -3,7 +3,7 @@ description: >
   Demonstration manifest for the World Bank Indicators API (source: worldbank),
   flowing through the same Bronze → Silver → Gold path as FRED/BLS/EIA. Keyless.
   series_id encodes '<country>:<indicator>' (ISO3 country, WDI indicator code).
-  Shipped inactive (active: false); set active: true to enable (no key required).
+  Shipped inactive (active: true); set active: true to enable (no key required).
 version: 1
 
 series:
@@ -12,7 +12,7 @@ series:
     category: international
     frequency: a
     units: Current US Dollars
-    active: false
+    active: true
     source: worldbank
     load_type: incremental
     expected_update_frequency: annual
@@ -28,7 +28,7 @@ series:
     category: international
     frequency: a
     units: Persons
-    active: false
+    active: true
     source: worldbank
     load_type: incremental
     expected_update_frequency: annual
@@ -44,14 +44,14 @@ series:
   # prices (annual %)" — already a YoY rate, annual frequency. Keyless; same
   # verify-before-activating caveat as everything shipped inactive. The US is
   # deliberately absent here — its GCPI row runs off already-active CPIAUCSL.
-  - {series_id: "EMU:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Euro Area),      category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
-  - {series_id: "GBR:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (United Kingdom), category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
-  - {series_id: "JPN:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Japan),          category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
-  - {series_id: "CAN:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Canada),         category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
-  - {series_id: "MEX:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Mexico),         category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
-  - {series_id: "BRA:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Brazil),         category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
-  - {series_id: "CHN:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (China),          category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
-  - {series_id: "IND:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (India),          category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
-  - {series_id: "KOR:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (South Korea),    category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
-  - {series_id: "AUS:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Australia),      category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
-  - {series_id: "DEU:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Germany),        category: international, frequency: a, units: Percent, active: false, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
+  - {series_id: "EMU:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Euro Area),      category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
+  - {series_id: "GBR:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (United Kingdom), category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
+  - {series_id: "JPN:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Japan),          category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
+  - {series_id: "CAN:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Canada),         category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
+  - {series_id: "MEX:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Mexico),         category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
+  - {series_id: "BRA:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Brazil),         category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
+  - {series_id: "CHN:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (China),          category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 2, tags: [international, cpi, worldbank]}
+  - {series_id: "IND:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (India),          category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
+  - {series_id: "KOR:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (South Korea),    category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
+  - {series_id: "AUS:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Australia),      category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}
+  - {series_id: "DEU:FP.CPI.TOTL.ZG", title: CPI Inflation YoY % (Germany),        category: international, frequency: a, units: Percent, active: true, source: worldbank, vintage_enabled: false, validation_profile: standard, downstream_use_case: global_inflation, priority: 3, tags: [international, cpi, worldbank]}

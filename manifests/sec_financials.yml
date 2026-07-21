@@ -5,7 +5,7 @@ description: >
   SEC_USER_AGENT (contact). series_id encodes '<CIK>:<taxonomy>/<tag>:<unit>'.
   Uses instant (balance-sheet) concepts, which have no quarterly/YTD duration
   ambiguity; each filing's 'filed' date becomes a vintage (vintage_enabled: true).
-  Shipped inactive (active: false). At scale, generate these with
+  Shipped inactive (active: true). At scale, generate these with
   fred_pipeline.sources.sec.build_sec_manifest rather than by hand.
 version: 1
 
@@ -15,7 +15,7 @@ series:
     category: company_financials
     frequency: q
     units: US Dollars
-    active: false
+    active: true
     source: sec
     load_type: incremental
     expected_update_frequency: quarterly
@@ -31,7 +31,7 @@ series:
     category: company_financials
     frequency: q
     units: US Dollars
-    active: false
+    active: true
     source: sec
     load_type: incremental
     expected_update_frequency: quarterly
@@ -49,7 +49,7 @@ series:
     category: company_financials
     frequency: q
     units: US Dollars
-    active: false
+    active: true
     source: sec
     load_type: incremental
     expected_update_frequency: quarterly

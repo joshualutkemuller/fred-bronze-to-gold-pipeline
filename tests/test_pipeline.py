@@ -1,3 +1,5 @@
+import threading
+
 from fred_pipeline.audit import RunStatus
 from fred_pipeline.config import Environment, PipelineConfig
 from fred_pipeline.fred_client import FredAPIError
@@ -64,6 +66,69 @@ def test_concurrent_extraction_preserves_order_and_isolation(
         assert sr.status == RunStatus.SUCCEEDED
 
 
+def test_extraction_streams_completed_series_before_slow_future(
+    observations_payload,
+):
+    fast_written = threading.Event()
+
+    class BlockingClient:
+        source_name = "fred"
+
+        def get_observations(self, series_id, **kwargs):
+            if series_id == "SLOW":
+                if not fast_written.wait(timeout=2):
+                    raise AssertionError("SLOW completed before FAST was written")
+            return observations_payload
+
+    class StreamingWarehouse:
+        supports_incremental_audit = True
+
+        def __init__(self):
+            self.series_audit = []
+            self.run_states = []
+
+        def restate_start(self, series_id, n):
+            return None
+
+        def write_bronze(self, rows):
+            if rows[0]["series_id"] == "FAST":
+                fast_written.set()
+            return len(rows)
+
+        def merge_silver(self, rows):
+            return len(rows)
+
+        def persist_dq(self, run_id, report):
+            pass
+
+        def persist_run_state(self, run):
+            self.run_states.append((run.status, run.series_succeeded, run.series_failed))
+
+        def persist_series_run(self, series_run):
+            self.series_audit.append(series_run.series_id)
+
+        def build_gold(self):
+            return {}
+
+        def write_release_calendar(self, rows):
+            return len(rows)
+
+        def persist_run(self, run):
+            pass
+
+    wh = StreamingWarehouse()
+    cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k", extract_workers=2)
+    pipe = FredPipeline(cfg, client=BlockingClient(), warehouse=wh)
+
+    run = pipe.run([_spec("SLOW"), _spec("FAST")], build_gold_layer=False)
+
+    assert run.status == RunStatus.SUCCEEDED
+    assert fast_written.is_set()
+    assert wh.series_audit[0] == "FAST"
+    assert [sr.series_id for sr in run.series_runs] == ["SLOW", "FAST"]
+    assert wh.run_states[0] == (RunStatus.RUNNING, 1, 0)
+
+
 def test_series_failure_is_isolated(observations_payload, fake_client_cls):
     client = fake_client_cls(
         {"GOOD": observations_payload},
@@ -78,6 +143,28 @@ def test_series_failure_is_isolated(observations_payload, fake_client_cls):
     bad = [s for s in run.series_runs if s.series_id == "BAD"][0]
     assert bad.status == RunStatus.FAILED
     assert "boom" in bad.error_message
+
+
+def test_tiingo_incremental_plan_uses_adjclose_watermark():
+    class Warehouse:
+        def __init__(self):
+            self.requested = []
+
+        def restate_start(self, series_id, n):
+            self.requested.append((series_id, n))
+            return "2026-07-17"
+
+    cfg = PipelineConfig(environment=Environment.DEV, tiingo_api_key="k")
+    wh = Warehouse()
+    pipe = FredPipeline(cfg, warehouse=wh, persist_audit=False)
+
+    start, load_type = pipe._plan_extract(
+        _spec("AAPL", source="tiingo", vintage_enabled=False)
+    )
+
+    assert start == "2026-07-17"
+    assert load_type == f"restate_last_{cfg.restate_last_n}"
+    assert wh.requested == [("AAPL:adjClose", cfg.restate_last_n)]
 
 
 def test_strict_profile_fails_run_on_dq(fake_client_cls):
@@ -256,14 +343,19 @@ def test_missing_source_keys():
     from fred_pipeline.pipeline import missing_source_keys
 
     cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k")  # no eia key
-    # fred satisfied, bls keyless (never required), eia missing
+    # fred satisfied, bls keyless (never required), eia/stooq missing
     assert missing_source_keys(cfg, ["fred", "bls"]) == {}
-    assert missing_source_keys(cfg, ["fred", "bls", "eia"]) == {"eia": "eia_api_key"}
+    assert missing_source_keys(cfg, ["fred", "bls", "eia", "stooq"]) == {
+        "eia": "eia_api_key",
+        "stooq": "stooq_api_key",
+    }
 
     cfg2 = PipelineConfig(environment=Environment.DEV, fred_api_key="",
-                          eia_api_key="e")
-    # fred required but empty; eia satisfied
-    assert missing_source_keys(cfg2, ["fred", "eia"]) == {"fred": "fred_api_key"}
+                          eia_api_key="e", stooq_api_key="s")
+    # fred required but empty; eia/stooq satisfied
+    assert missing_source_keys(cfg2, ["fred", "eia", "stooq"]) == {
+        "fred": "fred_api_key"
+    }
 
 
 def test_config_table_naming():

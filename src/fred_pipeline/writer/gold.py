@@ -868,7 +868,7 @@ def _build_regime_stats(config: PipelineConfig, spark: Any) -> None:
     :mod:`fred_pipeline.regime_stats` — same collect-and-compute pattern as
     :func:`_build_terminal_views`. Input is bounded to pillar/pair series."""
     from pyspark.sql.types import (
-        BooleanType, DoubleType, IntegerType, StringType, StructField, StructType,
+        DoubleType, IntegerType, StringType, StructField, StructType,
     )
 
     from fred_pipeline.regime_stats import (
@@ -1083,10 +1083,9 @@ def _build_global_views(config: PipelineConfig, spark: Any) -> None:
 
 
 def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
-    """Build the equity slice (``gold.equity_return_daily``,
-    ``gold.index_constituents``) from the pure-Python engines in
-    :mod:`fred_pipeline.equity_views`. Collected input is bounded to the
-    exploded ``:close`` / holdings series (``source in ('stooq','ishares')``)."""
+    """Build the equity slice from the pure-Python engines in
+    :mod:`fred_pipeline.equity_views`. Collected input is source-filtered so
+    Stooq and Tiingo rows can be selected without collapsing shared series ids."""
     from pyspark.sql.types import (
         BooleanType, DoubleType, IntegerType, StringType, StructField, StructType,
     )
@@ -1096,6 +1095,7 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
         compute_equity_return_daily,
         compute_equity_total_return_index,
         compute_index_constituents,
+        select_canonical_equity_price_rows,
     )
 
     silver = config.table("silver", "fred_observation")
@@ -1113,12 +1113,14 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
             ).collect()
         ]
 
-    close_rows = _rows("stooq")
+    stooq_rows = _rows("stooq")
     holdings_rows = _rows("ishares")
     tiingo_rows = _rows("tiingo")
 
     spark.createDataFrame(
-        compute_equity_return_daily(close_rows),
+        compute_equity_return_daily(
+            select_canonical_equity_price_rows(stooq_rows, tiingo_rows)
+        ),
         schema=StructType([
             StructField("ticker", StringType()),
             StructField("observation_date", StringType()),
@@ -1177,7 +1179,7 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
     ).saveAsTable(config.table("gold", "equity_total_return_index"))
 
     spark.createDataFrame(
-        compute_equity_price_reconciliation(close_rows, tiingo_rows),
+        compute_equity_price_reconciliation(stooq_rows, tiingo_rows),
         schema=StructType([
             StructField("ticker", StringType()),
             StructField("observation_date", StringType()),

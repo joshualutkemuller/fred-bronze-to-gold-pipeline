@@ -2,9 +2,10 @@
 
 How to go from "I have an API key for EIA/BEA/BLS/…" to a fully built
 Bronze → Silver → Gold database. Three steps: provide the keys, activate the
-series, run. Nothing else — Gold (including the market-terminal analytical
-views) rebuilds automatically at the end of every non-dry run; there is no
-separate "build gold" command.
+series, run. By default, Gold (including the market-terminal analytical views)
+rebuilds automatically at the end of every non-dry run; for long local runs you
+can use `--no-gold` and then `fred-pipeline gold` to separate API extraction
+from the heavy analytical rebuild.
 
 The pipeline only demands keys for sources that have **active** series in the
 manifests: a FRED-only run never asks for an EIA key, and vice versa. If an
@@ -28,7 +29,7 @@ Set environment variables (the recommended way — nothing lands in git):
 | Tiingo (equity total return) | `TIINGO_API_KEY` | **Required** for `tiingo` series — free account key (personal use) | https://www.tiingo.com |
 | US Treasury | — | Nothing needed (fully open) | — |
 | World Bank | — | Nothing needed (fully open) | — |
-| Stooq (equity prices) | — | Nothing needed (keyless CSV) | — |
+| Stooq (optional equity-price reconciliation) | `STOOQ_API_KEY` | Only needed if you reactivate `equity_stooq.yml`; Gold now falls back to Tiingo prices | Open `https://stooq.com/q/d/?s=spy.us&get_apikey`, complete captcha, copy the `apikey` from the CSV download link |
 | iShares/SSGA (ETF holdings) | — | Nothing needed (keyless CSV) | — |
 
 ```bash
@@ -36,6 +37,7 @@ export FRED_API_KEY="your-fred-key"
 export EIA_API_KEY="your-eia-key"
 export BEA_API_KEY="your-bea-key"
 export SEC_USER_AGENT="you@example.com"
+export STOOQ_API_KEY="your-stooq-key"
 # optional quota bumps:
 export BLS_API_KEY="your-bls-key"
 export CENSUS_API_KEY="your-census-key"
@@ -75,7 +77,7 @@ Manifests you may want to activate:
 | `bea_national_accounts.yml` | bea | NIPA tables |
 | `census_indicators.yml` | census | economic indicators |
 | `sec_financials.yml` | sec | company XBRL fundamentals |
-| `equity_stooq.yml` | stooq | broad ETFs + large-cap stocks (price return) |
+| `equity_stooq.yml` | stooq | optional/inactive broad ETFs + large-cap stocks for vendor reconciliation |
 | `etf_holdings.yml` | ishares | ETF constituent weights (`gold.index_constituents`) |
 | `equity_tiingo.yml` | tiingo | broad ETFs + stocks total return (needs `TIINGO_API_KEY`) |
 | `macro_flags.yml` | fred | `USREC` — lights up every `is_recession` column |
@@ -136,6 +138,26 @@ Rebuild Gold from already-persisted Silver without calling external APIs:
 fred-pipeline gold --local --db-path fred_local.db
 ```
 
+Price ETF constituents from the latest iShares holdings:
+
+```bash
+# 1) Refresh holdings first; iShares stays the source of truth for membership.
+fred-pipeline run --local --db-path fred_local.db --series IVV --no-gold
+fred-pipeline gold --local --db-path fred_local.db
+
+# 2) See which current constituents are missing/stale in Tiingo.
+fred-pipeline price-constituents --db-path fred_local.db \
+  --index-etf IVV --max-symbols 25 --stale-days 7 --dry-run
+
+# 3) Pull the next quota-safe batch. The runner derives tickers dynamically
+#    from gold_index_constituents, pulls one at a time, and stops on Tiingo 429s.
+fred-pipeline price-constituents --db-path fred_local.db \
+  --index-etf IVV --max-symbols 25 --rate-limit-per-minute 5
+
+# 4) Rebuild Gold after one or more successful pricing batches.
+fred-pipeline gold --local --db-path fred_local.db
+```
+
 Exit codes: `0` = succeeded or partial, `1` = failed, `2` = an active source
 is missing its API key (the message names the env var).
 
@@ -169,12 +191,22 @@ sqlite3 fred_local.db "SELECT series_id, status, error_message
   only the last `restate_last_n` observations per series (default 90) to
   capture revisions; `--full` overrides. See
   `docs/incremental_loading.md`.
+* **Constituent pricing is dynamic.** iShares holdings populate
+  `gold_index_constituents`; `fred-pipeline price-constituents` reads that
+  current membership, compares it with Tiingo `:adjClose` freshness in Silver,
+  and runs only a capped batch of missing/stale tickers. No static constituent
+  pricing manifest is required.
 * **Extraction is source-aware.** Active sources run in separate thread pools
   with separate client-side rate limiters. Tiingo defaults to a low worker cap
   to avoid hourly quota bursts; override with `--source-workers` or
   `FRED_SOURCE_EXTRACT_WORKERS` only when your quota supports it. Request-rate
   caps can be tuned with `--source-rate-limits` or `FRED_SOURCE_RATE_LIMITS`;
   retryable `429`/server responses honor upstream `Retry-After` when present.
+* **Extraction progress is streamed.** Completed series are written to
+  Bronze/Silver and local SQLite audit tables as soon as their fetch finishes,
+  even while other source pools are still retrying or sleeping. Long local runs
+  should log submitted source pools and periodic `Run ... progress: X/Y`
+  messages instead of staying silent until every source future has completed.
 * **Gold always rebuilds.** Every persisted run finishes by rebuilding all
   Gold tables — the classic feature tables *and* the market-terminal views
   (`docs/market_terminal_gold_views.md`). Tables whose inputs aren't ingested

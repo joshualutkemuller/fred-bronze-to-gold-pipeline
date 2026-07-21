@@ -14,7 +14,6 @@ from __future__ import annotations
 import logging
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from contextlib import ExitStack
 from typing import Any, Iterable, Optional
 
 from fred_pipeline.audit import EtlRun, RunStatus
@@ -126,8 +125,9 @@ def _make_sec(config: PipelineConfig) -> SourceClient:
 
 
 def _make_stooq(config: PipelineConfig) -> SourceClient:
-    # Stooq is keyless daily OHLCV (equity price return).
+    # Stooq daily OHLCV (equity price return); CSV downloads may require a key.
     return StooqClient(
+        api_key=getattr(config, "stooq_api_key", "") or "",
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
         rate_limit_per_minute=_rate_limit_for_source(config, "stooq"),
@@ -171,11 +171,12 @@ SOURCE_FACTORIES = {
 
 # Sources that require an API key to call, mapped to the PipelineConfig
 # attribute holding it. Sources not listed can run keyless (BLS, Census,
-# Treasury, World Bank, SEC, Stooq, iShares).
+# Treasury, World Bank, SEC, iShares).
 SOURCE_KEY_REQUIREMENTS = {
     "fred": "fred_api_key",
     "eia": "eia_api_key",
     "bea": "bea_api_key",
+    "stooq": "stooq_api_key",
     "tiingo": "tiingo_api_key",
 }
 
@@ -392,13 +393,22 @@ class FredPipeline:
 
         # Phase 1 (sequential): decide each series' load window. This reads the
         # warehouse (one SQLite/Delta connection), so it must not run
-        # concurrently with itself or with phase 3's writes.
+        # concurrently with itself or with later writes. Series audit rows are
+        # opened in manifest order so the final run object stays deterministic
+        # even though extraction finishes out of order.
+        series_runs = [
+            run.start_series(spec.series_id, load_type=spec.load_type.value)
+            for spec in specs
+        ]
+        run.series_total = len(series_runs)
         plans = [self._plan_extract(spec, force_full=force_full) for spec in specs]
+        work_items = list(zip(specs, plans, series_runs))
 
-        # Phase 2 (source-aware thread pools): network-bound, rate-limited API
-        # calls. Each source has its own client/rate limiter and worker cap, so
-        # low-quota sources (notably Tiingo) cannot consume the whole pool.
-        outcomes = [None] * len(specs)
+        # Phase 2/3 (source-aware extraction, streaming finish): network-bound
+        # fetches run in per-source pools, while Bronze/Silver/DQ/audit writes
+        # happen immediately as each future completes on this main thread. This
+        # avoids losing completed FRED/Stooq work when a low-quota source is
+        # still sleeping in retry/backoff.
         grouped: dict[str, list[tuple[int, SeriesSpec, tuple[Optional[str], str]]]] = (
             defaultdict(list)
         )
@@ -409,20 +419,51 @@ class FredPipeline:
         for source in grouped:
             if source in self._clients or source in SOURCE_FACTORIES:
                 self._client_for_source(source)  # build clients before threads race
-        with ExitStack() as stack:
-            futures = {}
+        pools: list[ThreadPoolExecutor] = []
+        futures = {}
+        completed = 0
+        try:
             for source, items in grouped.items():
                 workers = _extract_workers_for_source(self.config, source)
-                pool = stack.enter_context(ThreadPoolExecutor(max_workers=workers))
+                pool = ThreadPoolExecutor(
+                    max_workers=workers,
+                    thread_name_prefix=f"{source}-extract",
+                )
+                pools.append(pool)
+                log.info(
+                    "Submitted %d %s series (%d workers, %d rpm)",
+                    len(items), source, workers, _rate_limit_for_source(self.config, source),
+                )
                 for idx, spec, plan in items:
                     futures[pool.submit(self._safe_extract, spec, plan)] = idx
-            for fut in as_completed(futures):
-                outcomes[futures[fut]] = fut.result()
 
-        # Phase 3 (sequential): bronze/silver/DQ + all warehouse writes + audit
-        # bookkeeping, in original spec order.
-        for spec, (_observation_start, load_type), outcome in zip(specs, plans, outcomes):
-            self._finish_series(run, spec, load_type, outcome)
+            for fut in as_completed(futures):
+                idx = futures[fut]
+                spec, (_observation_start, load_type), sr = work_items[idx]
+                outcome = fut.result()
+                self._finish_series(run, spec, load_type, outcome, series_run=sr)
+                completed += 1
+                self._update_run_progress(run, total=len(specs))
+                self._persist_incremental_audit(run, sr)
+                if (
+                    completed == len(futures)
+                    or completed % 25 == 0
+                    or sr.status == RunStatus.FAILED
+                ):
+                    log.info(
+                        "Run %s progress: %d/%d completed (%d ok / %d failed)",
+                        run.run_id, completed, len(futures),
+                        run.series_succeeded, run.series_failed,
+                    )
+        except BaseException:
+            for fut in futures:
+                fut.cancel()
+            for pool in pools:
+                pool.shutdown(wait=False, cancel_futures=True)
+            raise
+        else:
+            for pool in pools:
+                pool.shutdown(wait=True)
 
         run.finalize()
 
@@ -466,6 +507,18 @@ class FredPipeline:
         from in storage, so this fetches live from FRED and writes directly
         — the only place in the pipeline a Gold table is populated outside
         ``build_gold()``. Failure here must not fail the run.
+
+        Fetches **per curated release_id** (the singular ``release/dates``
+        endpoint, scoped server-side) rather than one unfiltered
+        ``releases/dates`` call across all ~300 FRED releases. FRED doesn't
+        support filtering the plural endpoint by ``release_id`` server-side,
+        so the unfiltered form has to fetch and paginate the entire global
+        calendar and filter client-side — confirmed live to take minutes
+        (offset-based pagination degrades sharply past the first page) even
+        though only ~10 releases are ever kept. Looping per release_id is a
+        few fast, independent calls instead of one slow one; a single
+        release_id failing (network blip, since-removed release) is logged
+        and skipped rather than losing the whole calendar.
         """
         try:
             from datetime import date, timedelta
@@ -477,11 +530,22 @@ class FredPipeline:
 
             today = date.today()
             fred_client = self._client_for_source("fred")
-            release_dates = fred_client.get_release_dates(
-                realtime_start=today.isoformat(),
-                realtime_end=(today + timedelta(days=120)).isoformat(),
-            )
             cfg = load_release_calendar_config()
+
+            release_dates: list[dict[str, Any]] = []
+            for entry in cfg:
+                try:
+                    release_dates.extend(fred_client.get_release_dates(
+                        release_id=entry.release_id,
+                        realtime_start=today.isoformat(),
+                        realtime_end=(today + timedelta(days=120)).isoformat(),
+                    ))
+                except Exception:
+                    log.exception(
+                        "Release dates fetch failed for release_id %s (run %s)",
+                        entry.release_id, run.run_id,
+                    )
+
             rows = compute_release_calendar(release_dates, cfg, as_of=today)
             self.warehouse.write_release_calendar(rows)
             log.info(
@@ -507,9 +571,15 @@ class FredPipeline:
             return exc
 
     def _finish_series(
-        self, run: EtlRun, spec: SeriesSpec, load_type: str, outcome: Any
+        self,
+        run: EtlRun,
+        spec: SeriesSpec,
+        load_type: str,
+        outcome: Any,
+        *,
+        series_run: Any = None,
     ) -> None:
-        sr = run.start_series(spec.series_id, load_type=spec.load_type.value)
+        sr = series_run or run.start_series(spec.series_id, load_type=spec.load_type.value)
         sr.load_type = load_type
         try:
             if isinstance(outcome, Exception):
@@ -563,6 +633,32 @@ class FredPipeline:
             sr.complete(RunStatus.FAILED, error_message=str(exc))
             log.exception("Series %s failed", spec.series_id)
 
+    def _update_run_progress(self, run: EtlRun, *, total: int) -> None:
+        run.series_total = total
+        run.series_succeeded = sum(
+            1 for s in run.series_runs if s.status == RunStatus.SUCCEEDED
+        )
+        run.series_failed = sum(
+            1 for s in run.series_runs if s.status == RunStatus.FAILED
+        )
+        run.status = RunStatus.RUNNING
+
+    def _persist_incremental_audit(self, run: EtlRun, series_run: Any) -> None:
+        if not (self.persist_audit and self.warehouse is not None):
+            return
+        if not getattr(self.warehouse, "supports_incremental_audit", False):
+            return
+        try:
+            persist_run_state = getattr(self.warehouse, "persist_run_state")
+            persist_series_run = getattr(self.warehouse, "persist_series_run")
+            persist_run_state(run)
+            persist_series_run(series_run)
+        except Exception:
+            log.exception(
+                "Failed to persist incremental audit for run %s series %s",
+                run.run_id, series_run.series_id,
+            )
+
     def _plan_extract(
         self, spec: SeriesSpec, *, force_full: bool = False
     ) -> tuple[Optional[str], str]:
@@ -577,7 +673,13 @@ class FredPipeline:
         if force_full or spec.load_type == LoadType.FULL or self.warehouse is None:
             return None, "full"
         n = spec.restate_records or self.config.restate_last_n
-        start = self.warehouse.restate_start(spec.series_id, n)
+        watermark_series_id = spec.series_id
+        if (getattr(spec, "source", "fred") or "fred").lower() == "tiingo":
+            # Tiingo manifests use the bare ticker, but Silver stores exploded
+            # scalar fields. Use adjClose as the date watermark for incremental
+            # reruns so an already-priced ticker does not refetch full history.
+            watermark_series_id = f"{spec.series_id.partition(':')[0]}:adjClose"
+        start = self.warehouse.restate_start(watermark_series_id, n)
         if start is None:
             return None, "full"  # first load: series not in the warehouse yet
         return start, f"restate_last_{n}"

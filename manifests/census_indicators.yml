@@ -3,7 +3,7 @@ description: >
   Demonstration manifest for the US Census Bureau economic time-series API
   (source: census), flowing through the same Bronze → Silver → Gold path.
   Key optional (keyless works at a lower quota). series_id encodes
-  '<dataset_path>:<predicate=value,...>'. Shipped inactive (active: false).
+  '<dataset_path>:<predicate=value,...>'. Shipped inactive (active: true).
   NOTE: verify the predicate codes against the live API before enabling.
 version: 1
 
@@ -13,7 +13,7 @@ series:
     category: growth
     frequency: m
     units: Millions of Dollars
-    active: false
+    active: true
     source: census
     load_type: incremental
     expected_update_frequency: monthly

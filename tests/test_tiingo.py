@@ -70,6 +70,31 @@ def test_tiingo_get_observations_calls_endpoint_and_token():
     assert payload["ticker"] == "AAPL" and len(payload["data"]) == 2
 
 
+def test_tiingo_get_observations_defaults_to_full_history_without_start():
+    """Tiingo's API (unlike FRED's) returns only the latest day when
+    startDate is omitted, so a full load (observation_start=None) must still
+    send an explicit, far-past startDate rather than no date param at all."""
+    class FakeResp:
+        status_code = 200
+
+        def json(self):
+            return _TIINGO_JSON
+
+    class FakeSession:
+        def __init__(self):
+            self.last = None
+
+        def get(self, url, params=None, timeout=None, headers=None):
+            self.last = (url, params)
+            return FakeResp()
+
+    sess = FakeSession()
+    client = TiingoClient(api_key="tok", session=sess, sleep=lambda _s: None)
+    client.get_observations("AAPL")
+    _url, params = sess.last
+    assert params["startDate"] == "1900-01-01"
+
+
 # ---- total-return engine ----------------------------------------------------
 
 def _tiingo_rows(ticker, records):
@@ -181,7 +206,7 @@ def test_stooq_and_tiingo_close_do_not_collide(tmp_path):
     results = wh.build_gold()
     assert results["equity_total_return_index"] == "ok"
 
-    # price-return table sees ONLY the Stooq close (200/202)
+    # price-return table prefers the available Stooq close (200/202)
     pr = wh.query("SELECT * FROM gold_equity_return_daily ORDER BY observation_date")
     assert [r["close"] for r in pr] == pytest.approx([200.0, 202.0])
     # total-return table sees ONLY the Tiingo close (100/101)

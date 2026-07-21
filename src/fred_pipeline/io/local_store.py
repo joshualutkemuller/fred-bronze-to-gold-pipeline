@@ -30,7 +30,7 @@ import sqlite3
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable, Iterable, Optional, Sequence
 
-from fred_pipeline.audit import EtlRun
+from fred_pipeline.audit import EtlRun, EtlSeriesRun
 from fred_pipeline.config import PipelineConfig
 from fred_pipeline.manifest import Manifest
 from fred_pipeline.meta import build_meta_rows
@@ -580,6 +580,8 @@ def _encode(value: Any) -> Any:
 
 
 class LocalWarehouse:
+    supports_incremental_audit = True
+
     """A SQLite-file implementation of the Warehouse protocol."""
 
     def __init__(self, config: PipelineConfig, db_path: str = "fred_local.db"):
@@ -990,20 +992,23 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_powerbi_catalog")
         self._insert("gold_powerbi_catalog", powerbi_catalog_rows())
 
-        # Equity slice: price return (Stooq), constituents (iShares), total
-        # return (Tiingo). Fed source-filtered Silver rows so the shared
-        # <ticker>:close namespace can't collapse Stooq and Tiingo onto one row
-        # (equity data is non-vintage → one row per (series_id, date) already).
+        # Equity slice: canonical price return, constituents (iShares), total
+        # return (Tiingo). Feed source-filtered Silver rows so the shared
+        # <ticker>:close namespace can't collapse vendor rows before canonical
+        # selection (equity data is non-vintage → one row per source/id/date).
         from fred_pipeline.equity_views import (
             compute_equity_price_reconciliation,
             compute_equity_return_daily,
             compute_equity_total_return_index,
             compute_index_constituents,
+            select_canonical_equity_price_rows,
         )
         stooq_rows = [r for r in silver if r.get("source") == "stooq"]
         ishares_rows = [r for r in silver if r.get("source") == "ishares"]
         tiingo_rows = [r for r in silver if r.get("source") == "tiingo"]
-        eq_return_rows = compute_equity_return_daily(stooq_rows)
+        eq_return_rows = compute_equity_return_daily(
+            select_canonical_equity_price_rows(stooq_rows, tiingo_rows)
+        )
         self.conn.execute("DELETE FROM gold_equity_return_daily")
         self._insert("gold_equity_return_daily", eq_return_rows)
         self.conn.execute("DELETE FROM gold_index_constituents")
@@ -1168,9 +1173,20 @@ class LocalWarehouse:
         self.conn.commit()
         return self._insert("gold_release_calendar", rows)
 
-    def persist_run(self, run: EtlRun) -> None:
+    def persist_run_state(self, run: EtlRun) -> None:
         self._insert("audit_etl_run", [run.to_row()], upsert_keys=["run_id"])
-        self._insert("audit_etl_series_run", [s.to_row() for s in run.series_runs])
+
+    def persist_series_run(self, series_run: EtlSeriesRun) -> None:
+        self.conn.execute(
+            "DELETE FROM audit_etl_series_run WHERE run_id = ? AND series_id = ?",
+            (series_run.run_id, series_run.series_id),
+        )
+        self._insert("audit_etl_series_run", [series_run.to_row()])
+
+    def persist_run(self, run: EtlRun) -> None:
+        self.persist_run_state(run)
+        for series_run in run.series_runs:
+            self.persist_series_run(series_run)
 
     def persist_dq(self, run_id: str, report: QualityReport) -> None:
         self._insert("audit_data_quality_result", dq_rows(run_id, report))

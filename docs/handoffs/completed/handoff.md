@@ -791,8 +791,9 @@ like every other Gold table:
     Ownership note above).
 2.  **Scalar-explode vs. a wide `silver_equity_bar`** (recommendation:
     scalar-explode — see above).
-3.  **Tiingo symbol budget** — trim the core list under the ~500/month cap, or
-    accept Yahoo overflow for the tail (and its fragility/ToS risk).
+3.  **Tiingo symbol budget.** ✅ **Resolved:** `manifests/equity_tiingo.yml`
+    sits at 85 tickers, comfortably under the ~500/month cap — no Yahoo
+    overflow needed.
 4.  **Commercial use** — ✅ **Decided: personal use.** Tiingo's free tier
     covers this, so the total-return path is unblocked and no paid plan is
     needed. (If usage ever turns commercial, revisit — the free tier would no
@@ -803,12 +804,17 @@ like every other Gold table:
 
 # ML Extensions Sub-Plan
 
-**Status: PLANNED — not started.** This section is the build spec for an
-ML/statistical-inference tier on top of the existing Gold layer. All six
-phases are independent of one another except where the dependency graph
-notes otherwise; they can be picked up in any order by whoever has the
-bandwidth, but the recommended sequence is ML-0 → ML-1 → ML-2 → ML-3 →
-ML-4 → ML-5 → ML-6.
+**Status: ALL PHASES IMPLEMENTED** (ML-0 through ML-6, plus the ML-3b and
+ML-5b enhancements). This section was originally the build spec for an
+ML/statistical-inference tier on top of the existing Gold layer; it's kept
+below as the design record (principles, dependency graph, per-phase
+rationale) since the tables it describes now ship in Gold: `gold.
+ml_feature_matrix` (ML-0), `gold.yield_curve_ns_factors` (ML-1), `gold.
+macro_factor_scores`/`macro_factor_loadings` (ML-2), `gold.
+recession_probability_daily` (ML-3, incl. the ML-3b horizon forecasts),
+`gold.macro_anomaly_scores` (ML-4), `gold.equity_factor_attribution` (ML-5)
+and `gold.equity_factor_implied_return` (ML-5b), and `gold.inflation_forecast`
+(ML-6, marked done below).
 
 ## Design principles
 
@@ -1253,10 +1259,9 @@ re-estimate monthly to avoid daily refitting cost).
 
 ## Open decisions
 
-1. **USREC activation (blocks ML-3 live estimates).** The `macro_flags.yml`
-   manifest ships inactive — activate it (with FRED API key configured) to
-   get real recession labels. The model skeleton and tests can use synthetic
-   labels first.
+1. **USREC activation (blocks ML-3 live estimates).** ✅ **Resolved:**
+   `USREC`/`USRECD` are `active: true` in `manifests/macro_flags.yml` —
+   ML-3 trains on real recession labels, not synthetic ones.
 
 2. **scipy as optional dependency.** The plan keeps scipy entirely optional.
    If the pure-Python NS fitting (ML-1) proves too slow over the full
@@ -1269,9 +1274,10 @@ re-estimate monthly to avoid daily refitting cost).
    ML-2 factor loadings are considered interpretable. The config-driven design
    means this is a YAML edit, not a code change.
 
-4. **Factor rotation convention (ML-2).** Recommendation: sign-anchoring
-   (flip sign so the dominant loading is always positive). Revisit with varimax
-   if the raw PCA factors are hard to interpret once real data is loaded.
+4. **Factor rotation convention (ML-2).** ✅ **Resolved:** implemented as
+   recommended — sign-anchoring (the max-abs loading component is always
+   positive). Revisit with varimax if the raw PCA factors prove hard to
+   interpret with real data.
 
 5. **Equity universe for ML-5.** Rolling OLS over 252 days × N tickers ×
    3 factors runs in ~1ms per ticker; at 500 tickers that's ~30s per build.

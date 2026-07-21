@@ -35,6 +35,16 @@ log = logging.getLogger("fred_pipeline.sources.tiingo")
 # reconciliation.
 EXPLODE_FIELDS = ("close", "divCash", "splitFactor", "adjClose")
 
+# Unlike FRED, Tiingo's daily endpoint does NOT return full history when
+# ``startDate`` is omitted — it silently defaults to only the most recent
+# trading day. The pipeline's "full load" contract (SourceClient.
+# get_observations(observation_start=None) -> everything) relies on that
+# omission meaning "no lower bound", so a full load needs an explicit
+# startDate anyway; this is safely before any US equity's actual listing
+# date. Incremental "restate last N" reruns are unaffected — those already
+# pass a real observation_start from the warehouse watermark.
+FULL_HISTORY_START = "1900-01-01"
+
 
 class TiingoAPIError(SourceError):
     """Raised when Tiingo returns an unrecoverable error."""
@@ -155,9 +165,10 @@ class TiingoClient(HTTPSource):
         """Fetch a ticker's full daily history once; the envelope is archived
         verbatim in Bronze and exploded per field by :func:`normalize`."""
         ticker = _ticker(series_id)
-        params: dict[str, Any] = {}
-        if observation_start:
-            params["startDate"] = str(observation_start)[:10]
+        params: dict[str, Any] = {
+            "startDate": str(observation_start)[:10] if observation_start
+            else FULL_HISTORY_START,
+        }
         if observation_end:
             params["endDate"] = str(observation_end)[:10]
         data = self._request(self.observations_endpoint(series_id), params)

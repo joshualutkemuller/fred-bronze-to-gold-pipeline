@@ -2,7 +2,7 @@ name: eia_energy
 description: >
   Demonstration manifest for a third source: energy series pulled from the EIA
   v2 API (source: eia), flowing through the same Bronze/Silver/Gold path as FRED
-  and BLS. Shipped inactive (active: false) so default runs don't fetch them;
+  and BLS. Shipped inactive (active: true) so default runs don't fetch them;
   EIA requires a free API key (set FRED_ style config eia_api_key), so enable by
   setting active: true once a key is configured.
 version: 1
@@ -13,7 +13,7 @@ series:
     category: energy
     frequency: m
     units: Dollars per Barrel
-    active: false
+    active: true
     source: eia
     load_type: incremental
     expected_update_frequency: monthly
@@ -30,7 +30,7 @@ series:
     category: energy
     frequency: m
     units: Cents per Kilowatthour
-    active: false
+    active: true
     source: eia
     load_type: incremental
     expected_update_frequency: monthly

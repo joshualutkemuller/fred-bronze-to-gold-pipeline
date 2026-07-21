@@ -11,7 +11,8 @@ _ENV_VARS = [
     "FRED_RATE_LIMIT_PER_MINUTE", "FRED_EXTRACT_WORKERS",
     "FRED_SOURCE_EXTRACT_WORKERS", "FRED_SOURCE_RATE_LIMITS",
     "FRED_RAW_VOLUME_PATH", "FRED_CONFIG_FILE",
-    "BLS_API_KEY", "EIA_API_KEY", "BEA_API_KEY", "CENSUS_API_KEY", "SEC_USER_AGENT",
+    "BLS_API_KEY", "EIA_API_KEY", "BEA_API_KEY", "CENSUS_API_KEY",
+    "SEC_USER_AGENT", "STOOQ_API_KEY", "TIINGO_API_KEY",
 ]
 
 
@@ -129,7 +130,8 @@ def test_secret_scope_fallback_when_no_key(tmp_path):
 def test_source_keys_fall_back_to_secret_scope():
     class FakeSecrets:
         _store = {("fred", "bls_api_key"): "bls-from-secret",
-                  ("fred", "eia_api_key"): "eia-from-secret"}
+                  ("fred", "eia_api_key"): "eia-from-secret",
+                  ("fred", "stooq_api_key"): "stooq-from-secret"}
 
         def get(self, scope, key):
             return self._store[(scope, key)]  # KeyError if absent
@@ -143,6 +145,7 @@ def test_source_keys_fall_back_to_secret_scope():
     # keyed by the config field name in the default 'fred' scope
     assert cfg.bls_api_key == "bls-from-secret"
     assert cfg.eia_api_key == "eia-from-secret"
+    assert cfg.stooq_api_key == "stooq-from-secret"
 
 
 def test_explicit_source_key_beats_secret_scope(monkeypatch):
@@ -187,21 +190,25 @@ def test_defaults_when_no_file_no_env():
 def test_source_keys_from_env_reach_clients(monkeypatch):
     monkeypatch.setenv("BLS_API_KEY", "bls-secret")
     monkeypatch.setenv("EIA_API_KEY", "eia-secret")
+    monkeypatch.setenv("STOOQ_API_KEY", "stooq-secret")
     cfg = PipelineConfig.resolve(environment="dev", config_file="nope.yaml")
     assert cfg.bls_api_key == "bls-secret"
     assert cfg.eia_api_key == "eia-secret"
+    assert cfg.stooq_api_key == "stooq-secret"
 
     # and the pipeline factories feed them into the right clients
-    from fred_pipeline.pipeline import _make_bls, _make_eia
+    from fred_pipeline.pipeline import _make_bls, _make_eia, _make_stooq
 
     assert _make_bls(cfg).api_key == "bls-secret"
     assert _make_eia(cfg).api_key == "eia-secret"
+    assert _make_stooq(cfg).api_key == "stooq-secret"
 
 
 def test_source_keys_default_empty():
     cfg = PipelineConfig.resolve(environment="dev", config_file="nope.yaml")
     assert cfg.bls_api_key == ""
     assert cfg.eia_api_key == ""
+    assert cfg.stooq_api_key == ""
     # secrets stay out of repr
     assert "bls-" not in repr(cfg) and "eia-" not in repr(cfg)
 

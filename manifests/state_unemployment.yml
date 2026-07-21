@@ -1,0 +1,636 @@
+name: state_unemployment
+description: >
+  Item 1 of docs/handoffs/series_discovery.md — state-level unemployment rate
+  panel (FRED release 112 'State Employment and Unemployment', regex-filtered
+  to the clean <2-letter-state>UR id pattern). 52 series: 50 states + DC +
+  Puerto Rico. Verified live against FRED (2026-07-19). Excluded DSUR
+  ('Unemployment Rate in FRB-St. Louis District States') — matches the id
+  pattern but is a Fed-district aggregate, not a state, and is DISCONTINUED on
+  FRED.
+version: 1
+
+series:
+  - series_id: AKUR
+    title: "Unemployment Rate in Alaska"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: ALUR
+    title: "Unemployment Rate in Alabama"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 3
+    tags: [regional, state, unemployment]
+
+  - series_id: ARUR
+    title: "Unemployment Rate in Arkansas"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: AZUR
+    title: "Unemployment Rate in Arizona"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: CAUR
+    title: "Unemployment Rate in California"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 3
+    tags: [regional, state, unemployment]
+
+  - series_id: COUR
+    title: "Unemployment Rate in Colorado"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: CTUR
+    title: "Unemployment Rate in Connecticut"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: DCUR
+    title: "Unemployment Rate in the District of Columbia"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: DEUR
+    title: "Unemployment Rate in Delaware"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: FLUR
+    title: "Unemployment Rate in Florida"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 3
+    tags: [regional, state, unemployment]
+
+  - series_id: GAUR
+    title: "Unemployment Rate in Georgia"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: HIUR
+    title: "Unemployment Rate in Hawaii"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: IAUR
+    title: "Unemployment Rate in Iowa"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: IDUR
+    title: "Unemployment Rate in Idaho"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: ILUR
+    title: "Unemployment Rate in Illinois"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: INUR
+    title: "Unemployment Rate in Indiana"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: KSUR
+    title: "Unemployment Rate in Kansas"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: KYUR
+    title: "Unemployment Rate in Kentucky"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: LAUR
+    title: "Unemployment Rate in Louisiana"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: MAUR
+    title: "Unemployment Rate in Massachusetts"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: MDUR
+    title: "Unemployment Rate in Maryland"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: MEUR
+    title: "Unemployment Rate in Maine"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: MIUR
+    title: "Unemployment Rate in Michigan"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: MNUR
+    title: "Unemployment Rate in Minnesota"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: MOUR
+    title: "Unemployment Rate in Missouri"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 3
+    tags: [regional, state, unemployment]
+
+  - series_id: MSUR
+    title: "Unemployment Rate in Mississippi"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: MTUR
+    title: "Unemployment Rate in Montana"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: NCUR
+    title: "Unemployment Rate in North Carolina"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: NDUR
+    title: "Unemployment Rate in North Dakota"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: NEUR
+    title: "Unemployment Rate in Nebraska"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: NHUR
+    title: "Unemployment Rate in New Hampshire"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: NJUR
+    title: "Unemployment Rate in New Jersey"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: NMUR
+    title: "Unemployment Rate in New Mexico"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: NVUR
+    title: "Unemployment Rate in Nevada"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: NYUR
+    title: "Unemployment Rate in New York"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 3
+    tags: [regional, state, unemployment]
+
+  - series_id: OHUR
+    title: "Unemployment Rate in Ohio"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: OKUR
+    title: "Unemployment Rate in Oklahoma"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: ORUR
+    title: "Unemployment Rate in Oregon"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: PAUR
+    title: "Unemployment Rate in Pennsylvania"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: PRUR
+    title: "Unemployment Rate in Puerto Rico"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: RIUR
+    title: "Unemployment Rate in Rhode Island"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: SCUR
+    title: "Unemployment Rate in South Carolina"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: SDUR
+    title: "Unemployment Rate in South Dakota"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: TNUR
+    title: "Unemployment Rate in Tennessee"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: TXUR
+    title: "Unemployment Rate in Texas"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 3
+    tags: [regional, state, unemployment]
+
+  - series_id: UTUR
+    title: "Unemployment Rate in Utah"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: VAUR
+    title: "Unemployment Rate in Virginia"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: VTUR
+    title: "Unemployment Rate in Vermont"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+
+  - series_id: WAUR
+    title: "Unemployment Rate in Washington"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: WIUR
+    title: "Unemployment Rate in Wisconsin"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: WVUR
+    title: "Unemployment Rate in West Virginia"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 4
+    tags: [regional, state, unemployment]
+
+  - series_id: WYUR
+    title: "Unemployment Rate in Wyoming"
+    category: state_labor
+    frequency: m
+    units: "Percent"
+    active: true
+    vintage_enabled: false
+    validation_profile: standard
+    downstream_use_case: state_panel
+    priority: 5
+    tags: [regional, state, unemployment]
+

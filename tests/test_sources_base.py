@@ -32,6 +32,13 @@ def test_default_query_is_injected(fake_session_cls, fake_response_cls):
     assert session.calls[0]["params"] == {"q": "1", "token": "abc"}
 
 
+def test_absolute_endpoint_bypasses_base_url(fake_session_cls, fake_response_cls):
+    session = fake_session_cls([fake_response_cls({"ok": True})])
+    out = _Source(session)._request("https://files.example.test/data.csv", {})
+    assert out == {"ok": True}
+    assert session.calls[0]["url"] == "https://files.example.test/data.csv"
+
+
 def test_shared_retry_then_success(fake_session_cls, fake_response_cls):
     session = fake_session_cls([
         fake_response_cls(None, status_code=503),
