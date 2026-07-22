@@ -123,6 +123,7 @@ class TiingoClient(HTTPSource):
         api_key: str = "",
         base_url: str = "https://api.tiingo.com",
         *,
+        backup_api_keys: Optional[list[str]] = None,
         session: Any = None,
         timeout: int = 30,
         max_retries: int = 5,
@@ -134,6 +135,12 @@ class TiingoClient(HTTPSource):
                 "Tiingo requires an API key (set TIINGO_API_KEY / tiingo_api_key)"
             )
         self.api_key = api_key
+        # Additional accounts to rotate to when the active key's hourly quota
+        # is exhausted (Tiingo's free-tier quota is tracked per key/account).
+        # Popped from the front as each is exhausted, so this only ever moves
+        # forward within one client's lifetime — no cycling back to an
+        # already-exhausted key within the same run.
+        self._backup_keys: list[str] = list(backup_api_keys or [])
         super().__init__(
             base_url=base_url,
             session=session,
@@ -145,6 +152,13 @@ class TiingoClient(HTTPSource):
 
     def _default_query(self) -> dict[str, Any]:
         return {"token": self.api_key, "format": "json"}
+
+    @staticmethod
+    def _is_quota_error(exc: "TiingoAPIError") -> bool:
+        if exc.status_code == 429:
+            return True
+        message = str(exc).lower()
+        return "hourly request allocation" in message or "quota" in message
 
     def _request_headers(self) -> dict[str, str]:
         return {"Content-Type": "application/json"}
@@ -171,7 +185,20 @@ class TiingoClient(HTTPSource):
         }
         if observation_end:
             params["endDate"] = str(observation_end)[:10]
-        data = self._request(self.observations_endpoint(series_id), params)
+        endpoint = self.observations_endpoint(series_id)
+        while True:
+            try:
+                data = self._request(endpoint, params)
+                break
+            except TiingoAPIError as exc:
+                if not (self._is_quota_error(exc) and self._backup_keys):
+                    raise
+                self.api_key = self._backup_keys.pop(0)
+                log.info(
+                    "Tiingo quota exhausted; rotating to backup API key "
+                    "(%d more in reserve) and retrying %s.",
+                    len(self._backup_keys), ticker,
+                )
         if not isinstance(data, list):
             data = []
         return {"format": "tiingo", "ticker": ticker, "data": data}
