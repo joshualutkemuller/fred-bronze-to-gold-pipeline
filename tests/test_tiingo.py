@@ -95,6 +95,60 @@ def test_tiingo_get_observations_defaults_to_full_history_without_start():
     assert params["startDate"] == "1900-01-01"
 
 
+def test_tiingo_rotates_to_backup_key_on_quota_exhaustion():
+    """tiingo_api_key may be a list of accounts to rotate through (Tiingo's
+    hourly quota is tracked per key). A 429 on the active key should switch
+    to the next backup and retry, rather than failing the whole call."""
+    class FakeResp:
+        def __init__(self, status_code, body):
+            self.status_code = status_code
+            self._body = body
+
+        def json(self):
+            return self._body
+
+    class FakeSession:
+        def __init__(self):
+            self.calls = []
+
+        def get(self, url, params=None, timeout=None, headers=None):
+            self.calls.append(params["token"])
+            if params["token"] == "primary":
+                return FakeResp(429, {"detail": "hourly request allocation"})
+            return FakeResp(200, _TIINGO_JSON)
+
+    sess = FakeSession()
+    client = TiingoClient(
+        api_key="primary", backup_api_keys=["backup"],
+        session=sess, sleep=lambda _s: None, max_retries=0,
+    )
+    payload = client.get_observations("AAPL")
+    assert sess.calls == ["primary", "backup"]
+    assert client.api_key == "backup"
+    assert payload["ticker"] == "AAPL" and len(payload["data"]) == 2
+
+
+def test_tiingo_raises_when_all_keys_exhausted():
+    class FakeResp:
+        status_code = 429
+
+        def json(self):
+            return {"detail": "hourly request allocation"}
+
+    class FakeSession:
+        def get(self, url, params=None, timeout=None, headers=None):
+            return FakeResp()
+
+    client = TiingoClient(
+        api_key="primary", backup_api_keys=["backup"],
+        session=FakeSession(), sleep=lambda _s: None, max_retries=0,
+    )
+    with pytest.raises(TiingoAPIError):
+        client.get_observations("AAPL")
+    # both keys tried and exhausted; nothing left to rotate to
+    assert client._backup_keys == []
+
+
 # ---- total-return engine ----------------------------------------------------
 
 def _tiingo_rows(ticker, records):

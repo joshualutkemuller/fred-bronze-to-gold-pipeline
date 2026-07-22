@@ -7,6 +7,8 @@ from fred_pipeline.manifest import SeriesSpec, ValidationProfile
 from fred_pipeline.pipeline import (
     FredPipeline,
     _extract_workers_for_source,
+    _make_tiingo,
+    _normalize_tiingo_keys,
     _rate_limit_for_source,
 )
 
@@ -19,6 +21,33 @@ def _spec(series_id, **kw):
     kw.setdefault("title", series_id)
     kw.setdefault("frequency", "d")
     return SeriesSpec(series_id=series_id, **kw)
+
+
+def test_normalize_tiingo_keys_accepts_string_or_list():
+    assert _normalize_tiingo_keys("abc") == ["abc"]
+    assert _normalize_tiingo_keys("") == []
+    assert _normalize_tiingo_keys(["a", "b"]) == ["a", "b"]
+    assert _normalize_tiingo_keys(["a", "", "b"]) == ["a", "b"]
+    assert _normalize_tiingo_keys(None) == []
+
+
+def test_make_tiingo_wires_primary_and_backup_keys():
+    config = PipelineConfig(
+        environment=Environment.DEV, fred_api_key="k",
+        tiingo_api_key=["primary", "backup1", "backup2"],
+    )
+    client = _make_tiingo(config)
+    assert client.api_key == "primary"
+    assert client._backup_keys == ["backup1", "backup2"]
+
+
+def test_make_tiingo_still_accepts_a_single_string_key():
+    config = PipelineConfig(
+        environment=Environment.DEV, fred_api_key="k", tiingo_api_key="only",
+    )
+    client = _make_tiingo(config)
+    assert client.api_key == "only"
+    assert client._backup_keys == []
 
 
 def test_run_without_spark_records_audit(observations_payload, fake_client_cls):

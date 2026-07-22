@@ -143,10 +143,25 @@ def _make_ishares(config: PipelineConfig) -> SourceClient:
     )
 
 
+def _normalize_tiingo_keys(value: Any) -> list[str]:
+    """``tiingo_api_key`` may be a single string (the common case) or a list
+    of several account keys to rotate through when one's hourly quota is
+    exhausted (Tiingo's free-tier quota is tracked per key/account, not per
+    IP). Accepts either shape; returns a clean list, dropping blanks."""
+    if isinstance(value, str):
+        return [value] if value else []
+    if isinstance(value, (list, tuple)):
+        return [str(v) for v in value if v]
+    return []
+
+
 def _make_tiingo(config: PipelineConfig) -> SourceClient:
     # Tiingo requires a (free) key; TiingoClient raises if one isn't configured.
+    keys = _normalize_tiingo_keys(getattr(config, "tiingo_api_key", ""))
+    primary, backups = (keys[0], keys[1:]) if keys else ("", [])
     return TiingoClient(
-        api_key=getattr(config, "tiingo_api_key", "") or "",
+        api_key=primary,
+        backup_api_keys=backups,
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
         rate_limit_per_minute=_rate_limit_for_source(config, "tiingo"),
