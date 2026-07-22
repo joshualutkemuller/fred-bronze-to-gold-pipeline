@@ -1,21 +1,18 @@
 name: equity_tiingo
 description: >
-  Equity total-return manifest (source: tiingo) — broad ETFs + large-cap
-  constituents, expanded for market_terminal parity
-  (docs/market_terminal_series_gap.md §2, 85 tickers). Tiingo needs a free
-  account key (set TIINGO_API_KEY / tiingo_api_key — not yet set in this
-  environment's config.yaml as of 2026-07-17; every series here will fail
-  isolated per-series until it is). series_id is the BARE TICKER (e.g. AAPL):
-  one fetch explodes into <ticker>:close/divCash/splitFactor/adjClose Silver
-  series, from which gold.equity_total_return_index reconstructs true total
-  return.
+  Equity total-return manifest (source: tiingo) — broad ETFs only. Originally
+  85 tickers (58 ETFs + 27 large-cap stocks, expanded for market_terminal
+  parity, docs/market_terminal_series_gap.md §2); the 27 individual stocks
+  were removed by request (2026-07-20) — individual-name coverage now comes
+  from the IVV constituent-pricing mechanism instead (constituent_pricing.py
+  / `python -m fred_pipeline price-constituents`), which prices the real S&P
+  500 membership rather than a hand-picked subset. series_id is the BARE
+  TICKER (e.g. SPY): one fetch explodes into <ticker>:close/divCash/
+  splitFactor/adjClose Silver series, from which
+  gold.equity_total_return_index reconstructs true total return.
 
-  Quota note: 85 unique symbols is well within the free tier's ~500/month
+  Quota note: 58 unique symbols is well within the free tier's ~500/month
   unique-symbol cap and ~1,000/day request cap.
-
-  BBBY (Bed Bath & Beyond) was delisted in 2023 — included for
-  market_terminal parity, but expect it to fail (isolated, per-series) unless
-  Tiingo still serves historical-only data for it.
 version: 1
 
 series:
@@ -26,9 +23,6 @@ series:
   - {series_id: AGG,  title: iShares Core US Aggregate Bond, category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 3, min_value: 0, tags: [equity, etf, bond, tiingo, total_return]}
   - {series_id: TLT,  title: iShares 20+ Year Treasury,  category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 3, min_value: 0, tags: [equity, etf, bond, tiingo, total_return]}
   - {series_id: HYG,  title: iShares iBoxx HY Corp Bond, category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 3, min_value: 0, tags: [equity, etf, credit, tiingo, total_return]}
-  - {series_id: AAPL, title: Apple Inc,      category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, stock, tiingo, total_return]}
-  - {series_id: MSFT, title: Microsoft Corp, category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, stock, tiingo, total_return]}
-  - {series_id: JNJ,  title: Johnson & Johnson (dividend payer), category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: [equity, stock, dividend, tiingo, total_return]}
 
   # --- market_terminal parity additions (docs/market_terminal_series_gap.md §2) ---
   - {series_id: DIA, title: 'SPDR Dow Jones Industrial Average ETF', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'etf', 'tiingo', 'total_return']}
@@ -82,27 +76,3 @@ series:
   - {series_id: KRE, title: 'SPDR S&P Regional Banking ETF', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'etf', 'thematic', 'bank', 'tiingo', 'total_return']}
   - {series_id: KBE, title: 'SPDR S&P Bank ETF', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'etf', 'thematic', 'bank', 'tiingo', 'total_return']}
   - {series_id: IBIT, title: 'iShares Bitcoin Trust', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'etf', 'crypto', 'tiingo', 'total_return']}
-  - {series_id: GOOGL, title: 'Alphabet Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: META, title: 'Meta Platforms Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: TSLA, title: 'Tesla Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: JPM, title: 'JPMorgan Chase & Co', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: GS, title: 'Goldman Sachs Group Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: BAC, title: 'Bank of America Corp', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: XOM, title: 'Exxon Mobil Corp', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: CVX, title: 'Chevron Corp', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: UNH, title: 'UnitedHealth Group Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: GME, title: 'GameStop Corp', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: AMC, title: 'AMC Entertainment Holdings', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: BBBY, title: 'Bed Bath & Beyond (delisted 2023 - may fail)', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: RIVN, title: 'Rivian Automotive Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: LCID, title: 'Lucid Group Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: COIN, title: 'Coinbase Global Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: PLTR, title: 'Palantir Technologies Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: SMCI, title: 'Super Micro Computer Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: MSTR, title: 'MicroStrategy Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: HOOD, title: 'Robinhood Markets Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: CVNA, title: 'Carvana Co', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: UPST, title: 'Upstart Holdings Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: AFRM, title: 'Affirm Holdings Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: DJT, title: 'Trump Media & Technology Group', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
-  - {series_id: NFLX, title: 'Netflix Inc', category: equity, frequency: d, units: USD, active: true, source: tiingo, vintage_enabled: false, validation_profile: standard, downstream_use_case: equity_total_return, priority: 2, min_value: 0, tags: ['equity', 'stock', 'tiingo', 'total_return']}
