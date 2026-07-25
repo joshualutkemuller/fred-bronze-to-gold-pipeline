@@ -143,6 +143,50 @@ uses), so you can run it repeatedly against the same file without duplicates.
 The same code path, pointed at a `SparkWarehouse` instead, is what runs on
 Databricks — so local results match production semantics.
 
+## Operations reference
+
+Every `python -m fred_pipeline <command>` the CLI supports, grouped by what
+it does. All commands accept `--env dev|test|prod` and `--config <path>`;
+only the flags that differ in meaning are listed per command. (Full detail:
+[`docs/instructions/running_multi_source.md`](docs/instructions/running_multi_source.md).)
+
+### Build / extract (talks to external APIs)
+
+| Command | What it does | Key flags |
+|---|---|---|
+| `run` | Full Bronze → Silver → Gold: extracts active series from every source with an active manifest entry, then rebuilds Gold (unless `--no-gold`) | `--local --db-path`, `--series`, `--source` / `--exclude-source`, `--full`, `--dry-run`, `--no-gold`, `--extract-workers`, `--source-workers`, `--rate-limit-per-minute`, `--source-rate-limits` |
+| `price-constituents` | Dynamic Tiingo pricing batch: reads current ETF membership from `gold_index_constituents`, prices only missing/stale tickers (by weight rank), stops on a Tiingo quota hit | `--index-etf`, `--max-symbols`, `--stale-days`, `--rate-limit-per-minute`, `--dry-run`, `--rebuild-gold` |
+| `discover` | Generates a new manifest from a FRED category/release/search — not a refresh, a discovery/authoring tool | `--category-id` / `--release-id` / `--search`, `--frequencies`, `--min-popularity`, `--max`, `--out`, `--dry-run` |
+
+### Refresh (rebuilds from already-ingested data — no external API calls)
+
+| Command | What it does | Key flags |
+|---|---|---|
+| `gold` | Rebuilds every Gold table from already-persisted Bronze/Silver | `--local --db-path` |
+| `replay` | Rebuilds Silver (+ Gold, unless `--no-gold`) from archived Bronze payloads — reprocesses raw data already on disk, e.g. after fixing a normalization/DQ bug | `--series`, `--no-gold`, `--local --db-path` |
+
+### Maintenance / governance (metadata health, not observation data)
+
+| Command | What it does | Key flags |
+|---|---|---|
+| `validate` | Schema/duplicate-id check on the manifests — no network, no backend | `--manifests` |
+| `reconcile` | Diffs manifests against live FRED metadata (title/frequency/units drift, discontinued series, staleness); FRED-sourced series only | `--series`, `--local --db-path`, `--no-persist`, `--fail-on-drift` |
+| `backfill` | Generates point-in-time Gold snapshots over a historical date range into a separate output DB — for backtesting, not a live refresh | `--from`, `--to` (required), `--step monthly\|weekly\|daily`, `--tables`, `--db-path`, `--backfill-db`, `--no-resume` |
+
+## Common workflows
+
+| Goal | Sequence |
+|---|---|
+| First-ever local run | `validate` → `run --dry-run --series <one id>` (confirm a key/id works cheaply) → `run --local --db-path fred_local.db` |
+| Routine daily refresh | `run --local --db-path fred_local.db` (incremental restate-last-N + full Gold rebuild + release calendar, all in one) |
+| Large first-time load, rate-limit-safe | `run --local --db-path f.db --full --no-gold --source-workers fred=8,tiingo=1 --source-rate-limits fred=60,tiingo=5` → `gold --local --db-path f.db` (separates slow extraction retries from the one-shot Gold rebuild) |
+| Add a brand-new source/series | edit the manifest (`active: true`) → `validate` → `run --dry-run --series <new id>` → `run --local --db-path fred_local.db` |
+| Grow ETF constituent coverage | `run --local --db-path f.db --series <ETF ticker> --no-gold` (refresh holdings) → `price-constituents --db-path f.db --index-etf <ETF> --dry-run` (preview the next batch) → `price-constituents --db-path f.db --index-etf <ETF> --rate-limit-per-minute 5` (pull it) → `gold --local --db-path f.db` |
+| Health-check the series universe | `reconcile --local --db-path fred_local.db` (safe to run anytime — FRED-only, doesn't touch other sources' quotas) |
+| Recover from a bad DQ/normalization bug | fix the code → `replay --local --db-path fred_local.db` (reprocesses already-archived Bronze payloads, no re-fetch, no API quota spent) |
+| Backtest "what did Gold look like historically" | `run --local --db-path fred_local.db` (ensure Silver is current) → `backfill --db-path fred_local.db --backfill-db fred_backfill.db --from 2015-01-01 --to 2026-01-01 --step monthly` |
+| Onboard a new FRED category/release wholesale | `discover --name <manifest_name> --category-id <id> --dry-run` (preview) → re-run with `--out manifests/<name>.yml` → hand-review the generated YAML → `validate` → `run --dry-run --series <a few ids>` → activate for real |
+
 ## Deploy to Databricks
 
 > Full go-live checklist (provisioning steps + the quant/ops decisions, with
