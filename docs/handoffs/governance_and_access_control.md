@@ -1,10 +1,19 @@
 # Path A: Governance, licensing, and access-control infrastructure
 
-**Status: PROPOSED — not started.** One of two candidate "what's next"
-directions (see `docs/handoffs/asset_class_expansion.md` for the other).
-This doc scopes what it would take to make this pipeline safely usable
-*across multiple teams inside a financial firm*, as opposed to a
-single-user research warehouse.
+**Status: IN PROGRESS.** One of two candidate "what's next" directions (see
+`docs/handoffs/asset_class_expansion.md` for the other). This doc scopes
+what it would take to make this pipeline safely usable *across multiple
+teams inside a financial firm*, as opposed to a single-user research
+warehouse.
+
+**Item 1 (per-source data-licensing register) — DONE (2026-07-26).**
+`config/data_licensing.yml` (11 sources) + `governance/licensing.py`
+(loader + `check_commercial_use`) + `fred_pipeline validate --commercial`
+guardrail + a data-dictionary summary table. Live-tested: correctly flags
+`tiingo` (85 active series, free-tier-personal-use) and `ishares` (1 active
+series, requires-agreement/unreviewed) as not clearing commercial use, and
+exits non-zero. See the item below for the as-built detail. Items 2/3
+remain unstarted.
 
 ## Context
 
@@ -44,7 +53,23 @@ ad hoc, one-off basis rather than via any systematic process.
 
 ## 1. Per-source data-licensing register — *(smallest lift, highest immediate value)*
 
-**The problem.** This pipeline pulls from ~13 distinct upstream sources
+**Status: DONE (2026-07-26).** `config/data_licensing.yml` registers all 11
+sources actually in use today (the ~13 estimate below included ICE, which
+turned out to ride in via FRED rather than being its own `source` value —
+confirmed by checking the live distinct-source list across every manifest).
+`governance/licensing.py` provides the loader
+(`load_data_licensing_config`) and the check
+(`check_commercial_use` — fails closed on an unregistered source too, not
+just an explicitly-disallowed one). `fred_pipeline validate --commercial`
+wires it in and was live-tested against the real manifest universe: it
+correctly flags `tiingo` (85 active series, free-tier-personal-use) and
+`ishares` (1 active series, requires-agreement/unreviewed), exits non-zero.
+A summary table lives in `docs/dictionary/data_dictionary.md`. Stooq and
+iShares are both marked `requires-agreement`/commercial-use-disallowed as
+conservative defaults pending an actual terms review — the register makes
+that gap visible rather than resolving it.
+
+**The problem (as originally scoped).** This pipeline pulls from ~13 distinct upstream sources
 (FRED, BLS, EIA, BEA, Census, Treasury, World Bank, SEC, Tiingo, Stooq,
 iShares/SSGA, ICE via FRED, plus whatever `discover` onboards next). Each
 has different terms: FRED/BLS/Treasury/Census/World Bank/SEC are U.S.
@@ -135,12 +160,10 @@ it'll need redoing.
 
 | # | Item | Effort | Engineering vs. policy | Priority |
 |---|---|---|---|---|
-| 1 | Per-source data-licensing register + activation guardrail | S | Mostly engineering (a config file + a validate check) | **High** |
+| 1 | Per-source data-licensing register + activation guardrail | S | Mostly engineering (a config file + a validate check) | **DONE** |
 | 2 | Query-level access logging | S–M | Mostly documentation on Databricks; small build for local backend | Medium |
 | 3 | Role-based read access to Gold tables | M–L | Mostly policy (role→table mapping) + light engineering to codify it | Depends on firm's org readiness |
 
-Recommended order: 1 → 2 → 3. Item 1 is cheap, immediately reduces real
-risk, and doesn't require anyone outside the pipeline's current owner to
-make a decision. Items 2–3 need input from whoever would own compliance/
-security at the firm this serves — worth scoping now, but don't build 3
-until that conversation happens.
+Recommended order: **1 — done.** Items 2–3 need input from whoever would
+own compliance/security at the firm this serves — worth scoping now, but
+don't build 3 until that conversation happens.
