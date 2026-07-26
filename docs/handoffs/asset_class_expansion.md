@@ -17,7 +17,17 @@ half via a FRED `discover` pass. Individual-issuer/CUSIP pricing is
 explicitly **not being pursued** (user decision) — see the item below for
 what was found and why the muni side is a dead end without a paid vendor.
 
-Items 1b/3 remain unstarted.
+**Item 3 (commodities futures) — SCOPED, not built (2026-07-26).** Live-
+verified against `api.eia.gov`: EIA genuinely published exactly this data
+(20 NYMEX futures instruments, WTI/heating oil/gasoline/propane, contracts
+1-4, back to 1980) but discontinued it on 2024-04-05 — over two years
+stale, not usable as a live source. This item is now gated on the same
+paid-vendor decision as 1b. See the item below for the full finding,
+including a separate discovered bug (the existing `EIAClient` hits a now-
+dead legacy route and would fail for *any* EIA series today, unrelated to
+futures specifically).
+
+Item 1b remains unstarted.
 
 ## Context
 
@@ -155,23 +165,49 @@ short on what's actually needed.
 
 ## 3. Commodities futures / term structure — *(moderate value, moderate cost)*
 
+**Status: SCOPED (2026-07-26) — EIA's free path checked live and confirmed
+dead; this now needs the same paid-vendor/licensing decision as item 1b.**
+
 **The problem.** `DCOILWTICO` (WTI spot) plus a few precious-metals ETFs is
 spot-only. Commodities trading is fundamentally about the curve (contango/
 backwardation, roll yield) — spot price alone misses the entire investable
 thesis for a commodities desk.
 
-**Build.**
-1. **Sourcing**: FRED has essentially no futures curve data (it's a
-   spot/cash-market source by nature) — this one *does* require an external
-   source, unlike item 2's FRED-first option. Candidates: EIA (already a
-   source in this pipeline for energy spot/production data — check whether
-   its API also exposes futures strip data, which would be the cheapest
-   path since the client already exists in `sources/eia.py`), CME
-   settlement data (previously reviewed and rejected for Fed Funds futures
-   on cost grounds in `terminal_phase0_gaps.md` — the same rejection likely
-   applies here and should be re-checked rather than assumed), or a
+**EIA's futures data exists — and was discontinued over two years ago.**
+Live-queried directly against `api.eia.gov` (not assumed): EIA's
+`petroleum/pri/fut` category is/was **exactly** the right dataset — 20
+NYMEX futures instruments across 4 commodities × contracts 1–4 (`RCLC1`-
+`RCLC4` WTI crude; NY Harbor Heating Oil, Regular Gasoline, and RBOB
+Gasoline; Mont Belvieu Propane), daily, back to **1980-01-04**. But the
+category's own metadata reports `endPeriod: 2024-04-05` — confirmed by
+pulling `RCLC1`'s actual last rows: the most recent observation is
+**2024-04-05**, over two years stale as of today. EIA discontinued this
+survey; it is **not usable as a live/ongoing source**, only as a one-time
+historical backfill (10,305 daily rows available for `RCLC1` alone, if a
+fixed historical WTI curve for backtesting is ever wanted independent of
+current data).
+
+**A false alarm, corrected on re-verification.** An initial pass flagged
+`sources/eia.py`'s legacy `seriesid/{id}` compatibility route as dead (a
+404 seen against several series, including the already-shipped
+`PET.RWTC.M` spot series). Re-tested multiple times through the actual
+`EIAClient` code before acting on it: the route responds normally and
+consistently (`PET.RWTC.M` → 486 rows through 2026-06; `PET.RCLC1.D` → 5000
+rows, still ending 2024-04-05). The original 404 was a transient EIA-side
+or network hiccup at that moment, not a real deprecation — `sources/eia.py`
+needs no fix. Retracted here so this doc doesn't carry a false claim; the
+discontinuation finding above is unaffected (reconfirmed a second way, via
+the legacy route this time, not just the modern one).
+
+**Build (if pursued).**
+1. **Sourcing, now that EIA's free path is confirmed dead**: CME settlement
+   data (previously reviewed and rejected for Fed Funds futures on cost
+   grounds in `terminal_phase0_gaps.md` — re-verify the rejection still
+   holds rather than assuming, since terms/pricing can change) or a
    commercial vendor (Quandl/Nasdaq Data Link has some free continuous-
-   contract series that might be sufficient for a first pass).
+   contract series that might be sufficient for a first pass). Both are
+   the same kind of paid-vendor decision as item 1b — **worth deciding
+   together** rather than running two separate vendor evaluations.
 2. Gold layer: `gold.futures_curve` (grain: `commodity · as_of_date ·
    contract_month · settle_price · days_to_expiry`) plus a derived
    `gold.futures_term_structure` (front-month vs. 2nd/3rd month spread —
@@ -180,10 +216,13 @@ thesis for a commodities desk.
    `DCOILWTICO` already establishes it's a series of interest) end-to-end
    before generalizing the manifest/config shape to others.
 
-**Verdict:** check `sources/eia.py`'s existing API surface first — if EIA's
-futures/strip endpoints are usable, this is nearly free. Otherwise it's
-gated on the same kind of licensing decision as item 1, just for a
-cheaper/smaller vendor.
+**Verdict:** the "check EIA first, might be nearly free" hypothesis is
+**falsified** — EIA had this exact data and killed it in April 2024. This
+item is now squarely in the same bucket as 1b: gated on a paid-vendor
+decision, best revisited once
+`docs/handoffs/governance_and_access_control.md` item 1 (licensing
+register) exists so the two vendor decisions (options data + futures data)
+can be made together instead of separately.
 
 ## Summary
 
@@ -194,7 +233,7 @@ cheaper/smaller vendor.
 | 1a | Realized volatility (derived from existing prices) | Yes | Free (no new source) | **DONE** |
 | 1b | Options chains / implied-vol surface | Yes | Paid, licensing-gated | High value, but coupled to Path A |
 | 2 | Individual bond/CDS/muni pricing | Aggregate half closed via `discover`; individual-issuer half **descoped, not pursuing** | Free (aggregate) | **DONE / CLOSED** |
-| 3 | Commodities futures/term structure | Yes | Check EIA first, else paid | Medium |
+| 3 | Commodities futures/term structure | Yes | EIA's free path confirmed dead (discontinued 2024-04-05) — paid vendor only | Coupled to Path A, same as 1b |
 
 Recommended order: **1a (realized vol) — done. Item 2 — done/closed**
 (aggregate expansion built; individual-issuer pricing explicitly descoped).
