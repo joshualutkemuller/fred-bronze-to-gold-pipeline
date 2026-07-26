@@ -456,6 +456,11 @@ CREATE TABLE IF NOT EXISTS meta_fred_series_drift (
     series_id TEXT, field TEXT, manifest_value TEXT, fred_value TEXT,
     kind TEXT, severity TEXT, detected_at TEXT
 );
+CREATE TABLE IF NOT EXISTS meta_series_staleness (
+    source TEXT, series_id TEXT, frequency TEXT, latest_observation_date TEXT,
+    days_since_last_observation INTEGER, is_stale INTEGER, has_data INTEGER,
+    checked_at TEXT
+);
 
 -- SQLite equivalents of the Delta-only gold.v_* views in sql/60_views.sql
 -- (SQLite has no CREATE OR REPLACE VIEW, so these use IF NOT EXISTS and are
@@ -1165,6 +1170,33 @@ class LocalWarehouse:
 
     def write_drift(self, rows: list[dict[str, Any]]) -> int:
         return self._insert("meta_fred_series_drift", rows)
+
+    def latest_observation_dates(
+        self, series_ids: Optional[Sequence[str]] = None
+    ) -> dict[str, str]:
+        """Most recent ingested ``observation_date`` per series, any source.
+
+        Reads already-ingested Silver rows rather than calling a live API, so
+        it works uniformly across FRED, Tiingo, BLS, EIA, etc. Used by
+        source-agnostic staleness checks (see ``governance/reconcile.py``).
+        """
+        if series_ids is not None and not series_ids:
+            return {}
+        sql = (
+            "SELECT series_id, MAX(observation_date) FROM silver_fred_observation "
+            "WHERE is_missing = 0"
+        )
+        params: list[Any] = []
+        if series_ids:
+            placeholders = ",".join("?" * len(series_ids))
+            sql += f" AND series_id IN ({placeholders})"
+            params.extend(series_ids)
+        sql += " GROUP BY series_id"
+        cur = self.conn.execute(sql, params)
+        return {row[0]: row[1] for row in cur.fetchall() if row[1] is not None}
+
+    def write_staleness(self, rows: list[dict[str, Any]]) -> int:
+        return self._insert("meta_series_staleness", rows)
 
     def write_release_calendar(self, rows: list[dict[str, Any]]) -> int:
         # Full-refresh (not append): it's a re-fetched forward schedule, not

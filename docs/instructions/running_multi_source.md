@@ -187,7 +187,7 @@ flags that differ in meaning are listed per command.
 | Command | What it does | Key flags |
 |---|---|---|
 | `validate` | Schema/duplicate-id check on the manifests — no network, no backend | `--manifests` |
-| `reconcile` | Diffs manifests against live FRED metadata (title/frequency/units drift, discontinued series, staleness); FRED-sourced series only | `--series`, `--local --db-path`, `--no-persist`, `--fail-on-drift` |
+| `reconcile` | FRED-only metadata drift (title/frequency/units, discontinued, not-found) + all-source staleness (any source, via ingested data) | `--series`, `--local --db-path`, `--no-persist`, `--fail-on-drift` |
 | `backfill` | Generates point-in-time Gold snapshots over a historical date range into a separate output DB — for backtesting, not a live refresh | `--from`, `--to` (required), `--step monthly\|weekly\|daily`, `--tables`, `--db-path`, `--backfill-db`, `--no-resume` |
 
 ## Common workflows
@@ -199,7 +199,7 @@ flags that differ in meaning are listed per command.
 | Large first-time load, rate-limit-safe | `run --local --db-path f.db --full --no-gold --source-workers fred=8,tiingo=1 --source-rate-limits fred=60,tiingo=5` → `gold --local --db-path f.db` (separates slow extraction retries from the one-shot Gold rebuild) |
 | Add a brand-new source/series | edit the manifest (`active: true`) → `validate` → `run --dry-run --series <new id>` → `run --local --db-path fred_local.db` |
 | Grow ETF constituent coverage | `run --local --db-path f.db --series <ETF ticker> --no-gold` (refresh holdings) → `price-constituents --db-path f.db --index-etf <ETF> --dry-run` (preview the next batch) → `price-constituents --db-path f.db --index-etf <ETF> --rate-limit-per-minute 5` (pull it) → `gold --local --db-path f.db` |
-| Health-check the series universe | `reconcile --local --db-path fred_local.db` (safe to run anytime — FRED-only, doesn't touch other sources' quotas) |
+| Health-check the series universe | `reconcile --local --db-path fred_local.db` (safe to run anytime — reads ingested data + FRED metadata only, doesn't touch other sources' quotas) |
 | Recover from a bad DQ/normalization bug | fix the code → `replay --local --db-path fred_local.db` (reprocesses already-archived Bronze payloads, no re-fetch, no API quota spent) |
 | Backtest "what did Gold look like historically" | `run --local --db-path fred_local.db` (ensure Silver is current) → `backfill --db-path fred_local.db --backfill-db fred_backfill.db --from 2015-01-01 --to 2026-01-01 --step monthly` |
 | Onboard a new FRED category/release wholesale | `discover --name <manifest_name> --category-id <id> --dry-run` (preview) → re-run with `--out manifests/<name>.yml` → hand-review the generated YAML → `validate` → `run --dry-run --series <a few ids>` → activate for real |

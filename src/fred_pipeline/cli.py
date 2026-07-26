@@ -20,7 +20,8 @@ Generate a new manifest from a FRED category / release / search::
     FRED_API_KEY=... python -m fred_pipeline discover --name rates_extra \\
         --category-id 22 --frequencies d --out manifests/rates_extra.yml
 
-Reconcile manifests against live FRED metadata (drift + lifecycle)::
+Reconcile manifests against live FRED metadata (drift + lifecycle), and check
+staleness across every source (FRED, Tiingo, BLS, EIA, ...)::
 
     FRED_API_KEY=... python -m fred_pipeline reconcile --local --fail-on-drift
 """
@@ -212,7 +213,7 @@ def _cmd_replay(args: argparse.Namespace) -> int:
 
 def _cmd_reconcile(args: argparse.Namespace) -> int:
     from fred_pipeline.fred_client import FredClient
-    from fred_pipeline.reconcile import persist_report, reconcile
+    from fred_pipeline.reconcile import persist_report, reconcile, reconcile_staleness
 
     config = PipelineConfig.resolve(
         environment=Environment(args.env), config_file=args.config
@@ -230,36 +231,71 @@ def _cmd_reconcile(args: argparse.Namespace) -> int:
         rate_limit_per_minute=config.rate_limit_per_minute,
     )
     manifests = load_manifests(args.manifests)
-    report = reconcile(manifests, client, series_ids=_parse_series(args.series))
+    series_ids = _parse_series(args.series)
 
-    print("Reconciliation summary:", json.dumps(report.summary()))
+    # FRED-only: diffs manifests against FRED's live /series metadata catalog,
+    # so it can only cover FRED-sourced series (a Tiingo/BLS id isn't in FRED).
+    report = reconcile(manifests, client, series_ids=series_ids)
+
+    print("Reconciliation summary (FRED metadata drift):", json.dumps(report.summary()))
     for sev in ("error", "warning", "info"):
         for d in report.by_severity(sev):
             print(f"  [{sev:7s}] {d.series_id:12s} {d.kind}: "
                   f"{d.manifest_value!r} (manifest) vs {d.fred_value!r} (FRED)")
     if report.stale:
-        print(f"  [stale] {len(report.stale)} series past expected update: "
-              f"{', '.join(report.stale)}")
+        print(f"  [stale-fred] {len(report.stale)} FRED series past expected "
+              f"update: {', '.join(report.stale)}")
 
+    # Build a warehouse for reading regardless of --no-persist: the all-source
+    # staleness check below needs it to read already-ingested Silver data.
     warehouse = None
     if args.local:
         from fred_pipeline.local_store import LocalWarehouse
 
         warehouse = LocalWarehouse(config, db_path=args.db_path)
-    elif not args.no_persist:
+    else:
         from fred_pipeline.spark_io import get_spark
         from fred_pipeline.warehouse import SparkWarehouse
 
         try:
             warehouse = SparkWarehouse(config, get_spark())
         except Exception:
-            print("(no Spark available; skipping persistence)", file=sys.stderr)
+            print("(no Spark available; skipping all-source staleness check "
+                  "and persistence)", file=sys.stderr)
 
+    staleness_rows: list[dict] = []
     if warehouse is not None:
         try:
-            counts = persist_report(config, report, warehouse)
-            print(f"Persisted {counts['lifecycle_rows']} lifecycle + "
-                  f"{counts['drift_rows']} drift rows.")
+            # All sources (FRED, Tiingo, BLS, EIA, ...): compares each series'
+            # manifest cadence against the latest observation already
+            # ingested into Silver -- no live upstream API call needed.
+            staleness_rows = reconcile_staleness(
+                manifests, warehouse, series_ids=series_ids
+            )
+            stale_by_source: dict[str, list[str]] = {}
+            no_data: list[str] = []
+            for row in staleness_rows:
+                if not row["has_data"]:
+                    no_data.append(row["series_id"])
+                elif row["is_stale"]:
+                    stale_by_source.setdefault(row["source"], []).append(
+                        row["series_id"]
+                    )
+            print(f"All-source staleness check: {len(staleness_rows)} series "
+                  f"across {len({r['source'] for r in staleness_rows})} source(s).")
+            for source, ids in sorted(stale_by_source.items()):
+                print(f"  [stale] {source}: {len(ids)} series past expected "
+                      f"update: {', '.join(ids)}")
+            if no_data:
+                print(f"  [no-data] {len(no_data)} series have no ingested "
+                      f"observations yet: {', '.join(no_data)}")
+
+            if not args.no_persist:
+                counts = persist_report(config, report, warehouse)
+                print(f"Persisted {counts['lifecycle_rows']} lifecycle + "
+                      f"{counts['drift_rows']} drift rows.")
+                n_stale = warehouse.write_staleness(staleness_rows)
+                print(f"Persisted {n_stale} all-source staleness rows.")
         finally:
             warehouse.close()
 
@@ -658,7 +694,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     rc = sub.add_parser(
         "reconcile",
-        help="diff manifests against live FRED metadata (drift + lifecycle)",
+        help="FRED metadata drift/lifecycle + all-source staleness check",
     )
     rc.add_argument("--manifests", default="manifests")
     rc.add_argument("--env", default="dev", choices=[e.value for e in Environment])

@@ -81,3 +81,20 @@ CREATE TABLE IF NOT EXISTS meta.fred_series_drift (
 )
 USING DELTA
 COMMENT 'Manifest-vs-FRED metadata drift findings';
+
+-- Governance: source-agnostic freshness check (every source, not just FRED),
+-- derived purely from each series' latest already-ingested Silver observation
+-- vs. its manifest cadence -- no live upstream API call, so it covers Tiingo/
+-- BLS/EIA/etc. the same way it covers FRED.
+CREATE TABLE IF NOT EXISTS meta.series_staleness (
+    source                       STRING NOT NULL,
+    series_id                    STRING NOT NULL,
+    frequency                    STRING,
+    latest_observation_date      STRING,
+    days_since_last_observation  INT,
+    is_stale                     BOOLEAN,
+    has_data                     BOOLEAN,
+    checked_at                   STRING
+)
+USING DELTA
+COMMENT 'Per-source freshness snapshots (all sources, ingested-data based)';
