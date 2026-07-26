@@ -380,6 +380,9 @@ CREATE TABLE IF NOT EXISTS gold_equity_price_reconciliation (
     stooq_close REAL, tiingo_adj_close REAL,
     abs_diff REAL, pct_diff REAL, diverged INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS gold_realized_volatility (
+    ticker TEXT, observation_date TEXT, window INTEGER, realized_vol_pct REAL
+);
 
 -- ML pipeline (handoff.md "ML Extensions Sub-Plan"):
 -- ML-0 feature matrix, ML-2 PCA factor scores/loadings, ML-4 anomaly scores.
@@ -1006,14 +1009,14 @@ class LocalWarehouse:
             compute_equity_return_daily,
             compute_equity_total_return_index,
             compute_index_constituents,
+            compute_realized_volatility,
             select_canonical_equity_price_rows,
         )
         stooq_rows = [r for r in silver if r.get("source") == "stooq"]
         ishares_rows = [r for r in silver if r.get("source") == "ishares"]
         tiingo_rows = [r for r in silver if r.get("source") == "tiingo"]
-        eq_return_rows = compute_equity_return_daily(
-            select_canonical_equity_price_rows(stooq_rows, tiingo_rows)
-        )
+        canonical_price_rows = select_canonical_equity_price_rows(stooq_rows, tiingo_rows)
+        eq_return_rows = compute_equity_return_daily(canonical_price_rows)
         self.conn.execute("DELETE FROM gold_equity_return_daily")
         self._insert("gold_equity_return_daily", eq_return_rows)
         self.conn.execute("DELETE FROM gold_index_constituents")
@@ -1025,6 +1028,9 @@ class LocalWarehouse:
         self.conn.execute("DELETE FROM gold_equity_price_reconciliation")
         self._insert("gold_equity_price_reconciliation",
                      compute_equity_price_reconciliation(stooq_rows, tiingo_rows))
+        self.conn.execute("DELETE FROM gold_realized_volatility")
+        self._insert("gold_realized_volatility",
+                     compute_realized_volatility(canonical_price_rows))
 
         # ML pipeline: ML-0 feature matrix → ML-2 PCA scores/loadings → ML-4 anomaly.
         from fred_pipeline.ml_features import compute_ml_feature_matrix
@@ -1147,6 +1153,7 @@ class LocalWarehouse:
             "global_inflation", "global_policy_rates", "powerbi_catalog",
             "equity_return_daily", "index_constituents",
             "equity_total_return_index", "equity_price_reconciliation",
+            "realized_volatility",
             "ml_feature_matrix",
             "macro_factor_scores", "macro_factor_loadings",
             "macro_anomaly_scores",

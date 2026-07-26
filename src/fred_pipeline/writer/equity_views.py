@@ -18,6 +18,11 @@ Sub-Plan"):
     ``gold.equity_price_reconciliation``: cross-vendor close comparison for
     governance — Stooq split-adjusted close vs Tiingo ``adjClose`` per ticker,
     flagging dates where both sources diverge beyond a tolerance.
+  * :func:`compute_realized_volatility` → ``gold.realized_volatility``:
+    annualized trailing realized volatility per ticker (docs/handoffs/
+    asset_class_expansion.md item 1a) — the free, no-new-source half of the
+    volatility gap; implied vol/options chains remain a separate, paid-vendor
+    decision.
 
 **Source isolation.** Stooq and Tiingo both name a ``<ticker>:close`` series,
 so the callers pass **source-filtered** Silver rows rather than the merged
@@ -30,6 +35,7 @@ from __future__ import annotations
 
 from bisect import bisect_left
 from datetime import date, timedelta
+from math import log, sqrt
 from typing import Any, Iterable
 
 from fred_pipeline.equity_reconciliation_config import (
@@ -337,4 +343,80 @@ def compute_equity_price_reconciliation(
                 "pct_diff": pct_diff,
                 "diverged": diverged,
             })
+    return out
+
+
+# ---- Realized volatility ---------------------------------------------------
+
+# Trailing observation-count windows for realized vol (~1mo, 1qtr, 2qtr, 1yr
+# in trading days). Narrower than terminal_views.ROLLING_WINDOWS: a stdev
+# over a 1- or 5-day window is too noisy to be a meaningful vol estimate.
+VOL_WINDOWS = (21, 63, 126, 252)
+
+TRADING_DAYS_PER_YEAR = 252
+
+
+def compute_realized_volatility(
+    canonical_price_rows: Iterable[dict[str, Any]],
+    windows: tuple[int, ...] = VOL_WINDOWS,
+    trading_days_per_year: int = TRADING_DAYS_PER_YEAR,
+) -> list[dict[str, Any]]:
+    """``gold.realized_volatility`` (docs/handoffs/asset_class_expansion.md
+    item 1a): per ticker x date x window, the annualized realized volatility
+    of daily **log** returns -- the trailing sample stdev, scaled by
+    ``sqrt(trading_days_per_year)``, expressed as a percent.
+
+    Log returns (``ln(close_t / close_{t-1})``), not the simple returns in
+    :func:`compute_equity_return_daily`: log returns are time-additive, which
+    is what makes the sqrt(time) annualization scaling valid. Computed with
+    prefix sums (O(n x windows), not O(n x w)) -- same technique as
+    ``terminal_views._rolling_window_rows``. A (ticker, window) row is
+    emitted only once the window is fully populated (no partial-window
+    stats), matching the rolling-companion convention used elsewhere in
+    Gold. Pass :func:`select_canonical_equity_price_rows` output, the same
+    input :func:`compute_equity_return_daily` takes.
+    """
+    by_ticker: dict[str, list[tuple[date, float]]] = {}
+    for r in canonical_price_rows:
+        ticker = _close_ticker(r.get("series_id", ""))
+        if ticker is None or r.get("is_missing"):
+            continue
+        v, d = r.get("value"), _parse(r.get("observation_date"))
+        if v is None or d is None or v <= 0:
+            continue
+        by_ticker.setdefault(ticker, []).append((d, float(v)))
+
+    scale = sqrt(trading_days_per_year) * 100.0
+    out: list[dict[str, Any]] = []
+    for ticker in sorted(by_ticker):
+        series = sorted(by_ticker[ticker], key=lambda t: t[0])
+        log_returns: list[tuple[date, float]] = []
+        for i in range(1, len(series)):
+            prev_close = series[i - 1][1]
+            close = series[i][1]
+            if prev_close <= 0:
+                continue
+            log_returns.append((series[i][0], log(close / prev_close)))
+
+        n = len(log_returns)
+        values = [v for _d, v in log_returns]
+        s = [0.0] * (n + 1)     # prefix sums of x and x^2
+        s2 = [0.0] * (n + 1)
+        for i, v in enumerate(values):
+            s[i + 1] = s[i] + v
+            s2[i + 1] = s2[i] + v * v
+
+        for i in range(n):
+            d, _v = log_returns[i]
+            for w in windows:
+                if i + 1 < w:
+                    continue
+                mean = (s[i + 1] - s[i + 1 - w]) / w
+                var = max((s2[i + 1] - s2[i + 1 - w]) / w - mean * mean, 0.0)
+                out.append({
+                    "ticker": ticker,
+                    "observation_date": d.isoformat(),
+                    "window": w,
+                    "realized_vol_pct": (var ** 0.5) * scale,
+                })
     return out

@@ -1,0 +1,659 @@
+name: corporate_bond_yields
+description: >
+  Corporate bond yield/spread series discovered via `fred_pipeline discover
+  --search "corporate bond yield"` (docs/handoffs/asset_class_expansion.md
+  item 2 — closes the free/aggregate half of the gap; individual-issuer
+  CUSIP-level pricing and municipal curves need TRACE/a paid vendor and are
+  out of scope). Moody's seasoned Aaa/Baa corporate yields (with 10Y-Treasury-
+  and Fed-Funds-relative spreads) plus ICE BofA yield-to-worst and
+  total-return-index cuts across the rating ladder, complementing the
+  OAS/effective-yield series already in manifests/ice_credit.yml. Trimmed of
+  7 lower-frequency duplicates (weekly/monthly cuts of a series already kept
+  at daily) from the raw discover output.
+version: 1
+series:
+- series_id: BAMLC0A4CBBBEY
+  title: ICE BofA BBB US Corporate Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: DBAA
+  title: Moody's Seasoned Baa Corporate Bond Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAA10Y
+  title: Moody's Seasoned Baa Corporate Bond Yield Relative to Yield on 10-Year Treasury
+    Constant Maturity
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLH0A3HYCEY
+  title: ICE BofA CCC & Lower US High Yield Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: DAAA
+  title: Moody's Seasoned Aaa Corporate Bond Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLHE00EHYIOAS
+  title: ICE BofA Euro High Yield Index Option-Adjusted Spread
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLH0A1HYBBEY
+  title: ICE BofA BB US High Yield Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLC0A1CAAAEY
+  title: ICE BofA AAA US Corporate Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLH0A2HYBEY
+  title: ICE BofA Single-B US High Yield Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLHE00EHYIEY
+  title: ICE BofA Euro High Yield Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLHYH0A0HYM2TRIV
+  title: ICE BofA US High Yield Index Total Return Index Value
+  frequency: d
+  category: corporate_bond_yields
+  units: Index
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLC0A3CAEY
+  title: ICE BofA Single-A US Corporate Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: AAA10Y
+  title: Moody's Seasoned Aaa Corporate Bond Yield Relative to Yield on 10-Year Treasury
+    Constant Maturity
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLC0A2CAAEY
+  title: ICE BofA AA US Corporate Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 2
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLEMHBHYCRPIOAS
+  title: ICE BofA High Yield Emerging Markets Corporate Plus Index Option-Adjusted
+    Spread
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLHE00EHYITRIV
+  title: ICE BofA Euro High Yield Index Total Return Index Value
+  frequency: d
+  category: corporate_bond_yields
+  units: Index
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLH0A0HYM2SYTW
+  title: ICE BofA US High Yield Index Semi-Annual Yield to Worst
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLEMCBPIEY
+  title: ICE BofA Emerging Markets Corporate Plus Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAAFF
+  title: Moody's Seasoned Baa Corporate Bond Minus Federal Funds Rate
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLHYH0A3CMTRIV
+  title: ICE BofA CCC & Lower US High Yield Index Total Return Index Value
+  frequency: d
+  category: corporate_bond_yields
+  units: Index
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 3
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLH0A2HYBSYTW
+  title: ICE BofA Single-B US High Yield Index Semi-Annual Yield to Worst
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLH0A3HYCSYTW
+  title: ICE BofA CCC & Lower US High Yield Index Semi-Annual Yield to Worst
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: AAAFF
+  title: Moody's Seasoned Aaa Corporate Bond Minus Federal Funds Rate
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLH0A1HYBBSYTW
+  title: ICE BofA BB US High Yield Index Semi-Annual Yield to Worst
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLHE00EHYISYTW
+  title: ICE BofA Euro High Yield Index Semi-Annual Yield to Worst
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLC0A4CBBBSYTW
+  title: ICE BofA BBB US Corporate Index Semi-Annual Yield to Worst
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLEM4RBLLCRPIUSEY
+  title: ICE BofA B & Lower US Emerging Markets Liquid Corporate Plus Index Effective
+    Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLEMHYHYLCRPIUSOAS
+  title: ICE BofA High Yield US Emerging Markets Liquid Corporate Plus Index Option-Adjusted
+    Spread
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLHYH0A1BBTRIV
+  title: ICE BofA BB US High Yield Index Total Return Index Value
+  frequency: d
+  category: corporate_bond_yields
+  units: Index
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLHYH0A2BTRIV
+  title: ICE BofA Single-B US High Yield Index Total Return Index Value
+  frequency: d
+  category: corporate_bond_yields
+  units: Index
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLEM2BRRBBBCRPIEY
+  title: ICE BofA BBB Emerging Markets Corporate Plus Index Effective Yield
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 4
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
+- series_id: BAMLC0A0CMSYTW
+  title: ICE BofA US Corporate Index Semi-Annual Yield to Worst
+  frequency: d
+  category: corporate_bond_yields
+  units: Percent
+  active: true
+  source: fred
+  load_type: incremental
+  expected_update_frequency: ''
+  vintage_enabled: true
+  validation_profile: standard
+  business_owner: ''
+  technical_owner: ''
+  downstream_use_case: ''
+  priority: 5
+  restate_records: null
+  min_value: null
+  max_value: null
+  tags:
+  - corporate_bond_yields
