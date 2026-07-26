@@ -1,0 +1,139 @@
+# Per-source data-licensing register (docs/handoffs/governance_and_access_control.md
+# item 1). Tracks what this pipeline is actually allowed to do with each
+# upstream source's data -- not just what it *pulls*. See
+# fred_pipeline.governance.licensing for the loader and
+# `fred_pipeline validate --commercial` for the guardrail this feeds.
+#
+# Populated from each source's generally-published policy (U.S. federal
+# statistical agencies are public domain; World Bank Open Data is CC BY 4.0)
+# plus this project's own prior research (Tiingo's personal-use decision,
+# already recorded in docs/handoffs/completed/handoff.md; the iShares
+# holdings-CSV caveat already noted in sources/ishares.py) -- not a fresh
+# live fetch of every terms page in one pass. Spot-check terms_url and
+# last_reviewed_date before relying on this for a real compliance decision,
+# and bump last_reviewed_date whenever you do.
+
+sources:
+  - source: fred
+    license_type: public-domain
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: false
+    terms_url: https://fred.stlouisfed.org/copyright.html
+    last_reviewed_date: "2026-07-26"
+    notes: >
+      U.S. federal government work (Federal Reserve Bank of St. Louis), not
+      subject to copyright under 17 U.S.C. Section 105. Citation is FRED's
+      stated preference, not a legal requirement. Some FRED series (the
+      BAML* ICE BofA indices in manifests/ice_credit.yml and
+      manifests/corporate_bond_yields.yml) originate from ICE Data Indices
+      and are redistributed via FRED -- FRED's own terms cover the
+      redistribution, but this is worth a closer look if ICE's upstream
+      terms ever become a concern independent of FRED's.
+
+  - source: bls
+    license_type: public-domain
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: false
+    terms_url: https://www.bls.gov/bls/linksite.htm
+    last_reviewed_date: "2026-07-26"
+    notes: U.S. federal government work (Bureau of Labor Statistics).
+
+  - source: treasury
+    license_type: public-domain
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: false
+    terms_url: https://fiscaldata.treasury.gov
+    last_reviewed_date: "2026-07-26"
+    notes: U.S. federal government work (Department of the Treasury).
+
+  - source: census
+    license_type: public-domain
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: false
+    terms_url: https://www.census.gov
+    last_reviewed_date: "2026-07-26"
+    notes: U.S. federal government work (Census Bureau).
+
+  - source: bea
+    license_type: public-domain
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: false
+    terms_url: https://www.bea.gov
+    last_reviewed_date: "2026-07-26"
+    notes: U.S. federal government work (Bureau of Economic Analysis).
+
+  - source: sec
+    license_type: public-domain
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: false
+    terms_url: https://www.sec.gov
+    last_reviewed_date: "2026-07-26"
+    notes: >
+      U.S. federal government work (SEC EDGAR). EDGAR's fair-access policy
+      governs bulk-fetch rate/User-Agent requirements, not reuse of the
+      disclosed financial data itself.
+
+  - source: eia
+    license_type: public-domain
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: false
+    terms_url: https://www.eia.gov
+    last_reviewed_date: "2026-07-26"
+    notes: U.S. federal government work (Energy Information Administration).
+
+  - source: worldbank
+    license_type: open-data
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: true
+    terms_url: https://www.worldbank.org/en/about/legal/terms-of-use-for-datasets
+    last_reviewed_date: "2026-07-26"
+    notes: >
+      World Bank Open Data is CC BY 4.0 -- unlike the U.S. federal sources
+      above, this genuinely requires attribution on redistribution, not
+      just a stated preference.
+
+  - source: tiingo
+    license_type: free-tier-personal-use
+    redistribution_allowed: false
+    commercial_use_allowed: false
+    attribution_required: false
+    terms_url: https://www.tiingo.com/about/termsofservice
+    last_reviewed_date: "2026-07-26"
+    notes: >
+      Decided in docs/handoffs/completed/handoff.md ("Commercial use --
+      Decided: personal use"): Tiingo's free tier is personal/non-
+      commercial. Revisit if usage ever turns commercial -- a paid plan
+      would be required.
+
+  - source: stooq
+    license_type: requires-agreement
+    redistribution_allowed: false
+    commercial_use_allowed: false
+    attribution_required: false
+    terms_url: ""
+    last_reviewed_date: "2026-07-26"
+    notes: >
+      No published API terms of use found for programmatic/bulk access.
+      Conservative defaults (no redistribution, no commercial use) until
+      someone reviews Stooq's actual terms directly.
+
+  - source: ishares
+    license_type: requires-agreement
+    redistribution_allowed: false
+    commercial_use_allowed: false
+    attribution_required: false
+    terms_url: ""
+    last_reviewed_date: "2026-07-26"
+    notes: >
+      sources/ishares.py's own docstring: "Index membership is licensed
+      data with no good free API" -- the public daily holdings CSV is a
+      defensible workaround, not a cleared license for reuse/
+      redistribution. Conservative defaults until reviewed.

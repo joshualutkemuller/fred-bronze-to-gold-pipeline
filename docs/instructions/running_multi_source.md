@@ -186,7 +186,7 @@ flags that differ in meaning are listed per command.
 
 | Command | What it does | Key flags |
 |---|---|---|
-| `validate` | Schema/duplicate-id check on the manifests — no network, no backend | `--manifests` |
+| `validate` | Schema/duplicate-id check on the manifests — no network, no backend; `--commercial` also fails on any active source whose license doesn't clear commercial use (`config/data_licensing.yml`) | `--manifests`, `--commercial` |
 | `reconcile` | FRED-only metadata drift (title/frequency/units, discontinued, not-found) + all-source staleness (any source, via ingested data) | `--series`, `--local --db-path`, `--no-persist`, `--fail-on-drift` |
 | `backfill` | Generates point-in-time Gold snapshots over a historical date range into a separate output DB — for backtesting, not a live refresh | `--from`, `--to` (required), `--step monthly\|weekly\|daily`, `--tables`, `--db-path`, `--backfill-db`, `--no-resume` |
 

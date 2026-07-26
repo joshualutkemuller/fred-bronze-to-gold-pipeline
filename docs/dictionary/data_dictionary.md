@@ -62,6 +62,48 @@ Drift between manifest intent and live FRED metadata (written by `reconcile`).
 | severity | STRING | info \| warning \| error |
 | detected_at | STRING | When detected |
 
+### `meta.series_staleness`
+Source-agnostic freshness snapshots (written by `reconcile`, all sources —
+not just FRED): compares each series' manifest cadence against the latest
+observation already ingested into Silver, so it covers Tiingo/BLS/EIA/etc.
+the same way it covers FRED. Append-only.
+
+| Column | Type | Notes |
+|---|---|---|
+| source | STRING | e.g. fred, tiingo, bls, eia, ... |
+| series_id | STRING | Series |
+| frequency | STRING | Manifest-declared cadence |
+| latest_observation_date | STRING | Latest ingested `observation_date` |
+| days_since_last_observation | INT | today − latest_observation_date |
+| is_stale | BOOLEAN | Past the expected update window for its frequency |
+| has_data | BOOLEAN | Whether any observation has been ingested yet |
+| checked_at | STRING | When this snapshot was taken |
+
+### Data licensing (`config/data_licensing.yml`)
+Per-source register of what this pipeline is allowed to do with each
+upstream source's data — not a Gold/meta table, but a config file loaded by
+`fred_pipeline.governance.licensing` and checked at validate time
+(`fred_pipeline validate --commercial` fails if any active source doesn't
+clear commercial use). See
+[`docs/handoffs/governance_and_access_control.md`](../handoffs/governance_and_access_control.md)
+item 1 for the design rationale. Current register, as of 2026-07-26 (spot-
+check `terms_url`/`last_reviewed_date` in the config before treating this as
+a final answer for a real compliance decision):
+
+| Source | License type | Redistribution | Commercial use | Attribution required |
+|---|---|---|---|---|
+| fred | public-domain | yes | yes | no |
+| bls | public-domain | yes | yes | no |
+| treasury | public-domain | yes | yes | no |
+| census | public-domain | yes | yes | no |
+| bea | public-domain | yes | yes | no |
+| sec | public-domain | yes | yes | no |
+| eia | public-domain | yes | yes | no |
+| worldbank | open-data (CC BY 4.0) | yes | yes | **yes** |
+| tiingo | free-tier-personal-use | no | **no** | no |
+| stooq | requires-agreement | no | **no** (unreviewed) | no |
+| ishares | requires-agreement | no | **no** (unreviewed) | no |
+
 ## audit
 
 ### `audit.etl_run`

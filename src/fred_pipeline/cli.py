@@ -315,6 +315,23 @@ def _cmd_validate(args: argparse.Namespace) -> int:
     )
     for man in manifests:
         print(f"  - {man.name}: {len(man.series)} series ({man.source_path})")
+
+    from fred_pipeline.governance.licensing import (
+        check_commercial_use, load_data_licensing_config,
+    )
+
+    licensing = load_data_licensing_config()
+    active_sources = sorted({s.source for s in active})
+    print(f"Active sources: {', '.join(active_sources) or '(none)'}")
+    if args.commercial:
+        violations = check_commercial_use(active, licensing)
+        if violations:
+            print("ERROR: commercial-use licensing check failed:", file=sys.stderr)
+            for v in violations:
+                print(f"  - {v.source} ({v.series_count} active series): "
+                      f"{v.reason}", file=sys.stderr)
+            return 2
+        print("Commercial-use licensing check: all active sources cleared.")
     return 0
 
 
@@ -566,6 +583,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     v = sub.add_parser("validate", help="validate manifests only")
     v.add_argument("--manifests", default="manifests")
+    v.add_argument(
+        "--commercial", action="store_true",
+        help="fail if any active source's license doesn't clear commercial "
+             "use (see config/data_licensing.yml)",
+    )
     v.set_defaults(func=_cmd_validate)
 
     r = sub.add_parser("run", help="run the pipeline")
