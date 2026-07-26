@@ -143,6 +143,50 @@ uses), so you can run it repeatedly against the same file without duplicates.
 The same code path, pointed at a `SparkWarehouse` instead, is what runs on
 Databricks — so local results match production semantics.
 
+## Operations reference
+
+Every `python -m fred_pipeline <command>` the CLI supports, grouped by what
+it does. All commands accept `--env dev|test|prod` and `--config <path>`;
+only the flags that differ in meaning are listed per command. (Full detail:
+[`docs/instructions/running_multi_source.md`](docs/instructions/running_multi_source.md).)
+
+### Build / extract (talks to external APIs)
+
+| Command | What it does | Key flags |
+|---|---|---|
+| `run` | Full Bronze → Silver → Gold: extracts active series from every source with an active manifest entry, then rebuilds Gold (unless `--no-gold`) | `--local --db-path`, `--series`, `--source` / `--exclude-source`, `--full`, `--dry-run`, `--no-gold`, `--extract-workers`, `--source-workers`, `--rate-limit-per-minute`, `--source-rate-limits` |
+| `price-constituents` | Dynamic Tiingo pricing batch: reads current ETF membership from `gold_index_constituents`, prices only missing/stale tickers (by weight rank), stops on a Tiingo quota hit | `--index-etf`, `--max-symbols`, `--stale-days`, `--rate-limit-per-minute`, `--dry-run`, `--rebuild-gold` |
+| `discover` | Generates a new manifest from a FRED category/release/search — not a refresh, a discovery/authoring tool | `--category-id` / `--release-id` / `--search`, `--frequencies`, `--min-popularity`, `--max`, `--out`, `--dry-run` |
+
+### Refresh (rebuilds from already-ingested data — no external API calls)
+
+| Command | What it does | Key flags |
+|---|---|---|
+| `gold` | Rebuilds every Gold table from already-persisted Bronze/Silver | `--local --db-path` |
+| `replay` | Rebuilds Silver (+ Gold, unless `--no-gold`) from archived Bronze payloads — reprocesses raw data already on disk, e.g. after fixing a normalization/DQ bug | `--series`, `--no-gold`, `--local --db-path` |
+
+### Maintenance / governance (metadata health, not observation data)
+
+| Command | What it does | Key flags |
+|---|---|---|
+| `validate` | Schema/duplicate-id check on the manifests — no network, no backend | `--manifests` |
+| `reconcile` | FRED-only metadata drift (title/frequency/units, discontinued, not-found) + all-source staleness (any source, via ingested data) | `--series`, `--local --db-path`, `--no-persist`, `--fail-on-drift` |
+| `backfill` | Generates point-in-time Gold snapshots over a historical date range into a separate output DB — for backtesting, not a live refresh | `--from`, `--to` (required), `--step monthly\|weekly\|daily`, `--tables`, `--db-path`, `--backfill-db`, `--no-resume` |
+
+## Common workflows
+
+| Goal | Sequence |
+|---|---|
+| First-ever local run | `validate` → `run --dry-run --series <one id>` (confirm a key/id works cheaply) → `run --local --db-path fred_local.db` |
+| Routine daily refresh | `run --local --db-path fred_local.db` (incremental restate-last-N + full Gold rebuild + release calendar, all in one) |
+| Large first-time load, rate-limit-safe | `run --local --db-path f.db --full --no-gold --source-workers fred=8,tiingo=1 --source-rate-limits fred=60,tiingo=5` → `gold --local --db-path f.db` (separates slow extraction retries from the one-shot Gold rebuild) |
+| Add a brand-new source/series | edit the manifest (`active: true`) → `validate` → `run --dry-run --series <new id>` → `run --local --db-path fred_local.db` |
+| Grow ETF constituent coverage | `run --local --db-path f.db --series <ETF ticker>` (refresh holdings **and** rebuild Gold, so `gold_index_constituents` reflects today's snapshot before you plan against it) → `price-constituents --db-path f.db --index-etf <ETF> --dry-run` (preview the next batch) → `price-constituents --db-path f.db --index-etf <ETF> --rate-limit-per-minute 5` (pull it) → `gold --local --db-path f.db` (rebuild once more so price-derived tables pick up the new prices) |
+| Health-check the series universe | `reconcile --local --db-path fred_local.db` (safe to run anytime — reads ingested data + FRED metadata only, doesn't touch other sources' quotas) |
+| Recover from a bad DQ/normalization bug | fix the code → `replay --local --db-path fred_local.db` (reprocesses already-archived Bronze payloads, no re-fetch, no API quota spent) |
+| Backtest "what did Gold look like historically" | `run --local --db-path fred_local.db` (ensure Silver is current) → `backfill --db-path fred_local.db --backfill-db fred_backfill.db --from 2015-01-01 --to 2026-01-01 --step monthly` |
+| Onboard a new FRED category/release wholesale | `discover --name <manifest_name> --category-id <id> --dry-run` (preview) → re-run with `--out manifests/<name>.yml` → hand-review the generated YAML → `validate` → `run --dry-run --series <a few ids>` → activate for real |
+
 ## Deploy to Databricks
 
 > Full go-live checklist (provisioning steps + the quant/ops decisions, with
@@ -302,31 +346,40 @@ full CPI-U item hierarchy, more complete than FRED's partial mirror —
 [`docs/adding_a_source.md`](docs/adding_a_source.md) for how to add a new source
 (one client module + one registry entry).
 
-## Metadata governance (drift + lifecycle)
+## Metadata governance (drift + lifecycle + all-source staleness)
 
 Manifests declare *intent*; FRED is the source of *truth*, and they drift over
-time. `reconcile` fetches FRED's `/series` metadata for each series and reports:
+time. `reconcile` runs two independent checks:
 
-- **drift** — `frequency_mismatch` (error), `discontinued` (warning),
-  `units_changed` (info), `not_found` (error);
-- **lifecycle snapshots** — observation range, `last_updated`, popularity, and a
-  **staleness** verdict (did the expected release actually land?), appended to
-  `meta.fred_series_lifecycle` so each series' health is tracked over time.
+- **FRED-only drift + lifecycle** — fetches FRED's `/series` metadata for each
+  FRED-sourced series and reports `frequency_mismatch` (error), `discontinued`
+  (warning), `units_changed` (info), `not_found` (error), plus a lifecycle
+  snapshot (observation range, `last_updated`, popularity, staleness vs. FRED's
+  own reported latest date), appended to `meta.fred_series_lifecycle`/
+  `meta.fred_series_drift`. FRED-only because it diffs against FRED's own
+  metadata catalog — a Tiingo ticker or BLS series id isn't in it.
+- **All-source staleness** — compares every series' manifest cadence against
+  the latest observation *this pipeline has already ingested* into Silver, no
+  live upstream API call required. Because it only reads already-ingested
+  data, it covers every source (FRED, Tiingo, BLS, EIA, ...), not just FRED.
+  Appended to `meta.series_staleness`, one row per `(source, series_id)`.
 
 ```bash
 # report only
 PYTHONPATH=src python -m fred_pipeline reconcile --no-persist
 
-# persist lifecycle + drift to a local SQLite file
+# persist lifecycle + drift + all-source staleness to a local SQLite file
 PYTHONPATH=src python -m fred_pipeline reconcile --local --db-path fred_local.db
 
-# gate CI: exit non-zero on any error-level drift
+# gate CI: exit non-zero on any error-level FRED drift
 PYTHONPATH=src python -m fred_pipeline reconcile --fail-on-drift
 ```
 
-Findings land in `meta.fred_series_drift` and `meta.fred_series_lifecycle`
-(Delta or SQLite). Use `--fail-on-drift` in CI to catch a series changing
-frequency or being discontinued before it silently corrupts downstream features.
+Findings land in `meta.fred_series_drift`, `meta.fred_series_lifecycle`, and
+`meta.series_staleness` (Delta or SQLite). Use `--fail-on-drift` in CI to catch
+a FRED series changing frequency or being discontinued before it silently
+corrupts downstream features; query `meta.series_staleness` to see which
+series across *any* source need a refresh.
 
 ## Incremental loads (full-on-first-run, then restate last N)
 
@@ -407,7 +460,10 @@ checkboxed decision register in
 - **Verify demo IDs live** — the demo series IDs (and Census predicate codes)
   were built to the documented API shapes but not verified against the live APIs.
 - **Known follow-ons** — SEC statement standardization (canonical tags + duration
-  disambiguation); per-source metadata reconciliation (reconcile is FRED-only).
+  disambiguation); per-source **drift** reconciliation against each source's own
+  metadata catalog (today's `reconcile` diffs FRED-only against FRED's `/series`
+  metadata — staleness, unlike drift, already covers every source since it's
+  computed from ingested data rather than a live per-source API call).
 
 ## Status
 

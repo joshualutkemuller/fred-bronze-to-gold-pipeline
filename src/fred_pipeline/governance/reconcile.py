@@ -12,6 +12,14 @@ FRED's ``/series`` metadata for each manifest series and:
 
 The comparison functions are pure (spec + metadata dict in, findings out) and
 fully unit-testable; the orchestrator takes an injected client + warehouse.
+
+Drift/lifecycle checking above is necessarily FRED-only, since it diffs
+against FRED's own ``/series`` metadata catalog -- a Tiingo ticker or BLS
+series id isn't in that catalog. ``staleness_snapshot``/``reconcile_staleness``
+below cover *every* source instead, by comparing each series' manifest
+cadence against the latest observation this pipeline has already ingested
+into Silver -- no per-source live API call needed, at the cost of only
+detecting "our copy is behind," not "the upstream source itself changed."
 """
 
 from __future__ import annotations
@@ -200,6 +208,65 @@ def reconcile(
         report.drifts.extend(compare_metadata(spec, meta))
         report.lifecycles.append(lifecycle_snapshot(spec, meta, today))
     return report
+
+
+def staleness_snapshot(
+    spec: SeriesSpec,
+    latest_observation_date: Optional[str],
+    *,
+    today: Optional[date] = None,
+) -> dict[str, Any]:
+    """Freshness verdict for one series from its own ingested Silver data.
+
+    Unlike :func:`lifecycle_snapshot` (which needs a live FRED ``/series``
+    call), this only needs the latest ``observation_date`` this pipeline has
+    already ingested for the series -- so it works for any ``source``
+    (FRED, Tiingo, BLS, EIA, ...), not just FRED.
+    """
+    today = today or date.today()
+    obs_end = _parse_date(latest_observation_date)
+    days_since = (today - obs_end).days if obs_end else None
+    threshold = STALE_MAX_AGE_DAYS.get(spec.frequency)
+    is_stale = bool(
+        threshold is not None and days_since is not None and days_since > threshold
+    )
+    return {
+        "source": getattr(spec, "source", "fred"),
+        "series_id": spec.series_id,
+        "frequency": spec.frequency,
+        "latest_observation_date": latest_observation_date,
+        "days_since_last_observation": days_since,
+        "is_stale": is_stale,
+        "has_data": latest_observation_date is not None,
+        "checked_at": _utc_now_iso(),
+    }
+
+
+def reconcile_staleness(
+    manifests: Iterable[Any],
+    warehouse: Any,
+    *,
+    today: Optional[date] = None,
+    active_only: bool = False,
+    series_ids: Optional[list[str]] = None,
+) -> list[dict[str, Any]]:
+    """Source-agnostic freshness check across every series in the manifests.
+
+    ``warehouse`` needs a ``latest_observation_dates(series_ids)`` method.
+    Unlike :func:`reconcile` (FRED-only, since it diffs against FRED's own
+    metadata catalog), this covers every ``source`` because it only reads
+    data this pipeline has already ingested -- no per-source API client
+    required.
+    """
+    specs = all_series(list(manifests), active_only=active_only)
+    if series_ids:
+        wanted = set(series_ids)
+        specs = [s for s in specs if s.series_id in wanted]
+    latest = warehouse.latest_observation_dates([s.series_id for s in specs])
+    return [
+        staleness_snapshot(spec, latest.get(spec.series_id), today=today)
+        for spec in specs
+    ]
 
 
 def persist_report(

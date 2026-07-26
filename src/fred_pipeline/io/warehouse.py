@@ -35,6 +35,10 @@ class Warehouse(Protocol):
     def build_gold(self) -> dict[str, str]: ...
     def write_lifecycle(self, rows: list[dict[str, Any]]) -> int: ...
     def write_drift(self, rows: list[dict[str, Any]]) -> int: ...
+    def latest_observation_dates(
+        self, series_ids: Optional[list[str]] = None
+    ) -> dict[str, str]: ...
+    def write_staleness(self, rows: list[dict[str, Any]]) -> int: ...
     def write_release_calendar(self, rows: list[dict[str, Any]]) -> int: ...
     def persist_run(self, run: EtlRun) -> None: ...
     def persist_dq(self, run_id: str, report: QualityReport) -> None: ...
@@ -136,6 +140,40 @@ class SparkWarehouse:
 
         return append_rows(
             self.spark, rows, self.config.table("meta", "fred_series_drift")
+        )
+
+    def latest_observation_dates(
+        self, series_ids: Optional[list[str]] = None
+    ) -> dict[str, str]:
+        """Most recent ingested ``observation_date`` per series, any source.
+
+        Reads already-ingested Silver rows rather than calling a live API, so
+        it works uniformly across FRED, Tiingo, BLS, EIA, etc.
+        """
+        from fred_pipeline.spark_io import table_exists
+
+        table = self.config.table("silver", "fred_observation")
+        if not table_exists(self.spark, table):
+            return {}
+        where = "WHERE is_missing = false"
+        if series_ids:
+            ids = ", ".join("'" + s.replace("'", "''") + "'" for s in series_ids)
+            where += f" AND series_id IN ({ids})"
+        df = self.spark.sql(
+            f"SELECT series_id, MAX(observation_date) AS latest "
+            f"FROM {table} {where} GROUP BY series_id"
+        )
+        return {
+            row["series_id"]: str(row["latest"])
+            for row in df.collect()
+            if row["latest"] is not None
+        }
+
+    def write_staleness(self, rows: list[dict[str, Any]]) -> int:
+        from fred_pipeline.spark_io import append_rows
+
+        return append_rows(
+            self.spark, rows, self.config.table("meta", "series_staleness")
         )
 
     def write_release_calendar(self, rows: list[dict[str, Any]]) -> int:

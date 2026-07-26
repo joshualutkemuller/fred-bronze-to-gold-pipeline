@@ -9,6 +9,8 @@ from fred_pipeline.reconcile import (
     lifecycle_snapshot,
     persist_report,
     reconcile,
+    reconcile_staleness,
+    staleness_snapshot,
 )
 
 
@@ -154,4 +156,120 @@ def test_persist_report_writes_meta_tables(tmp_path):
     assert life[0]["series_id"] == "DGS10"
     drift = wh.query("SELECT kind FROM meta_fred_series_drift")
     assert any(r["kind"] == "units_changed" for r in drift)
+    wh.close()
+
+
+# ---- staleness_snapshot (source-agnostic) --------------------------------
+
+def test_staleness_snapshot_flags_stale_daily_series():
+    snap = staleness_snapshot(
+        _spec(frequency="d"), "2024-01-01", today=date(2024, 6, 1)
+    )
+    assert snap["is_stale"] is True           # >10 days old for a daily series
+    assert snap["days_since_last_observation"] == 152
+    assert snap["has_data"] is True
+    assert snap["source"] == "fred"
+
+
+def test_staleness_snapshot_not_stale_when_fresh():
+    snap = staleness_snapshot(
+        _spec(frequency="d"), "2024-05-30", today=date(2024, 6, 1)
+    )
+    assert snap["is_stale"] is False
+
+
+def test_staleness_snapshot_flags_no_data_as_not_stale():
+    # A series with zero ingested observations isn't "stale" (nothing to
+    # compare against) — it's a distinct "no_data"/has_data=False case, so a
+    # never-run series doesn't get silently lumped in with a broken feed.
+    snap = staleness_snapshot(_spec(frequency="d"), None, today=date(2024, 6, 1))
+    assert snap["has_data"] is False
+    assert snap["is_stale"] is False
+    assert snap["days_since_last_observation"] is None
+
+
+def test_staleness_snapshot_covers_non_fred_source():
+    snap = staleness_snapshot(
+        _spec("AAPL", frequency="d", source="tiingo"),
+        "2024-01-01",
+        today=date(2024, 6, 1),
+    )
+    assert snap["source"] == "tiingo"
+    assert snap["is_stale"] is True
+
+
+# ---- reconcile_staleness (orchestrator, all sources) ---------------------
+
+class FakeStalenessWarehouse:
+    def __init__(self, latest: dict):
+        self._latest = latest
+
+    def latest_observation_dates(self, series_ids):
+        return {sid: d for sid, d in self._latest.items() if sid in series_ids}
+
+
+def test_reconcile_staleness_covers_every_source_not_just_fred():
+    man = _manifest(
+        _spec("DGS10", frequency="d", units="Percent"),
+        _spec("CUUR0000SA0", frequency="m", source="bls"),
+        _spec("AAPL", frequency="d", source="tiingo"),
+    )
+    wh = FakeStalenessWarehouse({
+        "DGS10": "2024-05-30",       # fresh
+        "CUUR0000SA0": "2020-01-01",  # very stale
+        "AAPL": "2024-05-30",         # fresh
+        # no entry for a series with no ingested data yet is handled elsewhere
+    })
+    rows = reconcile_staleness([man], wh, today=date(2024, 6, 1))
+
+    assert {r["series_id"] for r in rows} == {"DGS10", "CUUR0000SA0", "AAPL"}
+    by_id = {r["series_id"]: r for r in rows}
+    assert by_id["CUUR0000SA0"]["is_stale"] is True
+    assert by_id["CUUR0000SA0"]["source"] == "bls"
+    assert by_id["DGS10"]["is_stale"] is False
+    assert by_id["AAPL"]["source"] == "tiingo"
+    assert by_id["AAPL"]["is_stale"] is False
+
+
+def test_reconcile_staleness_marks_never_ingested_series():
+    man = _manifest(_spec("NEWSERIES", frequency="d", source="eia"))
+    wh = FakeStalenessWarehouse({})
+    rows = reconcile_staleness([man], wh, today=date(2024, 6, 1))
+
+    assert rows[0]["has_data"] is False
+    assert rows[0]["is_stale"] is False
+
+
+def test_local_warehouse_latest_observation_dates_and_write_staleness(tmp_path):
+    cfg = PipelineConfig(environment=Environment.DEV, fred_api_key="k")
+    wh = LocalWarehouse(cfg, db_path=str(tmp_path / "s.db"))
+    wh.merge_silver([
+        {
+            "source": "tiingo", "series_id": "AAPL", "observation_date": "2024-01-01",
+            "realtime_start": "2024-01-01", "realtime_end": "2024-01-01",
+            "value": 190.0, "raw_value": "190.0", "is_missing": 0,
+            "row_hash": "h1", "revision_number": 1, "ingested_at": "2024-01-02",
+            "run_id": "r1",
+        },
+        {
+            "source": "tiingo", "series_id": "AAPL", "observation_date": "2024-01-02",
+            "realtime_start": "2024-01-02", "realtime_end": "2024-01-02",
+            "value": 191.0, "raw_value": "191.0", "is_missing": 0,
+            "row_hash": "h2", "revision_number": 1, "ingested_at": "2024-01-03",
+            "run_id": "r1",
+        },
+    ])
+
+    latest = wh.latest_observation_dates(["AAPL", "MISSING"])
+    assert latest == {"AAPL": "2024-01-02"}
+
+    man = _manifest(_spec("AAPL", frequency="d", source="tiingo"))
+    rows = reconcile_staleness([man], wh, today=date(2024, 6, 1))
+    n = wh.write_staleness(rows)
+    assert n == 1
+
+    persisted = wh.query("SELECT * FROM meta_series_staleness")
+    assert persisted[0]["series_id"] == "AAPL"
+    assert persisted[0]["source"] == "tiingo"
+    assert bool(persisted[0]["is_stale"]) is True
     wh.close()
