@@ -1,9 +1,23 @@
 # Path B: Asset-class breadth expansion
 
-**Status: PROPOSED — not started.** One of two candidate "what's next"
-directions (see `docs/handoffs/governance_and_access_control.md` for the
-other). This doc scopes the real remaining *data* gaps once the equity/ETF,
-macro, and credit-spread universes already in place are accounted for.
+**Status: IN PROGRESS.** One of two candidate "what's next" directions (see
+`docs/handoffs/governance_and_access_control.md` for the other). This doc
+scopes the real remaining *data* gaps once the equity/ETF, macro, and
+credit-spread universes already in place are accounted for.
+
+**Item 1a (realized volatility) — DONE.** `gold.realized_volatility` is
+built: `writer/equity_views.py::compute_realized_volatility`, wired into
+both Gold backends, DDL in `sql/50_gold.sql` / `local_store.py`, data
+dictionary + Power BI catalog entries, tests in `tests/test_equity.py`. See
+the item below for the as-built grain/methodology.
+
+**Item 2 (bond/CDS/muni pricing) — DONE / CLOSED (2026-07-26).**
+`manifests/corporate_bond_yields.yml` (32 series) closes the free aggregate
+half via a FRED `discover` pass. Individual-issuer/CUSIP pricing is
+explicitly **not being pursued** (user decision) — see the item below for
+what was found and why the muni side is a dead end without a paid vendor.
+
+Items 1b/3 remain unstarted.
 
 ## Context
 
@@ -38,6 +52,16 @@ assumption:**
   surface, no realized-vol calculation, anywhere in Bronze, Silver, or Gold.
 
 ## 1. Options / volatility-surface data — *(highest value, hardest sourcing)*
+
+**Item 1a status: DONE.** `gold.realized_volatility` — one row per ticker ×
+date × trailing window (21/63/126/252 trading days ≈ 1mo/1qtr/2qtr/1yr):
+`realized_vol_pct` is the annualized sample stdev of daily log returns over
+the window (log returns, not `equity_return_daily`'s simple returns, since
+they're time-additive — required for the sqrt(time) annualization scaling
+to be valid). A row only emits once its window is fully populated (no
+partial-window stats), matching the rolling-companion convention used by
+`curve_spread_rolling`/`treasury_curve_rolling` elsewhere in Gold. Item 1b
+(implied vol/options chains) below is unchanged — still paid-vendor-gated.
 
 **The problem.** `VIXCLS` gives one number (30-day S&P implied vol). It
 can't answer "what's AAPL's 25-delta skew," "what's the term structure of
@@ -80,11 +104,27 @@ licensing decision)**. Don't block the cheap half on the expensive half.
 
 ## 2. Individual bond / CDS / municipal-curve pricing — *(narrower, moderate cost)*
 
-**The problem.** The 12 ICE BofA series answer "what's the market OAS for
-BBB credit" in aggregate. They don't answer "what's this specific CUSIP
-worth," "what's this issuer's CDS spread," or "what's the muni curve for
-this state." A credit desk pricing individual names or building relative-
-value trades needs issuer-level data, not just the index.
+**Status: aggregate/benchmark half DONE; individual-issuer half explicitly
+descoped (2026-07-26 decision — not pursuing individual-issuer/CUSIP
+pricing).** The FRED `discover` pass below was run and confirmed real,
+live results — `manifests/corporate_bond_yields.yml` (32 series: Moody's
+seasoned Aaa/Baa corporate yields + 10Y-Treasury- and Fed-Funds-relative
+spreads, daily since the 1980s; ~26 more ICE BofA yield-to-worst and
+total-return-index cuts across the rating ladder, complementing the
+OAS/effective-yield series already in `ice_credit.yml`). The municipal side
+of the same search came up empty for anything current — all 7 hits were
+NBER macrohistory archive series ending in 1966-67, confirmed via direct
+metadata lookup — so muni-curve coverage still has no free path. Since
+individual-issuer pricing is explicitly out of scope going forward, this
+item is considered closed: the free aggregate expansion is captured, and
+CUSIP-level/CDS/muni-curve data (TRACE, Markit/IHS) won't be pursued.
+
+**The problem (as originally scoped).** The 12 ICE BofA series answer
+"what's the market OAS for BBB credit" in aggregate. They don't answer
+"what's this specific CUSIP worth," "what's this issuer's CDS spread," or
+"what's the muni curve for this state." A credit desk pricing individual
+names or building relative-value trades needs issuer-level data, not just
+the index — this remains true, but per the above, is not being pursued.
 
 **Build.**
 1. **Sourcing**, roughly in order of cost/complexity:
@@ -151,15 +191,15 @@ cheaper/smaller vendor.
 |---|---|---|---|---|
 | — | FX | **No — already 24 pairs, excluded from scope** | — | — |
 | — | Credit spread indices | **No — 12 ICE BofA series already cover this** | — | — |
-| 1a | Realized volatility (derived from existing prices) | Yes | Free (no new source) | **High — do anytime** |
+| 1a | Realized volatility (derived from existing prices) | Yes | Free (no new source) | **DONE** |
 | 1b | Options chains / implied-vol surface | Yes | Paid, licensing-gated | High value, but coupled to Path A |
-| 2 | Individual bond/CDS/muni pricing | Yes (narrow) | Check FRED `discover` first, free | Medium |
+| 2 | Individual bond/CDS/muni pricing | Aggregate half closed via `discover`; individual-issuer half **descoped, not pursuing** | Free (aggregate) | **DONE / CLOSED** |
 | 3 | Commodities futures/term structure | Yes | Check EIA first, else paid | Medium |
 
-Recommended order: **1a (realized vol) first** — free, fast, immediately
-useful, no external dependency. Then a FRED `discover` pass for item 2
-before spending anything. Items 1b and 3 both hinge on a vendor/licensing
-decision, so they're natural candidates to revisit once
+Recommended order: **1a (realized vol) — done. Item 2 — done/closed**
+(aggregate expansion built; individual-issuer pricing explicitly descoped).
+Remaining: items 1b and 3 both hinge on a vendor/licensing decision, so
+they're natural candidates to revisit once
 `docs/handoffs/governance_and_access_control.md` item 1 (the licensing
 register) exists — at which point onboarding a paid source is a documented
 decision instead of an ad hoc one.

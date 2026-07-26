@@ -21,6 +21,7 @@ from fred_pipeline.equity_views import (
     compute_equity_price_reconciliation,
     compute_equity_return_daily,
     compute_index_constituents,
+    compute_realized_volatility,
     select_canonical_equity_price_rows,
 )
 from fred_pipeline.equity_reconciliation_config import (
@@ -447,6 +448,86 @@ def test_equity_local_build_gold_uses_tiingo_when_stooq_absent(tmp_path):
     assert ret[0]["close"] == pytest.approx(100.0)
     assert ret[1]["close"] == pytest.approx(102.0)
     assert ret[1]["price_return"] == pytest.approx(0.02)
+    wh.close()
+
+
+# ---- realized volatility ----------------------------------------------------
+
+def test_realized_volatility_hand_computed_window():
+    import math
+
+    closes = [100.0, 105.0, 98.0, 102.0]
+    rows = [_close_row("AAPL", f"2024-01-0{i + 2}", c) for i, c in enumerate(closes)]
+    out = compute_realized_volatility(rows, windows=(3,))
+
+    r = [math.log(closes[i + 1] / closes[i]) for i in range(3)]
+    mean = sum(r) / 3
+    var = sum(x * x for x in r) / 3 - mean ** 2
+    expected_pct = (var ** 0.5) * math.sqrt(252) * 100.0
+
+    assert len(out) == 1
+    row = out[0]
+    assert row["ticker"] == "AAPL"
+    assert row["window"] == 3
+    assert row["observation_date"] == "2024-01-05"
+    assert row["realized_vol_pct"] == pytest.approx(expected_pct)
+
+
+def test_realized_volatility_requires_full_window():
+    rows = [
+        _close_row("AAPL", "2024-01-02", 100.0),
+        _close_row("AAPL", "2024-01-03", 101.0),   # only 1 log return
+    ]
+    assert compute_realized_volatility(rows, windows=(21, 63)) == []
+
+
+def test_realized_volatility_isolates_tickers():
+    rows = [
+        _close_row("AAPL", "2024-01-02", 100.0),
+        _close_row("AAPL", "2024-01-03", 105.0),
+        _close_row("AAPL", "2024-01-04", 98.0),
+        _close_row("SPY", "2024-01-02", 470.0),
+        _close_row("SPY", "2024-01-03", 471.0),   # only 1 log return -> no window=2 row
+    ]
+    out = compute_realized_volatility(rows, windows=(2,))
+    assert {r["ticker"] for r in out} == {"AAPL"}
+
+
+def test_equity_local_build_gold_writes_realized_volatility(tmp_path):
+    import datetime as dt
+
+    from fred_pipeline.config import Environment, PipelineConfig
+    from fred_pipeline.local_store import LocalWarehouse
+
+    wh = LocalWarehouse(
+        PipelineConfig(environment=Environment.DEV, fred_api_key="k"),
+        db_path=str(tmp_path / "vol.db"),
+    )
+    silver = []
+    start = dt.date(2024, 1, 2)
+    price = 100.0
+    for i in range(25):
+        d = start + dt.timedelta(days=i)
+        price *= 1.001 if i % 2 == 0 else 0.999
+        silver.append({
+            "source": "stooq", "series_id": "AAPL:close",
+            "observation_date": d.isoformat(), "realtime_start": "",
+            "realtime_end": "", "value": price, "raw_value": str(price),
+            "is_missing": 0, "row_hash": f"v{i}", "revision_number": 1,
+            "ingested_at": "2024-02-01T00:00:00", "run_id": "r1",
+        })
+    wh.merge_silver(silver)
+    results = wh.build_gold()
+    assert results["realized_volatility"] == "ok"
+
+    rows = wh.query(
+        "SELECT * FROM gold_realized_volatility ORDER BY observation_date, window"
+    )
+    windows_seen = {r["window"] for r in rows}
+    assert 21 in windows_seen        # 24 returns available -> window=21 populated
+    assert 63 not in windows_seen    # not enough history for a 63-day window
+    assert all(r["ticker"] == "AAPL" for r in rows)
+    assert all(r["realized_vol_pct"] > 0 for r in rows)
     wh.close()
 
 

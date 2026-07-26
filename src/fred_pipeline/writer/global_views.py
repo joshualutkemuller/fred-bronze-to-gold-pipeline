@@ -286,6 +286,12 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
     _entry("equity_price_reconciliation", "reference", "EQUITY", "1 / ticker x date",
            "divergence scatter / table",
            "Cross-vendor close comparison: Stooq split-adjusted vs Tiingo adjClose; flags dates where sources diverge beyond tolerance."),
+    _entry("realized_volatility", "fact", "EQUITY", "1 / ticker x date x window",
+           "line with window slicer / vol surface by ticker",
+           "Annualized realized volatility per ticker: sample stdev of daily log returns over "
+           "21/63/126/252-day trailing windows, scaled by sqrt(252). The free half of the "
+           "volatility gap (docs/handoffs/asset_class_expansion.md item 1a); implied vol/options "
+           "chains remain a separate paid-vendor decision."),
     _entry("equity_factor_attribution", "fact", "EQUITY", "1 / ticker x factor x window x date",
            "factor exposure heatmap / rolling beta lines",
            "Rolling OLS of monthly equity price returns on ML-2 PCA macro factor scores: "

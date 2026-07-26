@@ -999,6 +999,22 @@ CREATE TABLE IF NOT EXISTS gold.equity_price_reconciliation (
 )
 USING DELTA;
 
+-- Realized volatility (docs/handoffs/asset_class_expansion.md item 1a): per
+-- ticker x date x trailing window (21/63/126/252 trading days), the
+-- annualized sample stdev of daily LOG returns from the canonical close
+-- series, expressed as a percent. Log returns (not the simple returns in
+-- equity_return_daily) so the sqrt(time) annualization scaling is valid.
+-- A row is emitted only once its window is fully populated (no partial-
+-- window stats). Written by fred_pipeline.equity_views.
+-- compute_realized_volatility.
+CREATE TABLE IF NOT EXISTS gold.realized_volatility (
+    ticker            STRING,
+    observation_date  DATE,
+    window            INT,
+    realized_vol_pct  DOUBLE
+)
+USING DELTA;
+
 -- ============================================================================
 -- ML pipeline (handoff.md "ML Extensions Sub-Plan"):
 -- ML-0 feature matrix, ML-2 PCA factor scores/loadings, ML-4 anomaly scores.

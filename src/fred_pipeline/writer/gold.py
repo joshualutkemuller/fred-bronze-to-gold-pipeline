@@ -1095,6 +1095,7 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
         compute_equity_return_daily,
         compute_equity_total_return_index,
         compute_index_constituents,
+        compute_realized_volatility,
         select_canonical_equity_price_rows,
     )
 
@@ -1116,11 +1117,10 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
     stooq_rows = _rows("stooq")
     holdings_rows = _rows("ishares")
     tiingo_rows = _rows("tiingo")
+    canonical_price_rows = select_canonical_equity_price_rows(stooq_rows, tiingo_rows)
 
     spark.createDataFrame(
-        compute_equity_return_daily(
-            select_canonical_equity_price_rows(stooq_rows, tiingo_rows)
-        ),
+        compute_equity_return_daily(canonical_price_rows),
         schema=StructType([
             StructField("ticker", StringType()),
             StructField("observation_date", StringType()),
@@ -1195,6 +1195,21 @@ def _build_equity_views(config: PipelineConfig, spark: Any) -> None:
     ).write.format("delta").mode("overwrite").option(
         "overwriteSchema", "true"
     ).saveAsTable(config.table("gold", "equity_price_reconciliation"))
+
+    spark.createDataFrame(
+        compute_realized_volatility(canonical_price_rows),
+        schema=StructType([
+            StructField("ticker", StringType()),
+            StructField("observation_date", StringType()),
+            StructField("window", IntegerType()),
+            StructField("realized_vol_pct", DoubleType()),
+        ]),
+    ).selectExpr(
+        "ticker", "CAST(observation_date AS DATE) AS observation_date",
+        "window", "realized_vol_pct",
+    ).write.format("delta").mode("overwrite").option(
+        "overwriteSchema", "true"
+    ).saveAsTable(config.table("gold", "realized_volatility"))
 
 
 def _build_zscore_views(config: PipelineConfig, spark: Any) -> None:
@@ -1564,6 +1579,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     for name in (
         "equity_return_daily", "index_constituents",
         "equity_total_return_index", "equity_price_reconciliation",
+        "realized_volatility",
     ):
         results[name] = "ok"
     _build_zscore_views(config, spark)

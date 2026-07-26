@@ -470,6 +470,17 @@ date; their gap is reinvested income); and `trailing_12m_dividend` /
 Tiingo's `adjClose`, so it can be rebuilt and diffed when a dividend is
 restated.
 
+#### `gold.realized_volatility`
+Annualized realized volatility (`docs/handoffs/asset_class_expansion.md` item
+1a — the free half of the volatility gap; implied vol/options chains remain a
+separate paid-vendor decision): one row per ticker × date × trailing window
+(21/63/126/252 trading days ≈ 1mo/1qtr/2qtr/1yr). `realized_vol_pct` is the
+sample standard deviation of daily **log** returns over the window, scaled by
+`sqrt(252)` and expressed as a percent. Uses log returns (not the simple
+returns in `gold.equity_return_daily`) because they're time-additive, which is
+what makes the square-root-of-time annualization scaling valid. A row is
+emitted only once its window is fully populated — no partial-window stats.
+
 ### Point-in-time feature snapshot
 `gold.point_in_time_features_sql(as_of)` (Spark) / `LocalWarehouse.
 point_in_time_features(as_of)` return each series' value **as it was known** on
