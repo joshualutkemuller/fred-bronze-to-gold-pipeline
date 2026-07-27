@@ -24,6 +24,7 @@ Design notes
 from __future__ import annotations
 
 import datetime as _dt
+import hashlib
 import json
 import os
 import sqlite3
@@ -448,6 +449,9 @@ CREATE TABLE IF NOT EXISTS audit_etl_series_run (
 CREATE TABLE IF NOT EXISTS audit_data_quality_result (
     run_id TEXT, series_id TEXT, check_name TEXT, passed INTEGER,
     severity TEXT, message TEXT, metric_value REAL
+);
+CREATE TABLE IF NOT EXISTS audit_query_log (
+    queried_at TEXT, query_text_hash TEXT, caller TEXT
 );
 CREATE TABLE IF NOT EXISTS meta_fred_series_lifecycle (
     series_id TEXT, fred_title TEXT, fred_frequency TEXT, fred_units TEXT,
@@ -1235,10 +1239,31 @@ class LocalWarehouse:
 
     # ---- convenience for interactive/local use -------------------------
 
-    def query(self, sql: str, params: Sequence[Any] = ()) -> list[dict[str, Any]]:
-        """Run an ad-hoc SQL query and return rows as dicts."""
+    def query(
+        self, sql: str, params: Sequence[Any] = (), *, caller: str = "",
+    ) -> list[dict[str, Any]]:
+        """Run an ad-hoc SQL query and return rows as dicts.
+
+        Logs to ``audit_query_log`` (docs/handoffs/
+        governance_and_access_control.md item 2) -- a query-level access log
+        for this backend, which has no Unity-Catalog-style built-in one.
+        ``caller`` is an optional free-text label for who/what issued the
+        query (e.g. a notebook name); left blank when unknown. The query
+        text itself isn't stored, only a hash, so the log can't leak
+        sensitive literals embedded in ad-hoc SQL.
+        """
+        self._log_query(sql, caller=caller)
         cur = self.conn.execute(sql, params)
         return [dict(row) for row in cur.fetchall()]
+
+    def _log_query(self, sql: str, *, caller: str = "") -> None:
+        query_hash = hashlib.sha256(sql.encode("utf-8")).hexdigest()
+        self.conn.execute(
+            "INSERT INTO audit_query_log (queried_at, query_text_hash, caller) "
+            "VALUES (?, ?, ?)",
+            (_dt.datetime.now(_dt.timezone.utc).isoformat(), query_hash, caller),
+        )
+        self.conn.commit()
 
     def tables(self) -> list[str]:
         cur = self.conn.execute(

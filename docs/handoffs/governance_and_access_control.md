@@ -12,8 +12,15 @@ warehouse.
 guardrail + a data-dictionary summary table. Live-tested: correctly flags
 `tiingo` (85 active series, free-tier-personal-use) and `ishares` (1 active
 series, requires-agreement/unreviewed) as not clearing commercial use, and
-exits non-zero. See the item below for the as-built detail. Items 2/3
-remain unstarted.
+exits non-zero. See the item below for the as-built detail.
+
+**Item 2 (query-level access logging) — DONE (2026-07-26).** Local backend:
+`LocalWarehouse.query()` now logs every call to a new `audit_query_log`
+table (`queried_at`, a SHA-256 hash of the query text, an optional `caller`
+label) — live-tested. Databricks: no code needed, just documented — Unity
+Catalog's system tables already capture this once Gold/Silver are
+registered there (`docs/deployment/deployment_runbook.md` A10). Item 3
+remains unstarted.
 
 ## Context
 
@@ -103,7 +110,15 @@ activate a source outside its license terms without a conscious override."
 
 ## 2. Query-level access logging — *(medium lift)*
 
-**The problem.** `audit.etl_run` records *what the pipeline itself did*
+**Status: DONE (2026-07-26).** Both halves built as scoped below: the local
+`audit_query_log` table (`io/local_store.py`'s `LocalWarehouse.query()`/
+`_log_query()`, tests in `tests/test_local_store.py`) and the Databricks
+documentation (`docs/deployment/deployment_runbook.md` A10). Retention/
+read-access are left as checklist items in the runbook — genuine policy
+questions for whoever owns compliance at the firm, not something to
+silently default.
+
+**The problem (as originally scoped).** `audit.etl_run` records *what the pipeline itself did*
 (extraction, DQ, Gold rebuild). It records nothing about *who read Gold
 afterward* — which matters the moment more than one person/team points a
 BI tool or notebook at the same warehouse. A firm's compliance/security
@@ -161,9 +176,10 @@ it'll need redoing.
 | # | Item | Effort | Engineering vs. policy | Priority |
 |---|---|---|---|---|
 | 1 | Per-source data-licensing register + activation guardrail | S | Mostly engineering (a config file + a validate check) | **DONE** |
-| 2 | Query-level access logging | S–M | Mostly documentation on Databricks; small build for local backend | Medium |
+| 2 | Query-level access logging | S–M | Mostly documentation on Databricks; small build for local backend | **DONE** |
 | 3 | Role-based read access to Gold tables | M–L | Mostly policy (role→table mapping) + light engineering to codify it | Depends on firm's org readiness |
 
-Recommended order: **1 — done.** Items 2–3 need input from whoever would
-own compliance/security at the firm this serves — worth scoping now, but
-don't build 3 until that conversation happens.
+Recommended order: **1 — done. 2 — done.** Item 3 needs input from whoever
+would own compliance/security at the firm this serves (the role→table
+mapping is a policy decision, not an engineering one) — worth scoping now,
+but don't build it until that conversation happens.
