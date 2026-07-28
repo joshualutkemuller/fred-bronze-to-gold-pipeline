@@ -135,6 +135,30 @@ Grant read on `gold` (and `silver` for PIT) to quant/BI consumers; restrict
 - [ ] Alert webhook set (or intentionally skipped)
 - [ ] Cost controls / budget alerts configured
 
+### A10. Query-level access logging (Platform)
+Once Gold/Silver tables are registered in Unity Catalog, every query against
+them is already captured in Unity Catalog's built-in audit log (system
+tables — query history / `system.access.audit`) — no pipeline code needed to
+get this. Closes `docs/handoffs/governance_and_access_control.md` item 2 for
+the Databricks path; the local SQLite backend gets its own lightweight
+`audit_query_log` table instead (every `LocalWarehouse.query()` call logs
+`queried_at` / a hash of the SQL text / an optional `caller` label — see
+`io/local_store.py`).
+
+- Enable/verify system tables (`system.access.audit`) are turned on for the
+  workspace — this is a workspace-level admin setting, not something the
+  Asset Bundle controls.
+- Decide retention: system tables retain audit logs for a fixed window by
+  default (verify current retention in the workspace admin console — this
+  changes over time); export to a longer-retention table first if
+  compliance needs longer than the default.
+- Decide who can read the audit log itself — usually a narrower group than
+  who can read Gold; a grants question, same shape as A8 above.
+
+- [ ] System tables / audit logging enabled for the workspace
+- [ ] Retention window confirmed against compliance requirements
+- [ ] Audit-log read access scoped (narrower than Gold read access)
+
 ---
 
 # Part B — Configuration decisions (values to choose)

@@ -153,6 +153,30 @@ def test_source_is_part_of_natural_key(tmp_path):
     wh.close()
 
 
+def test_query_logs_to_audit_query_log(tmp_path):
+    import hashlib
+
+    wh = LocalWarehouse(_config(), db_path=str(tmp_path / "q.db"))
+    wh.query("SELECT 1", caller="test-notebook")
+
+    rows = wh.query("SELECT * FROM audit_query_log ORDER BY queried_at")
+    # the query() call above logs itself before the SELECT 1 executes, then
+    # this query() call logs itself too -- both show up here.
+    assert len(rows) == 2
+    assert rows[0]["caller"] == "test-notebook"
+    assert rows[0]["query_text_hash"] == hashlib.sha256(b"SELECT 1").hexdigest()
+    assert rows[1]["caller"] == ""  # this call didn't pass a caller
+    wh.close()
+
+
+def test_query_caller_defaults_to_blank(tmp_path):
+    wh = LocalWarehouse(_config(), db_path=str(tmp_path / "q2.db"))
+    wh.query("SELECT 1")
+    rows = wh.query("SELECT caller FROM audit_query_log")
+    assert all(r["caller"] == "" for r in rows)
+    wh.close()
+
+
 def test_daily_feature_matrix_forward_fills():
     latest = [
         {"series_id": "X", "observation_date": "2024-01-01", "value": 1.0, "is_missing": False},

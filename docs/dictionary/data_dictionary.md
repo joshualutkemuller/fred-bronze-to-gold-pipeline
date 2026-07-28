@@ -130,6 +130,16 @@ for that run: `full` (first load or `load_type: full`) or `restate_last_<n>`.
 One row per `(run_id, series_id, check_name)` with `passed`, `severity`
 (info/warning/error), `message`, and `metric_value`.
 
+### `audit_query_log` (local SQLite backend only)
+Query-level access log (`docs/handoffs/governance_and_access_control.md`
+item 2). Every `LocalWarehouse.query()` call appends a row — `queried_at`,
+a SHA-256 hash of the query text (not the text itself, so the log can't
+leak sensitive literals from ad-hoc SQL), and an optional free-text
+`caller` label. **Databricks doesn't have this table** — the same coverage
+comes from Unity Catalog's built-in query history/system tables instead
+(`docs/deployment/deployment_runbook.md` A10), since a Delta-backed
+deployment already has a real audit log without any pipeline code.
+
 ## bronze
 
 ### `bronze.fred_api_response`
