@@ -52,6 +52,31 @@ def test_local_run_persists_all_layers(tmp_path, observations_payload, fake_clie
     wh.close()
 
 
+def test_local_run_builds_dim_date_and_market_calendar(
+    tmp_path, observations_payload, fake_client_cls
+):
+    db = str(tmp_path / "fred.db")
+    client = fake_client_cls({"DGS10": observations_payload})
+    wh = LocalWarehouse(_config(), db_path=db)
+    pipe = FredPipeline(_config(), client=client, warehouse=wh)
+    pipe.run([_spec("DGS10")], build_gold_layer=True)
+
+    obs_dates = {r["observation_date"] for r in
+                 wh.query("SELECT observation_date FROM silver_fred_observation")}
+    n_days = len(obs_dates)
+
+    dim_date = wh.query("SELECT * FROM gold_dim_date")
+    assert len(dim_date) == n_days
+    assert {"is_imm_date", "is_monthly_option_expiry", "is_triple_witching"} <= set(
+        dim_date[0].keys()
+    )
+
+    market_calendar = wh.query("SELECT * FROM gold_market_calendar")
+    assert len(market_calendar) == n_days * 3
+    assert {r["calendar_name"] for r in market_calendar} == {"NYSE", "SIFMA", "FEDWIRE"}
+    wh.close()
+
+
 def test_local_backend_gold_views_exist_and_match_tables(
     tmp_path, observations_payload, fake_client_cls
 ):

@@ -498,6 +498,7 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
         compute_funding_features,
         compute_inflation_explorer,
         compute_macro_dashboard,
+        compute_market_calendar,
         compute_spread_inversion_episodes,
         compute_treasury_curve,
         compute_treasury_curve_rolling,
@@ -549,8 +550,43 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
         StructField("is_month_end", BooleanType()),
         StructField("fiscal_year", IntegerType()),
         StructField("is_recession", BooleanType()),
+        StructField("is_imm_date", BooleanType()),
+        StructField("is_monthly_option_expiry", BooleanType()),
+        StructField("is_triple_witching", BooleanType()),
     ]), ["CAST(date AS DATE) AS date", "year", "quarter", "month", "month_name",
-         "is_month_end", "fiscal_year", "is_recession"])
+         "is_month_end", "fiscal_year", "is_recession", "is_imm_date",
+         "is_monthly_option_expiry", "is_triple_witching"])
+
+    # Market calendars (NYSE/SIFMA/FEDWIRE): holiday-aware business-day logic,
+    # long/tidy by calendar_name, over the same date bounds as dim_date.
+    market_calendar = (
+        compute_market_calendar(bounds["lo"], bounds["hi"]) if bounds["lo"] else []
+    )
+    _write("market_calendar", market_calendar, StructType([
+        StructField("calendar_name", StringType()),
+        StructField("calendar_date", StringType()),
+        StructField("is_weekend", BooleanType()),
+        StructField("is_holiday", BooleanType()),
+        StructField("holiday_name", StringType()),
+        StructField("day_type", StringType()),
+        StructField("is_business_day", BooleanType()),
+        StructField("prior_business_day", StringType()),
+        StructField("next_business_day", StringType()),
+        StructField("t2_settle_date", StringType()),
+        StructField("business_day_of_month", IntegerType()),
+        StructField("business_days_in_month", IntegerType()),
+        StructField("is_first_business_day_of_month", BooleanType()),
+        StructField("is_last_business_day_of_month", BooleanType()),
+        StructField("is_last_business_day_of_quarter", BooleanType()),
+        StructField("is_last_business_day_of_year", BooleanType()),
+    ]), ["calendar_name", "CAST(calendar_date AS DATE) AS calendar_date",
+         "is_weekend", "is_holiday", "holiday_name", "day_type",
+         "is_business_day", "CAST(prior_business_day AS DATE) AS prior_business_day",
+         "CAST(next_business_day AS DATE) AS next_business_day",
+         "CAST(t2_settle_date AS DATE) AS t2_settle_date",
+         "business_day_of_month", "business_days_in_month",
+         "is_first_business_day_of_month", "is_last_business_day_of_month",
+         "is_last_business_day_of_quarter", "is_last_business_day_of_year"])
 
     # ECON macro dashboard (+ sparkline + category summary) over the catalog.
     dash = compute_macro_dashboard(
@@ -1552,7 +1588,7 @@ def build_gold(config: PipelineConfig, *, spark: Any = None) -> dict[str, str]:
     results["fred_company_ratios"] = "ok"
     _build_terminal_views(config, spark)
     for name in (
-        "dim_series", "dim_date",
+        "dim_series", "dim_date", "market_calendar",
         "macro_indicator_dashboard", "macro_indicator_sparkline",
         "macro_category_summary",
         "treasury_curve", "treasury_curve_metrics", "yield_curve_ns_factors",

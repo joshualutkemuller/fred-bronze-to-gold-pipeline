@@ -179,7 +179,16 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
            "date table (mark as such) + recession shading",
            "Full time-intelligence calendar: date key, period start/end anchors, ISO week, "
            "day-of-week (ISO + DAX Sunday-first), US Federal fiscal calendar (Oct start), "
-           "leap-year flag, NBER recession flag."),
+           "leap-year flag, NBER recession flag, and calendar-agnostic derivatives marker "
+           "dates (IMM date, monthly option expiry, triple witching)."),
+    _entry("market_calendar", "dimension", "ALL", "1 / calendar_name x calendar day",
+           "date table per market (filter to calendar_name) + holiday shading",
+           "Holiday-aware business-day calendar for NYSE, SIFMA, and FEDWIRE (long/tidy by "
+           "calendar_name, joins to dim_date on calendar_date): is_holiday/holiday_name, "
+           "is_business_day, prior/next business day, T+2 settle date, business-day-of-month "
+           "counters, and first/last-business-day-of-period flags. NYSE observes Columbus "
+           "Day/Veterans Day; SIFMA/FEDWIRE don't. SIFMA/NYSE observe Good Friday; FEDWIRE "
+           "doesn't."),
     _entry("macro_indicator_dashboard", "fact", "ECON", "1 / series (latest)",
            "KPI grid / table with conditional formatting",
            "Latest/prior/change/YoY, PIT z-score & percentile, surprise proxy, polarity, staleness."),
