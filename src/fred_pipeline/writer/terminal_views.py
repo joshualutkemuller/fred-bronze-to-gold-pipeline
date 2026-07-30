@@ -24,6 +24,11 @@ surfaces for Power BI (plan: ``docs/market_terminal_gold_views.md``):
   * **inflation_explorer / inflation_contribution** — the INFL item trees
     (CPI SA/NSA, PCE): index/MoM/YoY/acceleration/3m-annualized per item, and
     the weight × MoM contribution waterfall against the headline print.
+  * **market_calendar** — holiday-aware business-day calendars for NYSE,
+    SIFMA, and FEDWIRE (long/tidy by ``calendar_name``), ported from a
+    standalone Power Query "reusable quant date calendar." ``dim_date``
+    gains the calendar-agnostic derivatives marker dates (IMM date, monthly
+    option expiry, triple witching) from the same source query.
 
 Kept pure (dict-in → dict-out, no Spark, no SQLite) so the Local and
 Databricks backends share the same tested logic — the same pattern as
@@ -35,6 +40,7 @@ from __future__ import annotations
 
 import calendar
 from bisect import bisect_right
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Iterable, Optional
 
@@ -155,6 +161,9 @@ _DAY_NAMES = (
     "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
 )
 _DAY_SHORT = ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+
+# Standard quarterly-cycle months for IMM dates / triple witching.
+_QUARTER_MONTHS = frozenset({3, 6, 9, 12})
 
 
 def build_dim_date(
@@ -292,8 +301,303 @@ def build_dim_date(
 
             # ---- NBER recession (None = unknown / not yet ingested) ------
             "is_recession": _recession_at(flags, d),
+
+            # ---- quant/derivatives marker dates (calendar-agnostic --
+            # same for every market_calendar row below, so kept here once
+            # rather than repeated per calendar) --------------------------
+            "is_imm_date": (
+                d.month in _QUARTER_MONTHS and dow == 2 and 15 <= d.day <= 21
+            ),  # 3rd Wednesday of a quarter month
+            "is_monthly_option_expiry": dow == 4 and 15 <= d.day <= 21,
+            "is_triple_witching": (
+                d.month in _QUARTER_MONTHS and dow == 4 and 15 <= d.day <= 21
+            ),  # 3rd Friday of a quarter month
         })
         d += timedelta(days=1)
+    return out
+
+
+# ---- market calendars (NYSE / SIFMA / FEDWIRE) ------------------------------
+#
+# Ported from a standalone Power Query (M) "reusable quant date calendar":
+# holiday-aware business-day logic for three US market calendars, each with
+# its own holiday set (SIFMA observes Good Friday; FEDWIRE doesn't; NYSE
+# observes Columbus Day/Veterans Day, SIFMA/FEDWIRE don't). Unlike the source
+# query -- which picks ONE calendar via a parameter -- this keeps all three,
+# long/tidy by ``calendar_name`` (the convention every other multi-cut Gold
+# table here uses: ``curve_spread_rolling`` by window, `realized_volatility`
+# by ticker x window, etc.) so a report can filter to whichever calendar its
+# instrument settles against without three near-duplicate tables.
+#
+# Calendar-agnostic pieces of the source query (period parts, fiscal year,
+# IMM/option-expiry/triple-witching marker dates) are NOT duplicated per
+# calendar here -- they're pure date properties independent of which market
+# is open, so they live once in ``gold.dim_date`` instead (the IMM/expiry
+# flags added just above). The source query's wall-clock-relative section
+# ("RELATIVE-TO-TODAY... dynamic; recalculated every refresh") is dropped
+# entirely: every other table in this module is a deterministic function of
+# its inputs (no wall-clock dependency), and "is this date in the future"
+# is one comparison against CURRENT_DATE in any BI tool -- not worth
+# persisting a column that changes value on every rebuild for the same row.
+
+MARKET_CALENDARS: tuple[str, ...] = ("NYSE", "SIFMA", "FEDWIRE")
+
+
+def _easter(year: int) -> date:
+    """Western (Gregorian) Easter Sunday via the Gauss/Meeus algorithm."""
+    a = year % 19
+    b = year // 100
+    c = year % 100
+    d4 = b // 4
+    e = b % 4
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d4 - g + 15) % 30
+    i = c // 4
+    k = c % 4
+    ell = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * ell) // 451
+    month = (h + ell - 7 * m + 114) // 31
+    day = (h + ell - 7 * m + 114) % 31 + 1
+    return date(year, month, day)
+
+
+def _good_friday(year: int) -> date:
+    return _easter(year) - timedelta(days=2)
+
+
+def _nth_weekday(year: int, month: int, weekday_sun0: int, n: int) -> date:
+    """The nth occurrence of ``weekday_sun0`` (Sunday=0 … Saturday=6) in a
+    month -- e.g. ``_nth_weekday(2026, 11, 4, 4)`` = the 4th Thursday of
+    November (Thanksgiving)."""
+    first = date(year, month, 1)
+    first_dow = (first.weekday() + 1) % 7  # Python Monday=0 -> Sunday=0
+    offset = (weekday_sun0 - first_dow + 7) % 7
+    return date(year, month, 1 + offset + (n - 1) * 7)
+
+
+def _last_weekday(year: int, month: int, weekday_sun0: int) -> date:
+    """The last occurrence of ``weekday_sun0`` in a month -- e.g. the last
+    Monday of May (Memorial Day)."""
+    last_day = calendar.monthrange(year, month)[1]
+    last = date(year, month, last_day)
+    last_dow = (last.weekday() + 1) % 7
+    offset = (last_dow - weekday_sun0 + 7) % 7
+    return date(year, month, last_day - offset)
+
+
+@dataclass(frozen=True)
+class _HolidaySpec:
+    name: str
+    get: Any  # Callable[[int], date]
+    is_new_year: bool
+    nyse: bool
+    sifma: bool
+    fedwire: bool
+    from_year: Optional[int] = None
+
+
+_HOLIDAY_SPECS: tuple[_HolidaySpec, ...] = (
+    _HolidaySpec("New Year's Day", lambda y: date(y, 1, 1),
+                 True, True, True, True),
+    _HolidaySpec("Martin Luther King Jr. Day", lambda y: _nth_weekday(y, 1, 1, 3),
+                 False, True, True, True),
+    _HolidaySpec("Washington's Birthday", lambda y: _nth_weekday(y, 2, 1, 3),
+                 False, True, True, True),
+    _HolidaySpec("Good Friday", lambda y: _good_friday(y),
+                 False, True, True, False),
+    _HolidaySpec("Memorial Day", lambda y: _last_weekday(y, 5, 1),
+                 False, True, True, True),
+    _HolidaySpec("Juneteenth National Independence Day", lambda y: date(y, 6, 19),
+                 False, True, True, True, from_year=2022),
+    _HolidaySpec("Independence Day", lambda y: date(y, 7, 4),
+                 False, True, True, True),
+    _HolidaySpec("Labor Day", lambda y: _nth_weekday(y, 9, 1, 1),
+                 False, True, True, True),
+    _HolidaySpec("Columbus Day", lambda y: _nth_weekday(y, 10, 1, 2),
+                 False, False, True, True),
+    _HolidaySpec("Veterans Day", lambda y: date(y, 11, 11),
+                 False, False, True, True),
+    _HolidaySpec("Thanksgiving Day", lambda y: _nth_weekday(y, 11, 4, 4),
+                 False, True, True, True),
+    _HolidaySpec("Christmas Day", lambda y: date(y, 12, 25),
+                 False, True, True, True),
+)
+
+
+def _observe_nyse(d: date, is_new_year: bool) -> Optional[date]:
+    dow = (d.weekday() + 1) % 7  # Sunday=0
+    if dow == 0:
+        return d + timedelta(days=1)
+    if dow == 6:  # Saturday: NYSE drops a Saturday New Year's, else moves back
+        return None if is_new_year else d - timedelta(days=1)
+    return d
+
+
+def _observe_std(d: date) -> Optional[date]:
+    dow = (d.weekday() + 1) % 7
+    if dow == 0:
+        return d + timedelta(days=1)
+    if dow == 6:
+        return None
+    return d
+
+
+def _holidays_for_calendar(
+    calendar_name: str,
+    years: Iterable[int],
+    manual_closures: Iterable[date] = (),
+) -> dict[date, str]:
+    """Observed holiday dates -> holiday name for one market calendar."""
+    attr = calendar_name.lower()
+    out: dict[date, str] = {d: "Manual Closure" for d in manual_closures}
+    for y in years:
+        for spec in _HOLIDAY_SPECS:
+            if not getattr(spec, attr):
+                continue
+            if spec.from_year is not None and y < spec.from_year:
+                continue
+            actual = spec.get(y)
+            observed = (
+                _observe_nyse(actual, spec.is_new_year) if calendar_name == "NYSE"
+                else _observe_std(actual)
+            )
+            if observed is not None:
+                out[observed] = spec.name
+    return out
+
+
+def _is_business_day(d: date, holidays: dict[date, str]) -> bool:
+    return d.weekday() < 5 and d not in holidays
+
+
+def _prev_business_day(d: date, holidays: dict[date, str]) -> date:
+    p = d - timedelta(days=1)
+    while not _is_business_day(p, holidays):
+        p -= timedelta(days=1)
+    return p
+
+
+def _next_business_day(d: date, holidays: dict[date, str]) -> date:
+    n = d + timedelta(days=1)
+    while not _is_business_day(n, holidays):
+        n += timedelta(days=1)
+    return n
+
+
+def _last_bus_on_or_before(d: date, holidays: dict[date, str]) -> date:
+    return d if _is_business_day(d, holidays) else _prev_business_day(d, holidays)
+
+
+def _first_bus_on_or_after(d: date, holidays: dict[date, str]) -> date:
+    return d if _is_business_day(d, holidays) else _next_business_day(d, holidays)
+
+
+def compute_market_calendar(
+    start: Any,
+    end: Any,
+    calendars: tuple[str, ...] = MARKET_CALENDARS,
+    manual_closures: Iterable[date] = (),
+) -> list[dict[str, Any]]:
+    """``gold.market_calendar``: holiday-aware business-day calendar for each
+    of ``calendars`` (default NYSE/SIFMA/FEDWIRE), long/tidy by
+    ``calendar_name``. One row per ``(calendar_name, calendar_date)`` over
+    every calendar day in ``[start, end]`` -- weekends/holidays are kept as
+    rows (never dropped), described by flags.
+
+    ``manual_closures`` are ad hoc, non-rule-based full closures (national
+    mourning, disasters) applied to every calendar, matching the source
+    query's escape hatch (empty by default here, same as there).
+
+    NYSE observes Columbus Day and Veterans Day; SIFMA and FEDWIRE don't.
+    SIFMA and NYSE observe Good Friday; FEDWIRE doesn't -- FEDWIRE staying
+    open on Good Friday is exactly why it's the better calendar for T+1/T+2
+    settlement math against a Fed-cleared instrument.
+    """
+    lo, hi = _parse(start), _parse(end)
+    if lo is None or hi is None or lo > hi:
+        return []
+    # Pad a year on each side so business-day walks near the range boundary
+    # still see the holidays just outside it.
+    years = range(lo.year - 1, hi.year + 2)
+    closures = list(manual_closures)
+
+    out: list[dict[str, Any]] = []
+    for cal_name in calendars:
+        holidays = _holidays_for_calendar(cal_name, years, closures)
+
+        # Pass 1: classify every date (business day, holiday, weekend).
+        dates: list[date] = []
+        is_bus: list[bool] = []
+        d = lo
+        while d <= hi:
+            dates.append(d)
+            is_bus.append(_is_business_day(d, holidays))
+            d += timedelta(days=1)
+
+        # Pass 2: full business-day list per (year, month) touched by the
+        # range, computed once per month rather than per row (the source
+        # query's fnBusDaysInRange would be O(n^2) if evaluated per day over
+        # an 11k-row spine) -- and derived from the WHOLE month, not just
+        # whatever falls inside [lo, hi], so business_day_of_month/
+        # business_days_in_month are correct even when the query window
+        # starts or ends mid-month (not just for a full min..max data range).
+        month_bus_days: dict[tuple[int, int], list[date]] = {}
+
+        def _month_business_days(y: int, m: int) -> list[date]:
+            key = (y, m)
+            cached = month_bus_days.get(key)
+            if cached is None:
+                ndays = calendar.monthrange(y, m)[1]
+                cached = [
+                    date(y, m, day) for day in range(1, ndays + 1)
+                    if _is_business_day(date(y, m, day), holidays)
+                ]
+                month_bus_days[key] = cached
+            return cached
+
+        for d, b in zip(dates, is_bus):
+            holiday_name = holidays.get(d)
+            month_end = date(d.year, d.month, calendar.monthrange(d.year, d.month)[1])
+            quarter_end_month = ((d.month - 1) // 3 + 1) * 3
+            quarter_end = date(
+                d.year, quarter_end_month,
+                calendar.monthrange(d.year, quarter_end_month)[1],
+            )
+            year_end = date(d.year, 12, 31)
+            bdays = _month_business_days(d.year, d.month)
+            out.append({
+                "calendar_name": cal_name,
+                "calendar_date": d.isoformat(),
+                "is_weekend": d.weekday() >= 5,
+                "is_holiday": holiday_name is not None,
+                "holiday_name": holiday_name,
+                "day_type": (
+                    "Holiday" if holiday_name is not None
+                    else "Weekend" if d.weekday() >= 5
+                    else "Business Day"
+                ),
+                "is_business_day": b,
+                "prior_business_day": _prev_business_day(d, holidays).isoformat(),
+                "next_business_day": _next_business_day(d, holidays).isoformat(),
+                "t2_settle_date": _next_business_day(
+                    _next_business_day(d, holidays), holidays
+                ).isoformat(),
+                "business_day_of_month": bdays.index(d) + 1 if b else None,
+                "business_days_in_month": len(bdays),
+                "is_first_business_day_of_month": (
+                    d == _first_bus_on_or_after(date(d.year, d.month, 1), holidays)
+                ),
+                "is_last_business_day_of_month": (
+                    d == _last_bus_on_or_before(month_end, holidays)
+                ),
+                "is_last_business_day_of_quarter": (
+                    d == _last_bus_on_or_before(quarter_end, holidays)
+                ),
+                "is_last_business_day_of_year": (
+                    d == _last_bus_on_or_before(year_end, holidays)
+                ),
+            })
     return out
 
 

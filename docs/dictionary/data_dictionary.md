@@ -290,9 +290,54 @@ Star-schema hub: one row per cataloged series — presentation semantics from
 
 #### `gold.dim_date`
 One row per calendar day over the observed range: `year`, `quarter`, `month`,
-`month_name`, `is_month_end`, `fiscal_year` (US federal, October start), and
+`month_name`, `is_month_end`, `fiscal_year` (US federal, October start),
 `is_recession` (NBER `USREC`; `NULL` = unknown until
-`manifests/macro_flags.yml` is activated, never `false`).
+`manifests/macro_flags.yml` is activated, never `false`), and three
+calendar-agnostic derivatives marker-date flags: `is_imm_date` (3rd Wednesday
+of a quarter month), `is_monthly_option_expiry` (3rd Friday of any month),
+`is_triple_witching` (3rd Friday of a quarter month). The local SQLite
+backend's `gold_dim_date` carries the full time-intelligence column set
+(period start/end anchors, ISO week, fiscal quarter boundaries, etc.) —
+Databricks writes the reduced subset above; both share the same engine
+(`terminal_views.build_dim_date`), so the full set is available to add to the
+Delta write if ever needed.
+
+#### `gold.market_calendar`
+Holiday-aware business-day calendar for three US market calendars — **NYSE**,
+**SIFMA**, **FEDWIRE** — long/tidy by `calendar_name` (one row per
+`calendar_name` × `calendar_date`, over the same date bounds as `dim_date`).
+Ported from a standalone Power Query "reusable quant date calendar";
+unlike the source query (which picks one calendar via a parameter), all
+three are kept so a report can filter to whichever calendar its instrument
+settles against. Weekends/holidays are kept as rows, never dropped.
+
+| Column | Notes |
+|---|---|
+| calendar_name | `NYSE` \| `SIFMA` \| `FEDWIRE` |
+| calendar_date | |
+| is_weekend / is_holiday / holiday_name | `holiday_name` is `NULL` when not a holiday |
+| day_type | `Holiday` \| `Weekend` \| `Business Day` |
+| is_business_day | |
+| prior_business_day / next_business_day | Nearest business day, walking outward |
+| t2_settle_date | `next_business_day` applied twice |
+| business_day_of_month | `NULL` on a non-business day |
+| business_days_in_month | Total business days in that calendar month |
+| is_first/last_business_day_of_month/quarter/year | Period-boundary flags |
+
+**Calendar differences**: NYSE observes Columbus Day and Veterans Day;
+SIFMA/FEDWIRE don't. SIFMA and NYSE observe Good Friday; FEDWIRE doesn't
+(this is exactly why FEDWIRE is the better calendar for T+1/T+2 settlement
+math against a Fed-cleared instrument — it's never closed on a day NYSE/SIFMA
+treat as a holiday for reasons unrelated to Fedwire funds availability).
+One faithfully-ported quirk from the source query worth knowing: a holiday
+landing on a Saturday shifts to the preceding Friday for NYSE (except New
+Year's Day, which is dropped entirely), but SIFMA/FEDWIRE apply **no**
+Friday shift at all for a Saturday holiday — e.g. July 4, 2026 (a Saturday)
+closes NYSE on Friday July 3rd but leaves SIFMA/FEDWIRE open that Friday.
+
+The calendar-agnostic marker dates (IMM date, option expiry, triple
+witching) live once in `gold.dim_date` instead of being repeated per
+calendar here, since they don't depend on which market is open.
 
 #### `gold.macro_indicator_dashboard`
 The ECON macro grid: one row per cataloged series at its latest observation —

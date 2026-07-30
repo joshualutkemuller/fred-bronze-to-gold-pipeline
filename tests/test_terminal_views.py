@@ -19,10 +19,12 @@ from fred_pipeline.curve_config import (
 )
 from fred_pipeline.spread_config import SpreadDef
 from fred_pipeline.terminal_views import (
+    MARKET_CALENDARS,
     build_dim_date,
     build_dim_series,
     compute_curve_spread_daily,
     compute_macro_dashboard,
+    compute_market_calendar,
     compute_spread_inversion_episodes,
     compute_treasury_curve,
 )
@@ -154,6 +156,141 @@ def test_dim_date_date_key():
     rows = build_dim_date("2024-03-15", "2024-03-15")
     r = rows[0]
     assert r["date_key"] == 20240315
+
+
+def test_dim_date_derivatives_marker_dates():
+    # March 2024: 3rd Wednesday = Mar 20, 3rd Friday = Mar 15 (a quarter month
+    # -> both IMM date and triple witching land on their respective days).
+    rows = {r["date"]: r for r in build_dim_date("2024-03-01", "2024-03-31")}
+    assert rows["2024-03-20"]["is_imm_date"] is True
+    assert rows["2024-03-15"]["is_monthly_option_expiry"] is True
+    assert rows["2024-03-15"]["is_triple_witching"] is True
+    # a non-marker day in the same month
+    assert rows["2024-03-01"]["is_imm_date"] is False
+    assert rows["2024-03-01"]["is_monthly_option_expiry"] is False
+    assert rows["2024-03-01"]["is_triple_witching"] is False
+
+
+def test_dim_date_option_expiry_non_quarter_month_no_witching():
+    # April is not a quarterly-cycle month -> monthly expiry fires, IMM/
+    # triple witching don't.
+    rows = {r["date"]: r for r in build_dim_date("2024-04-01", "2024-04-30")}
+    apr19 = rows["2024-04-19"]  # 3rd Friday of April 2024
+    assert apr19["is_monthly_option_expiry"] is True
+    assert apr19["is_triple_witching"] is False
+    assert all(not r["is_imm_date"] for r in rows.values())
+
+
+# ---- market calendars (NYSE / SIFMA / FEDWIRE) ------------------------------
+
+def test_market_calendar_covers_all_three_by_default():
+    rows = compute_market_calendar("2026-01-01", "2026-01-31")
+    assert {r["calendar_name"] for r in rows} == set(MARKET_CALENDARS)
+    # 31 days x 3 calendars
+    assert len(rows) == 31 * 3
+
+
+def test_market_calendar_new_years_day_2026():
+    # Jan 1, 2026 is a Thursday -> a holiday on all three calendars, no
+    # observance shift needed.
+    rows = compute_market_calendar("2026-01-01", "2026-01-01")
+    by_cal = {r["calendar_name"]: r for r in rows}
+    for cal in MARKET_CALENDARS:
+        assert by_cal[cal]["is_holiday"] is True
+        assert by_cal[cal]["holiday_name"] == "New Year's Day"
+        assert by_cal[cal]["day_type"] == "Holiday"
+        assert by_cal[cal]["is_business_day"] is False
+
+
+def test_market_calendar_good_friday_closes_nyse_sifma_not_fedwire():
+    # Good Friday 2026 = April 3 (Easter 2026 = April 5).
+    rows = compute_market_calendar("2026-04-03", "2026-04-03")
+    by_cal = {r["calendar_name"]: r for r in rows}
+    assert by_cal["NYSE"]["is_holiday"] is True
+    assert by_cal["SIFMA"]["is_holiday"] is True
+    assert by_cal["FEDWIRE"]["is_holiday"] is False
+    assert by_cal["FEDWIRE"]["is_business_day"] is True
+
+
+def test_market_calendar_columbus_and_veterans_day_nyse_stays_open():
+    # 2nd Monday of Oct 2026 = Oct 12; Veterans Day = Nov 11 (a Wednesday).
+    rows = compute_market_calendar("2026-10-12", "2026-11-11")
+    by_date = {(r["calendar_name"], r["calendar_date"]): r for r in rows}
+    assert by_date[("NYSE", "2026-10-12")]["is_holiday"] is False
+    assert by_date[("SIFMA", "2026-10-12")]["is_holiday"] is True
+    assert by_date[("FEDWIRE", "2026-10-12")]["is_holiday"] is True
+    assert by_date[("NYSE", "2026-11-11")]["is_holiday"] is False
+    assert by_date[("SIFMA", "2026-11-11")]["is_holiday"] is True
+
+
+def test_market_calendar_juneteenth_only_from_2022():
+    rows_2021 = {r["calendar_name"]: r for r in compute_market_calendar("2021-06-18", "2021-06-18")}
+    rows_2022 = {r["calendar_name"]: r for r in compute_market_calendar("2022-06-20", "2022-06-20")}
+    # Jun 18 2021 is a Friday -> would be the observed date if the holiday
+    # applied, but Juneteenth isn't federally recognized until 2022.
+    assert all(not r["is_holiday"] for r in rows_2021.values())
+    # Jun 19 2022 is a Sunday -> observed Monday Jun 20.
+    assert all(r["is_holiday"] for r in rows_2022.values())
+    assert rows_2022["NYSE"]["holiday_name"] == "Juneteenth National Independence Day"
+
+
+def test_market_calendar_saturday_holiday_asymmetry():
+    # July 4, 2026 is a Saturday: NYSE shifts the closure to Friday July 3;
+    # SIFMA/FEDWIRE apply no Friday shift at all (faithfully ported from the
+    # source query, not a bug -- see docs/dictionary/data_dictionary.md).
+    rows = compute_market_calendar("2026-07-03", "2026-07-04")
+    by_date = {(r["calendar_name"], r["calendar_date"]): r for r in rows}
+    assert by_date[("NYSE", "2026-07-03")]["is_holiday"] is True
+    assert by_date[("SIFMA", "2026-07-03")]["is_holiday"] is False
+    assert by_date[("SIFMA", "2026-07-03")]["is_business_day"] is True
+    assert by_date[("FEDWIRE", "2026-07-03")]["is_holiday"] is False
+
+
+def test_market_calendar_business_day_walk_and_settlement():
+    # 2026-01-01 is New Year's (Thu, holiday all cals); 01-02 is Fri (open);
+    # 01-03/04 is weekend; 01-05 is Monday (open).
+    rows = {r["calendar_date"]: r for r in compute_market_calendar("2025-12-30", "2026-01-06")
+            if r["calendar_name"] == "NYSE"}
+    assert rows["2026-01-01"]["prior_business_day"] == "2025-12-31"
+    assert rows["2026-01-01"]["next_business_day"] == "2026-01-02"
+    # T+2 settlement from Dec 31 (Wed): Thu Jan 1 is a holiday, so next
+    # business day is Fri Jan 2, then Mon Jan 5.
+    assert rows["2025-12-31"]["t2_settle_date"] == "2026-01-05"
+
+
+def test_market_calendar_business_day_of_month_and_period_boundaries():
+    rows = {r["calendar_date"]: r for r in compute_market_calendar("2026-01-01", "2026-01-31")
+            if r["calendar_name"] == "NYSE"}
+    # Jan 2, 2026 is the first business day of January (Jan 1 is a holiday).
+    assert rows["2026-01-02"]["is_first_business_day_of_month"] is True
+    assert rows["2026-01-02"]["business_day_of_month"] == 1
+    # Jan 30 (Friday) is the last business day of January 2026.
+    assert rows["2026-01-30"]["is_last_business_day_of_month"] is True
+    assert rows["2026-01-31"]["is_last_business_day_of_month"] is False
+    # non-business days carry no business_day_of_month ordinal
+    assert rows["2026-01-03"]["business_day_of_month"] is None
+    assert rows["2026-01-01"]["business_day_of_month"] is None
+
+
+def test_market_calendar_only_requested_calendars_when_filtered():
+    rows = compute_market_calendar("2026-01-01", "2026-01-01", calendars=("FEDWIRE",))
+    assert {r["calendar_name"] for r in rows} == {"FEDWIRE"}
+
+
+def test_market_calendar_manual_closure_applies_to_every_calendar():
+    from datetime import date as _date
+    rows = compute_market_calendar(
+        "2026-01-05", "2026-01-05", manual_closures=[_date(2026, 1, 5)],
+    )
+    assert all(r["is_holiday"] and r["holiday_name"] == "Manual Closure" for r in rows)
+
+
+def test_market_calendar_keeps_weekends_as_rows():
+    # 2026-01-03/04 is a Saturday/Sunday -- rows must exist, not be dropped.
+    rows = compute_market_calendar("2026-01-03", "2026-01-04")
+    assert len(rows) == 2 * len(MARKET_CALENDARS)
+    assert all(r["is_weekend"] for r in rows)
+    assert all(not r["is_business_day"] for r in rows)
 
 
 def test_dim_date_year_fields():
@@ -387,6 +524,7 @@ def test_dim_date_complete_field_set():
         "is_fiscal_year_start", "is_fiscal_year_end",
         "is_fiscal_quarter_start", "is_fiscal_quarter_end",
         "is_recession",
+        "is_imm_date", "is_monthly_option_expiry", "is_triple_witching",
     }
     assert set(r.keys()) == expected_keys
 

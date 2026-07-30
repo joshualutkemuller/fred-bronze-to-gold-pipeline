@@ -370,7 +370,41 @@ CREATE TABLE IF NOT EXISTS gold.dim_date (
     is_fiscal_quarter_start     BOOLEAN,
     is_fiscal_quarter_end       BOOLEAN,
     -- NBER recession (NULL = unknown / USREC not yet ingested)
-    is_recession                BOOLEAN
+    is_recession                BOOLEAN,
+    -- quant/derivatives marker dates (calendar-agnostic -- same regardless
+    -- of which market_calendar a report joins to)
+    is_imm_date                 BOOLEAN,    -- 3rd Wednesday of a quarter month
+    is_monthly_option_expiry    BOOLEAN,    -- 3rd Friday of any month
+    is_triple_witching          BOOLEAN     -- 3rd Friday of a quarter month
+)
+USING DELTA;
+
+-- Market calendars (NYSE/SIFMA/FEDWIRE): holiday-aware business-day logic,
+-- long/tidy by calendar_name (one row per calendar_name x calendar_date, same
+-- date bounds as dim_date). Weekends/holidays are kept as rows, never
+-- dropped, and described by day_type/is_business_day. NYSE observes
+-- Columbus Day and Veterans Day; SIFMA/FEDWIRE don't. SIFMA and NYSE observe
+-- Good Friday; FEDWIRE doesn't (why FEDWIRE is the better calendar for
+-- T+1/T+2 settlement math against a Fed-cleared instrument). Computed by
+-- fred_pipeline.terminal_views.compute_market_calendar, ported from a
+-- standalone Power Query "reusable quant date calendar".
+CREATE TABLE IF NOT EXISTS gold.market_calendar (
+    calendar_name                    STRING,     -- NYSE | SIFMA | FEDWIRE
+    calendar_date                    DATE,
+    is_weekend                       BOOLEAN,
+    is_holiday                       BOOLEAN,
+    holiday_name                     STRING,     -- NULL when not a holiday
+    day_type                         STRING,     -- Holiday | Weekend | Business Day
+    is_business_day                  BOOLEAN,
+    prior_business_day               DATE,
+    next_business_day                DATE,
+    t2_settle_date                   DATE,       -- next_business_day applied twice
+    business_day_of_month            INT,        -- NULL on a non-business day
+    business_days_in_month           INT,
+    is_first_business_day_of_month   BOOLEAN,
+    is_last_business_day_of_month    BOOLEAN,
+    is_last_business_day_of_quarter  BOOLEAN,
+    is_last_business_day_of_year     BOOLEAN
 )
 USING DELTA;
 

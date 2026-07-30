@@ -226,7 +226,18 @@ CREATE TABLE IF NOT EXISTS gold_dim_date (
     is_fiscal_year_start INTEGER, is_fiscal_year_end INTEGER,
     is_fiscal_quarter_start INTEGER, is_fiscal_quarter_end INTEGER,
     -- NBER recession (NULL = unknown / not yet ingested)
-    is_recession INTEGER
+    is_recession INTEGER,
+    -- quant/derivatives marker dates (calendar-agnostic)
+    is_imm_date INTEGER, is_monthly_option_expiry INTEGER, is_triple_witching INTEGER
+);
+CREATE TABLE IF NOT EXISTS gold_market_calendar (
+    calendar_name TEXT, calendar_date TEXT, is_weekend INTEGER,
+    is_holiday INTEGER, holiday_name TEXT, day_type TEXT,
+    is_business_day INTEGER, prior_business_day TEXT, next_business_day TEXT,
+    t2_settle_date TEXT, business_day_of_month INTEGER,
+    business_days_in_month INTEGER, is_first_business_day_of_month INTEGER,
+    is_last_business_day_of_month INTEGER, is_last_business_day_of_quarter INTEGER,
+    is_last_business_day_of_year INTEGER
 );
 CREATE TABLE IF NOT EXISTS gold_macro_indicator_dashboard (
     series_id TEXT, econ_category TEXT, polarity INTEGER,
@@ -859,6 +870,7 @@ class LocalWarehouse:
             compute_funding_features,
             compute_inflation_explorer,
             compute_macro_dashboard,
+            compute_market_calendar,
             compute_spread_inversion_episodes,
             compute_treasury_curve,
             compute_treasury_curve_rolling,
@@ -875,10 +887,15 @@ class LocalWarehouse:
         ]
         usrec = [r for r in latest if r["series_id"] == "USREC"]
         self.conn.execute("DELETE FROM gold_dim_date")
+        self.conn.execute("DELETE FROM gold_market_calendar")
         if obs_dates:
             self._insert(
                 "gold_dim_date",
                 build_dim_date(min(obs_dates), max(obs_dates), usrec),
+            )
+            self._insert(
+                "gold_market_calendar",
+                compute_market_calendar(min(obs_dates), max(obs_dates)),
             )
 
         # Independent pure-Python Gold engines can compute in parallel; writes
@@ -1141,7 +1158,7 @@ class LocalWarehouse:
             "fred_cross_series_feature_pit", "fred_source_reconciliation",
             "fred_company_fundamentals", "fred_company_ratios",
             "fred_revision_stats",
-            "dim_series", "dim_date",
+            "dim_series", "dim_date", "market_calendar",
             "macro_indicator_dashboard", "macro_indicator_sparkline",
             "macro_category_summary",
             "treasury_curve", "treasury_curve_metrics",
