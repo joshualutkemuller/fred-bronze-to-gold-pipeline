@@ -1,0 +1,27 @@
+# Pre-commit hooks for this repo. Install once per clone:
+#   pip install -r requirements-dev.txt
+#   pre-commit install
+#
+# Ruff has no existing config in pyproject.toml, and this is a mature
+# codebase that's never been linted -- ruff-check runs with --fix but no
+# opt-in strict rule sets, so it won't surface a wall of pre-existing
+# violations. Run `pre-commit autoupdate` periodically to bump hook
+# versions (pinned revs below may lag the latest release).
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.1
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format
