@@ -391,7 +391,7 @@ inverted date fell in an NBER recession; `NULL` until `USREC` is ingested).
 The INFL item trees (`config/inflation_items.yml`: CPI/SA rooted at
 `CPIAUCSL`, CPI/NSA rooted at `CUUR0000SA0`, PCE/SA rooted at `PCEPI`): one
 row per item × month with `index_value`, `mom_pct`/`yoy_pct` (fractions),
-`mom_accel`/`yoy_accel` (this month's rate − last month's), 
+`mom_accel`/`yoy_accel` (this month's rate − last month's),
 `three_month_annualized` (`(I_t/I_{t−3})⁴ − 1`), the item's
 relative-importance `weight` (percent of the headline basket), and
 `contribution_pp` (`weight × mom_pct`, in headline percentage points), plus
@@ -516,7 +516,8 @@ prior print, `last_move_bps` (most recent move >1bp, carried), `stance`
 (hiking/cutting from that move's sign; on-hold before any move), and
 `real_rate_pct` (policy − the country's latest CPI YoY print on-or-before
 the date, when an inflation entry for the same `iso3` is configured and at
-most ~400 days old).
+most ~550 days old; this keeps annual World Bank CPI observations dated at
+period start usable for mid-year policy-rate prints).
 
 #### `gold.powerbi_catalog`
 The report author's manifest: one row per Gold object with `object_type`

@@ -13,8 +13,9 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Iterable, Optional
+from typing import Any
 
 from fred_pipeline.audit import EtlRun, RunStatus
 from fred_pipeline.bronze import build_bronze_row
@@ -23,6 +24,7 @@ from fred_pipeline.manifest import LoadType, SeriesSpec, all_series, load_manife
 from fred_pipeline.quality import run_quality_checks
 from fred_pipeline.sources.base import SourceClient
 from fred_pipeline.sources.bea import BEAClient
+from fred_pipeline.sources.bis import BISClient
 from fred_pipeline.sources.bls import BLSClient
 from fred_pipeline.sources.census import CensusClient
 from fred_pipeline.sources.eia import EIAClient
@@ -87,6 +89,14 @@ def _make_worldbank(config: PipelineConfig) -> SourceClient:
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
         rate_limit_per_minute=_rate_limit_for_source(config, "worldbank"),
+    )
+
+
+def _make_bis(config: PipelineConfig) -> SourceClient:
+    return BISClient(
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "bis"),
     )
 
 
@@ -176,6 +186,7 @@ SOURCE_FACTORIES = {
     "eia": _make_eia,
     "treasury": _make_treasury,
     "worldbank": _make_worldbank,
+    "bis": _make_bis,
     "bea": _make_bea,
     "census": _make_census,
     "sec": _make_sec,
@@ -220,9 +231,7 @@ def _parse_source_int_overrides(raw: str, setting: str) -> dict[str, int]:
         if not item:
             continue
         if "=" not in item:
-            raise ValueError(
-                f"{setting} entries must look like 'source=N'"
-            )
+            raise ValueError(f"{setting} entries must look like 'source=N'")
         source, value = item.split("=", 1)
         source = source.strip().lower()
         if not source:
@@ -256,6 +265,7 @@ def _rate_limit_for_source(config: PipelineConfig, source: str) -> int:
         "eia": 60,
         "treasury": 120,
         "worldbank": 60,
+        "bis": 30,
         "bea": 100,
         "census": 30,
         "sec": 300,
@@ -283,7 +293,7 @@ def _extract_workers_for_source(config: PipelineConfig, source: str) -> int:
         return overrides["*"]
     if source in {"tiingo", "stooq"}:
         return min(2, total)
-    if source == "worldbank":
+    if source in {"worldbank", "bis"}:
         return min(8, total)
     return total
 
@@ -293,10 +303,10 @@ class FredPipeline:
         self,
         config: PipelineConfig,
         *,
-        client: Optional[SourceClient] = None,
-        clients: Optional[dict[str, SourceClient]] = None,
+        client: SourceClient | None = None,
+        clients: dict[str, SourceClient] | None = None,
         spark: Any = None,
-        warehouse: Optional[Warehouse] = None,
+        warehouse: Warehouse | None = None,
         persist_audit: bool = True,
         notify_transport: Any = None,
     ):
@@ -311,7 +321,7 @@ class FredPipeline:
         self._notify_transport = notify_transport
         # Resolve the storage backend: explicit warehouse > Spark > None (dry run).
         if warehouse is not None:
-            self.warehouse: Optional[Warehouse] = warehouse
+            self.warehouse: Warehouse | None = warehouse
         elif spark is not None:
             self.warehouse = SparkWarehouse(config, spark)
         else:
@@ -347,9 +357,9 @@ class FredPipeline:
         *,
         triggered_by: str = "",
         build_gold_layer: bool = True,
-        series: Optional[list[str]] = None,
-        sources: Optional[list[str]] = None,
-        exclude_sources: Optional[list[str]] = None,
+        series: list[str] | None = None,
+        sources: list[str] | None = None,
+        exclude_sources: list[str] | None = None,
         force_full: bool = False,
     ) -> EtlRun:
         manifests = load_manifests(manifest_path)
@@ -363,13 +373,15 @@ class FredPipeline:
         if sources:
             wanted_sources = {s.lower() for s in sources}
             specs = [
-                s for s in specs
+                s
+                for s in specs
                 if (getattr(s, "source", "fred") or "fred").lower() in wanted_sources
             ]
         if exclude_sources:
             blocked_sources = {s.lower() for s in exclude_sources}
             specs = [
-                s for s in specs
+                s
+                for s in specs
                 if (getattr(s, "source", "fred") or "fred").lower()
                 not in blocked_sources
             ]
@@ -424,7 +436,7 @@ class FredPipeline:
         # happen immediately as each future completes on this main thread. This
         # avoids losing completed FRED/Stooq work when a low-quota source is
         # still sleeping in retry/backoff.
-        grouped: dict[str, list[tuple[int, SeriesSpec, tuple[Optional[str], str]]]] = (
+        grouped: dict[str, list[tuple[int, SeriesSpec, tuple[str | None, str]]]] = (
             defaultdict(list)
         )
         for idx, (spec, plan) in enumerate(zip(specs, plans)):
@@ -447,7 +459,10 @@ class FredPipeline:
                 pools.append(pool)
                 log.info(
                     "Submitted %d %s series (%d workers, %d rpm)",
-                    len(items), source, workers, _rate_limit_for_source(self.config, source),
+                    len(items),
+                    source,
+                    workers,
+                    _rate_limit_for_source(self.config, source),
                 )
                 for idx, spec, plan in items:
                     futures[pool.submit(self._safe_extract, spec, plan)] = idx
@@ -467,8 +482,11 @@ class FredPipeline:
                 ):
                     log.info(
                         "Run %s progress: %d/%d completed (%d ok / %d failed)",
-                        run.run_id, completed, len(futures),
-                        run.series_succeeded, run.series_failed,
+                        run.run_id,
+                        completed,
+                        len(futures),
+                        run.series_succeeded,
+                        run.series_failed,
                     )
         except BaseException:
             for fut in futures:
@@ -496,7 +514,10 @@ class FredPipeline:
         self._notify(run)
         log.info(
             "Run %s finished: %s (%d ok / %d failed)",
-            run.run_id, run.status.value, run.series_succeeded, run.series_failed,
+            run.run_id,
+            run.status.value,
+            run.series_succeeded,
+            run.series_failed,
         )
         return run
 
@@ -536,45 +557,47 @@ class FredPipeline:
         and skipped rather than losing the whole calendar.
         """
         try:
-            from datetime import date, timedelta
+            from datetime import datetime, timedelta, timezone
 
             from fred_pipeline.gold_config.release_calendar_config import (
                 load_release_calendar_config,
             )
             from fred_pipeline.writer.terminal_views import compute_release_calendar
 
-            today = date.today()
+            today = datetime.now(timezone.utc).date()
             fred_client = self._client_for_source("fred")
             cfg = load_release_calendar_config()
 
             release_dates: list[dict[str, Any]] = []
             for entry in cfg:
                 try:
-                    release_dates.extend(fred_client.get_release_dates(
-                        release_id=entry.release_id,
-                        realtime_start=today.isoformat(),
-                        realtime_end=(today + timedelta(days=120)).isoformat(),
-                    ))
+                    release_dates.extend(
+                        fred_client.get_release_dates(
+                            release_id=entry.release_id,
+                            realtime_start=today.isoformat(),
+                            realtime_end=(today + timedelta(days=120)).isoformat(),
+                        )
+                    )
                 except Exception:
                     log.exception(
                         "Release dates fetch failed for release_id %s (run %s)",
-                        entry.release_id, run.run_id,
+                        entry.release_id,
+                        run.run_id,
                     )
 
             rows = compute_release_calendar(release_dates, cfg, as_of=today)
             self.warehouse.write_release_calendar(rows)
             log.info(
                 "Release calendar refreshed for run %s (%d rows)",
-                run.run_id, len(rows),
+                run.run_id,
+                len(rows),
             )
         except Exception:
             log.exception("Release calendar refresh failed for run %s", run.run_id)
 
     # ---- per-series -----------------------------------------------------
 
-    def _safe_extract(
-        self, spec: SeriesSpec, plan: tuple[Optional[str], str]
-    ) -> Any:
+    def _safe_extract(self, spec: SeriesSpec, plan: tuple[str | None, str]) -> Any:
         """Run on the thread pool: never raises, so one series' network failure
         can't sink the whole batch or short-circuit ``pool.map``. Returns the
         raw payload, or the caught exception for phase 3 to record.
@@ -582,7 +605,7 @@ class FredPipeline:
         observation_start, _load_type = plan
         try:
             return self._extract(spec, observation_start=observation_start)
-        except Exception as exc:  # isolate per-series failures
+        except Exception as exc:  # noqa: BLE001 - isolate per-series failures
             return exc
 
     def _finish_series(
@@ -594,7 +617,9 @@ class FredPipeline:
         *,
         series_run: Any = None,
     ) -> None:
-        sr = series_run or run.start_series(spec.series_id, load_type=spec.load_type.value)
+        sr = series_run or run.start_series(
+            spec.series_id, load_type=spec.load_type.value
+        )
         sr.load_type = load_type
         try:
             if isinstance(outcome, Exception):
@@ -607,14 +632,20 @@ class FredPipeline:
             # nests observations under Results.series[].data, not a top-level key).
             observations_extracted = len(silver_rows)
             bronze_row = build_bronze_row(
-                spec.series_id, self._observations_endpoint(spec), payload,
-                run_id=run.run_id, source=source,
+                spec.series_id,
+                self._observations_endpoint(spec),
+                payload,
+                run_id=run.run_id,
+                source=source,
                 observation_count=observations_extracted,
             )
             report = run_quality_checks(
-                spec.series_id, silver_rows, profile=spec.validation_profile,
+                spec.series_id,
+                silver_rows,
+                profile=spec.validation_profile,
                 frequency=spec.frequency,
-                min_value=spec.min_value, max_value=spec.max_value,
+                min_value=spec.min_value,
+                max_value=spec.max_value,
             )
 
             bronze_written = 0
@@ -664,19 +695,20 @@ class FredPipeline:
         if not getattr(self.warehouse, "supports_incremental_audit", False):
             return
         try:
-            persist_run_state = getattr(self.warehouse, "persist_run_state")
-            persist_series_run = getattr(self.warehouse, "persist_series_run")
+            persist_run_state = self.warehouse.persist_run_state
+            persist_series_run = self.warehouse.persist_series_run
             persist_run_state(run)
             persist_series_run(series_run)
         except Exception:
             log.exception(
                 "Failed to persist incremental audit for run %s series %s",
-                run.run_id, series_run.series_id,
+                run.run_id,
+                series_run.series_id,
             )
 
     def _plan_extract(
         self, spec: SeriesSpec, *, force_full: bool = False
-    ) -> tuple[Optional[str], str]:
+    ) -> tuple[str | None, str]:
         """Decide the load window for a series.
 
         Returns ``(observation_start, effective_load_type)``. A series with no
@@ -700,7 +732,7 @@ class FredPipeline:
         return start, f"restate_last_{n}"
 
     def _extract(
-        self, spec: SeriesSpec, *, observation_start: Optional[str] = None
+        self, spec: SeriesSpec, *, observation_start: str | None = None
     ) -> dict[str, Any]:
         client = self._client_for(spec)
         # Complete-history mode: batch all vintages under FRED's cap. Only
@@ -747,13 +779,19 @@ class FredPipeline:
         normalize = getattr(client, "normalize", None)
         if normalize is not None:
             rows = normalize(
-                spec.series_id, payload, run_id=run_id,
-                track_vintage=spec.vintage_enabled, source=source,
+                spec.series_id,
+                payload,
+                run_id=run_id,
+                track_vintage=spec.vintage_enabled,
+                source=source,
             )
         else:
             rows = normalize_observations(
-                spec.series_id, payload, run_id=run_id,
-                track_vintage=spec.vintage_enabled, source=source,
+                spec.series_id,
+                payload,
+                run_id=run_id,
+                track_vintage=spec.vintage_enabled,
+                source=source,
             )
         return assign_revision_numbers(rows)
 
@@ -773,10 +811,10 @@ def run_pipeline(
     environment: str = "dev",
     manifest_path: str = "manifests",
     *,
-    fred_api_key: Optional[str] = None,
+    fred_api_key: str | None = None,
     dbutils: Any = None,
     spark: Any = None,
-    warehouse: Optional[Warehouse] = None,
+    warehouse: Warehouse | None = None,
     triggered_by: str = "cli",
 ) -> EtlRun:
     """Convenience entrypoint used by the Databricks job and the CLI."""
@@ -790,7 +828,7 @@ def run_pipeline(
 
         try:
             spark = get_spark()
-        except Exception:  # pragma: no cover - allow no-Spark dry runs
+        except Exception:  # noqa: BLE001  # pragma: no cover - allow no-Spark dry runs
             spark = None
     pipeline = FredPipeline(config, spark=spark, warehouse=warehouse)
     return pipeline.run_from_manifest(manifest_path, triggered_by=triggered_by)
