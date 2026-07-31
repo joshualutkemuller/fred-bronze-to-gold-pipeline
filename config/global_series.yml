@@ -2,29 +2,52 @@
 # gold.global_policy_rates, terminal modules GCPI / GPOL). See
 # src/fred_pipeline/global_config.py for field semantics.
 #
-# The US rows run off already-active series (CPIAUCSL via yoy_from_index;
-# FEDFUNDS), so both tables populate immediately. The World Bank entries
-# (ISO3:FP.CPI.TOTL.ZG — annual CPI inflation, already a YoY %) and the ECB
-# rates ship inactive in manifests/worldbank_global.yml /
-# manifests/global_policy.yml — verify + activate to fill in the map.
-# World Bank data is annual; for monthly per-country CPI swap in a monthly
-# mirror when you have one and set transform accordingly.
+# The US and developed-market CPI rows use already-active FRED CPI indices with
+# yoy_from_index. The wider country map uses World Bank FP.CPI.TOTL.ZG, which
+# is annual CPI inflation already expressed as a YoY percent, so those entries
+# use transform: level. Policy rates mix FRED (US/Euro Area) and BIS.
 #
 # target = the central bank's inflation target in percent (drives vs_target).
 
 inflation:
   - {country: United States, iso3: USA, region: AMER, series_id: CPIAUCSL, transform: yoy_from_index, target: 2.0}
-  - {country: Euro Area,     iso3: EMU, region: EMEA, series_id: "EMU:FP.CPI.TOTL.ZG", target: 2.0}
-  - {country: United Kingdom, iso3: GBR, region: EMEA, series_id: "GBR:FP.CPI.TOTL.ZG", target: 2.0}
-  - {country: Japan,         iso3: JPN, region: APAC, series_id: "JPN:FP.CPI.TOTL.ZG", target: 2.0}
-  - {country: Canada,        iso3: CAN, region: AMER, series_id: "CAN:FP.CPI.TOTL.ZG", target: 2.0}
-  - {country: Mexico,        iso3: MEX, region: AMER, series_id: "MEX:FP.CPI.TOTL.ZG", target: 3.0}
-  - {country: Brazil,        iso3: BRA, region: AMER, series_id: "BRA:FP.CPI.TOTL.ZG", target: 3.0}
-  - {country: China,         iso3: CHN, region: APAC, series_id: "CHN:FP.CPI.TOTL.ZG", target: 3.0}
-  - {country: India,         iso3: IND, region: APAC, series_id: "IND:FP.CPI.TOTL.ZG", target: 4.0}
-  - {country: South Korea,   iso3: KOR, region: APAC, series_id: "KOR:FP.CPI.TOTL.ZG", target: 2.0}
-  - {country: Australia,     iso3: AUS, region: APAC, series_id: "AUS:FP.CPI.TOTL.ZG", target: 2.5}
-  - {country: Germany,       iso3: DEU, region: EMEA, series_id: "DEU:FP.CPI.TOTL.ZG", target: 2.0}
+  - {country: Canada,        iso3: CAN, region: AMER, series_id: CANCPIALLMINMEI, transform: yoy_from_index, target: 2.0}
+  - {country: Mexico,        iso3: MEX, region: AMER, series_id: "MEX:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
+  - {country: Brazil,        iso3: BRA, region: AMER, series_id: "BRA:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
+  - {country: Argentina,     iso3: ARG, region: AMER, series_id: "ARG:FP.CPI.TOTL.ZG", transform: level, target: 4.0}
+  - {country: Chile,         iso3: CHL, region: AMER, series_id: "CHL:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
+  - {country: Colombia,      iso3: COL, region: AMER, series_id: "COL:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
+  - {country: Peru,          iso3: PER, region: AMER, series_id: "PER:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Euro Area,     iso3: EMU, region: EMEA, series_id: CP0000EZ19M086NEST, transform: yoy_from_index, target: 2.0}
+  - {country: United Kingdom, iso3: GBR, region: EMEA, series_id: GBRCPIALLMINMEI, transform: yoy_from_index, target: 2.0}
+  - {country: Germany,       iso3: DEU, region: EMEA, series_id: DEUCPIALLMINMEI, transform: yoy_from_index, target: 2.0}
+  - {country: France,        iso3: FRA, region: EMEA, series_id: FRACPIALLMINMEI, transform: yoy_from_index, target: 2.0}
+  - {country: Italy,         iso3: ITA, region: EMEA, series_id: ITACPIALLMINMEI, transform: yoy_from_index, target: 2.0}
+  - {country: Switzerland,   iso3: CHE, region: EMEA, series_id: "CHE:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Spain,         iso3: ESP, region: EMEA, series_id: "ESP:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Turkey,        iso3: TUR, region: EMEA, series_id: "TUR:FP.CPI.TOTL.ZG", transform: level, target: 5.0}
+  - {country: Poland,        iso3: POL, region: EMEA, series_id: "POL:FP.CPI.TOTL.ZG", transform: level, target: 2.5}
+  - {country: Russia,        iso3: RUS, region: EMEA, series_id: "RUS:FP.CPI.TOTL.ZG", transform: level, target: 4.0}
+  - {country: Sweden,        iso3: SWE, region: EMEA, series_id: "SWE:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Norway,        iso3: NOR, region: EMEA, series_id: "NOR:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: South Africa,  iso3: ZAF, region: EMEA, series_id: "ZAF:FP.CPI.TOTL.ZG", transform: level, target: 4.5}
+  - {country: Saudi Arabia,  iso3: SAU, region: EMEA, series_id: "SAU:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Israel,        iso3: ISR, region: EMEA, series_id: "ISR:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Egypt,         iso3: EGY, region: EMEA, series_id: "EGY:FP.CPI.TOTL.ZG", transform: level, target: 7.0}
+  - {country: Nigeria,       iso3: NGA, region: EMEA, series_id: "NGA:FP.CPI.TOTL.ZG", transform: level, target: 6.0}
+  - {country: Japan,         iso3: JPN, region: APAC, series_id: JPNCPIALLMINMEI, transform: yoy_from_index, target: 2.0}
+  - {country: China,         iso3: CHN, region: APAC, series_id: "CHN:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
+  - {country: India,         iso3: IND, region: APAC, series_id: "IND:FP.CPI.TOTL.ZG", transform: level, target: 4.0}
+  - {country: South Korea,   iso3: KOR, region: APAC, series_id: "KOR:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Australia,     iso3: AUS, region: APAC, series_id: "AUS:FP.CPI.TOTL.ZG", transform: level, target: 2.5}
+  - {country: New Zealand,   iso3: NZL, region: APAC, series_id: "NZL:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Indonesia,     iso3: IDN, region: APAC, series_id: "IDN:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
+  - {country: Vietnam,       iso3: VNM, region: APAC, series_id: "VNM:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
+  - {country: Thailand,      iso3: THA, region: APAC, series_id: "THA:FP.CPI.TOTL.ZG", transform: level, target: 2.5}
+  - {country: Malaysia,      iso3: MYS, region: APAC, series_id: "MYS:FP.CPI.TOTL.ZG", transform: level, target: 2.5}
+  - {country: Philippines,   iso3: PHL, region: APAC, series_id: "PHL:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
+  - {country: Singapore,     iso3: SGP, region: APAC, series_id: "SGP:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
+  - {country: Hong Kong,     iso3: HKG, region: APAC, series_id: "HKG:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
 
 policy_rates:
   - {country: United States, iso3: USA, region: AMER, series_id: FEDFUNDS}
@@ -38,9 +61,17 @@ policy_rates:
   - {country: Peru,          iso3: PER, region: AMER, series_id: "BIS:PE"}
   - {country: United Kingdom, iso3: GBR, region: EMEA, series_id: "BIS:GB"}
   - {country: Switzerland,   iso3: CHE, region: EMEA, series_id: "BIS:CH"}
+  - {country: Czechia,       iso3: CZE, region: EMEA, series_id: "BIS:CZ"}
+  - {country: Denmark,       iso3: DNK, region: EMEA, series_id: "BIS:DK"}
+  - {country: Hungary,       iso3: HUN, region: EMEA, series_id: "BIS:HU"}
+  - {country: Iceland,       iso3: ISL, region: EMEA, series_id: "BIS:IS"}
+  - {country: Kuwait,        iso3: KWT, region: EMEA, series_id: "BIS:KW"}
+  - {country: North Macedonia, iso3: MKD, region: EMEA, series_id: "BIS:MK"}
   - {country: Sweden,        iso3: SWE, region: EMEA, series_id: "BIS:SE"}
   - {country: Norway,        iso3: NOR, region: EMEA, series_id: "BIS:NO"}
   - {country: Poland,        iso3: POL, region: EMEA, series_id: "BIS:PL"}
+  - {country: Romania,       iso3: ROU, region: EMEA, series_id: "BIS:RO"}
+  - {country: Serbia,        iso3: SRB, region: EMEA, series_id: "BIS:RS"}
   - {country: Turkey,        iso3: TUR, region: EMEA, series_id: "BIS:TR"}
   - {country: Russia,        iso3: RUS, region: EMEA, series_id: "BIS:RU"}
   - {country: South Africa,  iso3: ZAF, region: EMEA, series_id: "BIS:ZA"}

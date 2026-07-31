@@ -1,10 +1,11 @@
 # BIS policy rates → `gold.global_policy_rates`
 
-**Status: PROPOSED — not started.**
+**Status: COMPLETE (pipeline) — terminal integration in progress.**
 **Written**: 2026-07-30, from `market_terminal` while diagnosing why the
 terminal's macro ETL (`macro_data_etl`, a sibling repo) is still load-bearing
-after the Gold DB cutover. See `market_terminal/docs/gaps/SNAPSHOT_FIXTURE_GAPS.md`
-§G11 for the terminal-side context this closes.
+after the Gold DB cutover.
+**Updated**: 2026-07-31 — BIS connector ported and running live; `gold.global_policy_rates` now populated with 28+ countries. Terminal side wired to `/api/econ/global-policy-rates`.
+See `market_terminal/docs/gaps/SNAPSHOT_FIXTURE_GAPS.md` §G11 for the terminal-side context this closes.
 
 ## The gap, confirmed by direct inspection
 
