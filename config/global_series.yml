@@ -29,3 +29,31 @@ inflation:
 policy_rates:
   - {country: United States, iso3: USA, region: AMER, series_id: FEDFUNDS}
   - {country: Euro Area,     iso3: EMU, region: EMEA, series_id: ECBDFR}
+  - {country: Canada,        iso3: CAN, region: AMER, series_id: "BIS:CA"}
+  - {country: Mexico,        iso3: MEX, region: AMER, series_id: "BIS:MX"}
+  - {country: Brazil,        iso3: BRA, region: AMER, series_id: "BIS:BR"}
+  - {country: Argentina,     iso3: ARG, region: AMER, series_id: "BIS:AR"}
+  - {country: Chile,         iso3: CHL, region: AMER, series_id: "BIS:CL"}
+  - {country: Colombia,      iso3: COL, region: AMER, series_id: "BIS:CO"}
+  - {country: Peru,          iso3: PER, region: AMER, series_id: "BIS:PE"}
+  - {country: United Kingdom, iso3: GBR, region: EMEA, series_id: "BIS:GB"}
+  - {country: Switzerland,   iso3: CHE, region: EMEA, series_id: "BIS:CH"}
+  - {country: Sweden,        iso3: SWE, region: EMEA, series_id: "BIS:SE"}
+  - {country: Norway,        iso3: NOR, region: EMEA, series_id: "BIS:NO"}
+  - {country: Poland,        iso3: POL, region: EMEA, series_id: "BIS:PL"}
+  - {country: Turkey,        iso3: TUR, region: EMEA, series_id: "BIS:TR"}
+  - {country: Russia,        iso3: RUS, region: EMEA, series_id: "BIS:RU"}
+  - {country: South Africa,  iso3: ZAF, region: EMEA, series_id: "BIS:ZA"}
+  - {country: Saudi Arabia,  iso3: SAU, region: EMEA, series_id: "BIS:SA"}
+  - {country: Israel,        iso3: ISR, region: EMEA, series_id: "BIS:IL"}
+  - {country: Japan,         iso3: JPN, region: APAC, series_id: "BIS:JP"}
+  - {country: China,         iso3: CHN, region: APAC, series_id: "BIS:CN"}
+  - {country: India,         iso3: IND, region: APAC, series_id: "BIS:IN"}
+  - {country: South Korea,   iso3: KOR, region: APAC, series_id: "BIS:KR"}
+  - {country: Australia,     iso3: AUS, region: APAC, series_id: "BIS:AU"}
+  - {country: New Zealand,   iso3: NZL, region: APAC, series_id: "BIS:NZ"}
+  - {country: Indonesia,     iso3: IDN, region: APAC, series_id: "BIS:ID"}
+  - {country: Thailand,      iso3: THA, region: APAC, series_id: "BIS:TH"}
+  - {country: Malaysia,      iso3: MYS, region: APAC, series_id: "BIS:MY"}
+  - {country: Philippines,   iso3: PHL, region: APAC, series_id: "BIS:PH"}
+  - {country: Hong Kong,     iso3: HKG, region: APAC, series_id: "BIS:HK"}
