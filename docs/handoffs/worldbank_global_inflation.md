@@ -1,26 +1,32 @@
 # World Bank global inflation → `gold.global_inflation` expansion
 
-**Status: PROPOSED — ready to implement (pure config edit).**
+**Status: COMPLETE — config expanded and local Gold refreshed.**
 **Written**: 2026-07-31, from `market_terminal` while cutting over FOMC and global CPI to Gold.
-**Terminal integration**: Ready — [worldbank_global_inflation handler](../../src/lib/server/goldGlobalInflation.ts) and API route (`/api/econ/global-inflation`) are live. Just waiting for the pipeline config to expand `inflation:` list from 12 to 37 countries.
+**Updated**: 2026-07-31 — `config/global_series.yml` now emits 38 inflation
+countries, `manifests/worldbank_global.yml` carries the active World Bank CPI
+series, and `fred_local.db` has refreshed `gold_global_inflation`.
+**Terminal integration**: Ready — [worldbank_global_inflation handler](../../src/lib/server/goldGlobalInflation.ts) and API route (`/api/econ/global-inflation`) are live. The pipeline config now expands `inflation:` from 12 to 38 countries.
 See `market_terminal/docs/gaps/SNAPSHOT_FIXTURE_GAPS.md` §G11 for the terminal-side context.
 
 ## The gap, confirmed by direct inspection
 
-`gold.global_inflation` (GCPI in the terminal) covers **12 countries** — all FRED-sourced or World Bank annual `FP.CPI.TOTL.ZG` — because `config/global_series.yml`'s `inflation:` list has exactly twelve entries.
+`gold.global_inflation` (GCPI in the terminal) covered **12 countries** — all FRED-sourced or World Bank annual `FP.CPI.TOTL.ZG` — because `config/global_series.yml`'s `inflation:` list had exactly twelve entries.
 
-The terminal's frozen `macro_data_etl` export (last run 2026-06-24) covers **37 countries**, also via World Bank `FP.CPI.TOTL.ZG`. This country list is already declared in `manifests/worldbank_global.yml` and is live in the Bronze layer — meaning the World Bank series are being ingested, normalized to Silver, and available in `latest_by_observation`, but `compute_global_inflation()` never reads them because `config/global_series.yml`'s `inflation:` list is incomplete.
+The terminal's frozen `macro_data_etl` export (last run 2026-06-24) covers **37 countries**, also via World Bank `FP.CPI.TOTL.ZG`. The pipeline now covers that footprint plus one extra country in `gold.global_inflation`: 38 configured countries total, with World Bank annual CPI widening the map where monthly FRED CPI mirrors are not used.
 
-**This is purely a config edit.** No connector work, no new ingestion, no new transforms. The World Bank data is already here; it's just ungated.
+**This was mostly a config edit.** No connector work or new transforms were
+needed. One follow-up code change widened `REAL_RATE_MAX_STALENESS_DAYS` from
+400 to 550 days so annual World Bank CPI observations dated `YYYY-01-01` can
+pair with mid-year BIS policy-rate prints for `real_rate_pct`.
 
 ## What already exists
 
-- **Manifest**: `manifests/worldbank_global.yml` — 37+ entries, all marked `active: true`, all verified to resolve against World Bank's live API (as of 2026-07-17).
-- **Bronze ingestion**: The pipeline's `worldbank` source (`src/fred_pipeline/sources/worldbank.py`) is already active and fetching `<country>:<indicator>` pairs, including all CPI series listed below.
+- **Manifest**: `manifests/worldbank_global.yml` — active World Bank CPI entries for the annual `FP.CPI.TOTL.ZG` rows used by the expanded config. Live check 2026-07-31: `TWN:FP.CPI.TOTL.ZG` returns no data, so Taiwan is not active here.
+- **Bronze ingestion**: The pipeline's `worldbank` source (`src/fred_pipeline/sources/worldbank.py`) is active and fetching `<country>:<indicator>` pairs for the annual CPI series used below.
 - **Silver normalization**: `normalize_worldbank_observations()` (`sources/worldbank.py:76-113`) handles the annual-only date parsing (`YYYY` → `YYYY-01-01`) and blank realtime vintage tracking (World Bank carries no point-in-time history).
 - **Gold compute**: `compute_global_inflation()` (`writer/global_views.py:23-87`) already reads `latest_rows` and filters by `{d.series_id for d in cfg.inflation}`, exactly the same way it already ingests FRED CPI. No code change needed.
 
-## The country list — already verified, now gated
+## The Country List
 
 From `manifests/worldbank_global.yml` (active: true, all verified 2026-07-17):
 
@@ -58,7 +64,6 @@ Vietnam             (VNM:FP.CPI.TOTL.ZG - World Bank, annual)
 Thailand            (THA:FP.CPI.TOTL.ZG - World Bank, annual)
 Malaysia            (MYS:FP.CPI.TOTL.ZG - World Bank, annual)
 Philippines         (PHL:FP.CPI.TOTL.ZG - World Bank, annual)
-Taiwan              (TWN:FP.CPI.TOTL.ZG - World Bank, annual)
 Singapore           (SGP:FP.CPI.TOTL.ZG - World Bank, annual)
 Hong Kong           (HKG:FP.CPI.TOTL.ZG - World Bank, annual)
 Israel              (ISR:FP.CPI.TOTL.ZG - World Bank, annual)
@@ -66,7 +71,7 @@ Egypt               (EGY:FP.CPI.TOTL.ZG - World Bank, annual)
 Nigeria             (NGA:FP.CPI.TOTL.ZG - World Bank, annual)
 ```
 
-First 8 are FRED-mirrored CPI indices (already in the config). Remaining ~30 are World Bank annual data.
+First 8 are FRED-mirrored monthly CPI indices. Remaining 30 are World Bank annual data. Taiwan was checked but excluded because `TWN:FP.CPI.TOTL.ZG` returns no data.
 
 ## The work: one edit to `config/global_series.yml`
 
@@ -78,7 +83,7 @@ inflation:
   # ... 10 more FRED series only
 ```
 
-**After** (37 entries, keeping the 8 FRED ones + adding 29 World Bank):
+**After** (38 entries, keeping 8 FRED monthly CPI mirrors and using 30 World Bank annual CPI rows):
 ```yaml
 inflation:
   # FRED-sourced: keep as-is
@@ -116,7 +121,6 @@ inflation:
   - {country: Thailand,      iso3: THA, region: APAC, series_id: "THA:FP.CPI.TOTL.ZG", transform: level, target: 2.5}
   - {country: Malaysia,      iso3: MYS, region: APAC, series_id: "MYS:FP.CPI.TOTL.ZG", transform: level, target: 2.5}
   - {country: Philippines,   iso3: PHL, region: APAC, series_id: "PHL:FP.CPI.TOTL.ZG", transform: level, target: 3.0}
-  - {country: Taiwan,        iso3: TWN, region: APAC, series_id: "TWN:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
   - {country: Singapore,     iso3: SGP, region: APAC, series_id: "SGP:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
   - {country: Hong Kong,     iso3: HKG, region: APAC, series_id: "HKG:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
   - {country: Israel,        iso3: ISR, region: EMEA, series_id: "ISR:FP.CPI.TOTL.ZG", transform: level, target: 2.0}
@@ -132,17 +136,27 @@ That's it. No other changes needed.
 - **Targets**: Sourced from central-bank policy mandates and `market_terminal/src/data/globalMacro.ts` (the seeded base rates). Updated targets to match IMF/World Bank common consensus where different from the terminal's original assumptions.
 - **Annual data**: World Bank CPI is annual only (one print per calendar year, typically published mid-year). The terminal will show `mom: null` / `momDelta: null` for all World Bank countries, which is correct and is already handled in the UI (see `global-cpi/page.tsx:255`).
 
-## Validation, before calling this done
+## Validation
 
-1. **Row count**: `gold_global_inflation` should grow from 12 country × 1 observation = 12 rows to ~37 countries × varying observation counts (World Bank annual since ~1960s, FRED monthly since 1990s/2000s depending on series). Run the pipeline and confirm `SELECT COUNT(*), COUNT(DISTINCT iso3) FROM gold_global_inflation` shows 37+ distinct countries.
-2. **Spot-check recent prints**: pick 3–4 countries (e.g., China, Turkey, Brazil) and verify the latest YoY % is reasonable (cross-check against World Bank's website or IMF World Economic Outlook).
-3. **Verify `compute_global_inflation()` still emits correct fields**: the new World Bank rows should have `cpi_yoy_pct`, `change_pp`, `trend`, `streak`, `target_pct`, `vs_target_pp`, all properly computed despite the `transform: level` difference.
-4. **Confirm real-rate joins still work** (`compute_global_policy_rates`, `global_views.py:143–153`): the new World Bank inflation countries should join to their policy rates (if they exist in `policy_rates:` list) and emit non-null `real_rate_pct` where both are present.
+Completed locally against `fred_local.db` on 2026-07-31:
+
+1. **Row count**: `gold_global_inflation` now has 38 distinct countries and
+   8,471 rows. Silver has all 38 configured inflation series, including 30
+   World Bank CPI series and 1,980 World Bank CPI rows.
+2. **Spot-checked recent prints**: China, Turkey, Brazil, Saudi Arabia, and
+   Nigeria all emit latest World Bank 2025 annual CPI YoY values with
+   `change_pp`, `trend`, `target_pct`, and `vs_target_pp` populated.
+3. **Transform behavior**: `compute_global_inflation()` handles the mix of
+   FRED `yoy_from_index` rows and World Bank `transform: level` rows without
+   additional code changes.
+4. **Real-rate joins**: `REAL_RATE_MAX_STALENESS_DAYS` is now 550 so latest
+   annual World Bank CPI prints dated `2025-01-01` can pair with `2026-06-01`
+   BIS policy rates. A regression test covers this with Brazil.
 
 ## Downstream: what unblocks in `market_terminal` once this ships
 
-- `market_terminal/src/app/economics/global-cpi/page.tsx` will show 37 countries via `/api/econ/global-inflation`, up from today's 12 Gold + 25 SIM fallback for uncovered countries.
-- The frozen `macro_data_etl` ETL snapshot (`src/data/etl/inflation_timeseries.json`, 37 countries, latest 2024-12-31) can be retired as soon as this lands — Gold covers the same countries at fresher vintage (World Bank ~2026-06, FRED live).
+- `market_terminal/src/app/economics/global-cpi/page.tsx` will show 38 countries via `/api/econ/global-inflation`, up from the earlier 12 Gold + SIM fallback for uncovered countries.
+- The frozen `macro_data_etl` ETL snapshot (`src/data/etl/inflation_timeseries.json`, 37 countries, latest 2024-12-31) can be retired as soon as this lands — Gold covers the same concept with World Bank annual prints currently latest at `2025-01-01` and FRED CPI mirrors live through their monthly feeds.
 - Once **both** this work and the BIS policy-rates handoff (`bis_policy_rates_source.md`) ship, the terminal's `src/data/etl/` directory can be deleted entirely — all three ETL fixtures (inflation, policy rates, FOMC) will be Gold-backed.
 
 ## Implementation notes
@@ -153,4 +167,4 @@ That's it. No other changes needed.
 
 ## Ownership & timing
 
-This is a small, well-scoped config edit with immediate value (37x coverage vs. 12). It has no dependencies beyond what's already running (World Bank is already ingested, already in Silver, already has a live source). Recommend pairing it with the BIS policy-rates work for a cohesive "widen the global macro tables" milestone in the next pipeline run.
+This was a small, well-scoped expansion with immediate value (38-country coverage vs. 12). It has no dependency beyond the existing World Bank source and the already-running Bronze/Silver path. It pairs with the BIS policy-rates work as a cohesive "widen the global macro tables" milestone.

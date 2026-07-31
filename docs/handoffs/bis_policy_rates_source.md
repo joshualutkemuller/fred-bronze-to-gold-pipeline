@@ -211,12 +211,9 @@ Gold rows per print for one economy.
 3. **Confirm `real_rate_pct` in `compute_global_policy_rates`
    (`global_views.py:143-153`) still joins correctly** — it pairs a policy
    rate to the same `iso3`'s inflation print via `REAL_RATE_MAX_STALENESS_DAYS`
-   (400 days). Newly-added BIS countries need a `gold.global_inflation` row
-   for the same `iso3` to get a non-null real rate; check
-   `config/global_series.yml`'s `inflation:` list has matching entries (it
-   currently covers 12 — some newly-added BIS policy-rate countries, e.g.
-   Turkey or Egypt, will have `real_rate_pct: null` until inflation is
-   ingested for them too. That's fine, not a blocker — just don't expect it).
+   (550 days, widened for annual World Bank CPI dated at period start).
+   Newly-added BIS countries need a `gold.global_inflation` row for the same
+   `iso3` to get a non-null real rate.
 4. **Run the CI `powerbi_catalog` coverage assertion** if one exists for GPOL
    (see the migration handoff, `docs/handoffs/completed/market_terminal_gold_views.md`,
    §11 "Removal / enforcement checklist" pattern) — confirms the new manifest

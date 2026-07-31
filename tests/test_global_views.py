@@ -155,6 +155,25 @@ def test_global_policy_rates_no_inflation_pairing():
     assert out[1]["stance"] == "on-hold"
 
 
+def test_global_policy_rates_pairs_annual_worldbank_cpi_with_midyear_bis_rate():
+    cfg = GlobalConfig(
+        inflation=(
+            GlobalInflationDef(
+                "Brazil", "BRA", "AMER", "BRA:FP.CPI.TOTL.ZG", target=3.0
+            ),
+        ),
+        policy_rates=(GlobalPolicyRateDef("Brazil", "BRA", "AMER", "BIS:BR"),),
+    )
+    rows = [
+        _row("BRA:FP.CPI.TOTL.ZG", "2025-01-01", 5.01675279604836),
+        _row("BIS:BR", "2026-06-01", 14.25),
+    ]
+
+    out = compute_global_policy_rates(rows, cfg)
+
+    assert out[0]["real_rate_pct"] == pytest.approx(14.25 - 5.01675279604836)
+
+
 # ---- Power BI catalog ------------------------------------------------------------
 
 
