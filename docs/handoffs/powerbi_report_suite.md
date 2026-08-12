@@ -222,7 +222,9 @@ Rules:
   observe Good Friday, which is why it is the correct calendar for T+1/T+2
   against a Fed-cleared instrument).
 - `dim_series` covers the **67 curated series** in `config/series_catalog.yml`,
-  not the ~2,900 active series in the manifests. Reports that need the wider
+  not the 2,820 active series in the manifests. These are two independent
+  layers: the manifests decide what gets *ingested*, `series_catalog.yml`
+  decides what gets *presentation semantics*. Reports that need the wider
   universe bind to `gold.fred_latest_observation` /
   `gold.fred_feature_transforms` and accept a thinner dimension. See §8-G1.
 
@@ -1518,7 +1520,7 @@ SWITCH ( TRUE (),
 
 ### 6.1 Model sizing
 
-Sizes are driven by the series universe (~2,900 active series across the
+Sizes are driven by the series universe (2,820 active series across the
 manifests) and history depth. Before building, run the row-count query in
 Appendix C against the target environment — **do not** size from this table
 alone.
@@ -1584,12 +1586,25 @@ someone noticing when the pipeline breaks. Consider pulling it into phase 1.
 These are the things that must change outside Power BI. Each is a pipeline PR,
 not a report-authoring task.
 
-**G1 — `dim_series` covers 67 of ~2,900 active series.**
-`config/series_catalog.yml` curates 67 series with presentation semantics
-(`econ_category`, `polarity`, `default_transform`, `scale`, `decimals`). Every
-other active series reaches Power BI only through `fred_latest_observation` /
-`fred_feature_transforms` / `zscore_heatmap`, with no category, polarity, or
-formatting.
+**G1 — `dim_series` covers 67 of 2,820 active series.**
+Ingestion and presentation are separate layers. The manifests activate **2,820
+series** (of 2,920 declared) — fred 2,570, tiingo 85, bls 60, worldbank 37,
+bis 36, bea 23, sec 3, eia 2, treasury 2, census 1, ishares 1 — and all of them
+reach Gold. Separately, `config/series_catalog.yml` gives **67** of them
+presentation semantics (`econ_category`, `polarity`, `default_transform`,
+`scale`, `decimals`), which is what `dim_series` and the ECON objects
+(`macro_indicator_dashboard`, `_sparkline`, `macro_category_summary`) iterate.
+
+The other 2,753 active series are fully ingested and queryable via
+`fred_latest_observation`, `fred_point_in_time`, `fred_feature_transforms`,
+`fred_series_zscore_rolling`, and `zscore_heatmap` — but arrive with no
+category, polarity, or formatting metadata. A report can chart them; it cannot
+say what they mean or which direction is good.
+
+Note this gap does **not** affect the domain reports, which are driven by their
+own configs rather than the catalog: `curve.yml` (#3), `spreads.yml` (#4),
+`benchmark_rates.yml`/`funding.yml` (#5), `credit.yml` (#7), `regime.yml` (#8),
+`stats_pairs.yml` (#9), `global_series.yml` (#10).
 *Blocks:* #12 Regional Map (fully), and limits #1 Macro Cockpit's coverage.
 *Fix:* extend `series_catalog.yml`. For #12 specifically, add the state series
 with a new `econ_category: REGIONAL` plus a state identifier.
