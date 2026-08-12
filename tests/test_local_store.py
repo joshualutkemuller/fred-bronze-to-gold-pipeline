@@ -202,6 +202,40 @@ def test_query_caller_defaults_to_blank(tmp_path):
     wh.close()
 
 
+def test_additive_migration_adds_column_to_preexisting_db(tmp_path):
+    """A database file written before gold_dim_series gained `geo` must gain
+    the column on open -- CREATE TABLE IF NOT EXISTS won't add it, and every
+    dim_series insert would otherwise fail against an older local file."""
+    import sqlite3
+
+    db = str(tmp_path / "legacy.db")
+    con = sqlite3.connect(db)
+    con.execute(
+        "CREATE TABLE gold_dim_series ("
+        " series_id TEXT PRIMARY KEY, title TEXT, source TEXT, frequency TEXT,"
+        " units TEXT, econ_category TEXT, polarity INTEGER,"
+        " default_transform TEXT, scale TEXT, decimals INTEGER, notes TEXT)"
+    )
+    con.execute(
+        "INSERT INTO gold_dim_series (series_id, econ_category)"
+        " VALUES ('UNRATE', 'LABOR')"
+    )
+    con.commit()
+    con.close()
+
+    wh = LocalWarehouse(_config(), db_path=db)
+    cols = {r[1] for r in wh.conn.execute("PRAGMA table_info(gold_dim_series)")}
+    assert "geo" in cols
+    # pre-existing rows survive the migration
+    (row,) = wh.query("SELECT series_id, geo FROM gold_dim_series")
+    assert row["series_id"] == "UNRATE" and row["geo"] is None
+    wh.close()
+
+    # reopening is a no-op, not a duplicate-column error
+    wh2 = LocalWarehouse(_config(), db_path=db)
+    wh2.close()
+
+
 def test_daily_feature_matrix_forward_fills():
     latest = [
         {"series_id": "X", "observation_date": "2024-01-01", "value": 1.0, "is_missing": False},

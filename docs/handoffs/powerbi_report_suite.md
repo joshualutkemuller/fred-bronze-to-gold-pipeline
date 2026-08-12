@@ -221,12 +221,15 @@ Rules:
   reports and **FEDWIRE** for rates/funding settlement math (FEDWIRE does not
   observe Good Friday, which is why it is the correct calendar for T+1/T+2
   against a Fed-cleared instrument).
-- `dim_series` covers the **67 curated series** in `config/series_catalog.yml`,
+- `dim_series` covers the **254 curated series** in `config/series_catalog.yml`,
   not the 2,820 active series in the manifests. These are two independent
   layers: the manifests decide what gets *ingested*, `series_catalog.yml`
   decides what gets *presentation semantics*. Reports that need the wider
   universe bind to `gold.fred_latest_observation` /
   `gold.fred_feature_transforms` and accept a thinner dimension. See §8-G1.
+- `dim_series[geo]` carries a USPS state code (`"CA"`) or census-region name
+  (`"Midwest"`) for `econ_category = 'REGIONAL'` rows, and is blank for
+  national series. Use it as the map key in Report 12 — never parse the title.
 
 ### 4.3 Core measure library
 
@@ -406,7 +409,13 @@ calendar of what prints next.
 | `gold.fred_feature_transforms` | 1 / series × date | drillthrough history |
 | `gold.dim_series`, `gold.dim_date` | — | dimensions |
 
-**Model notes.** `macro_indicator_dashboard` is a *snapshot* fact — one row per
+**Model notes.** The catalog now carries 254 series, 120 of which are
+`econ_category = 'REGIONAL'` (the state panel, Report 12). **Filter
+`econ_category <> 'REGIONAL'` in this report's Power Query**, or the national
+board is swamped by 50 states and the breadth visual double-counts labour-market
+signal. Report 12 owns the REGIONAL rows.
+
+`macro_indicator_dashboard` is a *snapshot* fact — one row per
 series, not a time series. Join it to `dim_series` on `series_id`; do **not**
 join it to `dim_date` (its `latest_date` varies per series and a date filter
 would blank the board). Join `fred_feature_transforms` to `dim_date` for the
@@ -414,16 +423,18 @@ drillthrough history instead.
 
 **Pages**
 
-1. **Overview.** Category breadth bar (`macro_category_summary[breadth_pct]`),
+1. **Overview.** Category breadth bar (`macro_category_summary[breadth_pct]`,
+   REGIONAL row excluded),
    surprise index cards (`surprise_index`), 8 headline KPI cards (UNRATE, PAYEMS,
    CPIAUCSL, GDPC1, DGS10, NFCI, INDPRO, RSAFS) each with sparkline and
    direction arrow, next-7-days release list.
-2. **Indicator board.** Full table of all 67 catalog series: latest, prior,
+2. **Indicator board.** Full table of the 134 national catalog series: latest, prior,
    change, YoY, z-score, percentile, surprise, staleness. Conditional formatting
    on `direction_is_good` (pre-computed — use it rather than recomputing
    polarity in DAX) and on `staleness_days`.
-3. **Category detail.** Small multiples by `econ_category` (ACTIVITY, CONSUMER,
-   CREDIT, FX, GROWTH, HOUSING, INFLATION, LABOR, MONEY, RATES).
+3. **Category detail.** Small multiples by `econ_category` — the ten national
+   buckets (ACTIVITY 8, CONSUMER 8, CREDIT 15, FX 15, GROWTH 9, HOUSING 10,
+   INFLATION 17, LABOR 21, MONEY 9, RATES 22).
 4. **Release calendar.** Agenda view over `release_calendar`, filtered
    `is_future = TRUE`, coloured by `importance`. Note this table is
    **intentionally not point-in-time** — it is a re-fetched schedule;
@@ -451,7 +462,7 @@ CALCULATE (
 ```
 
 **Acceptance criteria**
-- Board shows all 67 catalog series; none blank.
+- Board shows all 134 national catalog series; none blank; no REGIONAL rows.
 - `direction_is_good` formatting matches `dim_series[polarity]` sign convention
   on a hand-checked sample of 5 series (must include one `polarity = -1` series
   such as UNRATE and one `polarity = 0` such as DTWEXBGS).
@@ -1256,43 +1267,48 @@ the Philadelphia Fed coincident index, mapped and ranked.
 
 **Audience.** Executive-first (map), analyst ranking behind.
 **Tier.** A.
-**Status.** ⚠️ **Blocked on §8-G1** — the state series are active in the
-manifests but absent from `config/series_catalog.yml`, so they have no
-`dim_series` row (no `econ_category`, `polarity`, `default_transform`, `scale`).
+**Status.** ✅ **Unblocked.** `config/series_catalog.yml` now carries a
+`REGIONAL` bucket of 120 state / census-region series, each with a `geo` code
+surfaced on `gold.dim_series[geo]`. No report-local state mapping is needed.
 
 **Tables**
 
 | Table | Grain | Role |
 |---|---|---|
-| `gold.fred_latest_observation` | 1 / series × date | primary fact |
+| `gold.dim_series` (`econ_category = 'REGIONAL'`) | 1 / series | state dimension via `geo` |
+| `gold.macro_indicator_dashboard` | 1 / series (latest) | latest state readings |
+| `gold.macro_category_summary` (`REGIONAL` row) | 1 / category | state diffusion index |
+| `gold.fred_latest_observation` | 1 / series × date | history fact |
 | `gold.fred_feature_transforms` | 1 / series × date | YoY / z-score fact |
 | `gold.zscore_heatmap` | 1 / series × date | cross-state z-scores |
 | `gold.dim_date` | — | dimension |
-| *(new)* state dimension | 1 / state | see below |
 
-**Series in scope** (already active in manifests):
+**Series in scope** (cataloged as `REGIONAL`, 120 total):
 
-| Manifest | Count | Content |
-|---|---|---|
-| `state_unemployment.yml` | 52 | State unemployment rates |
-| `state_coincident_index.yml` | 50 | Philadelphia Fed state coincident indexes |
-| `state_house_price.yml` | 14 | State house price indexes |
-| `regional_aggregates.yml` | 28 | Regional aggregates |
-| `regional_fed_indicators.yml` | 5 | Regional Fed survey indicators |
+| Source manifest | Cataloged | Content | Polarity | Transform |
+|---|---|---|---|---|
+| `state_unemployment.yml` | 52 | State unemployment rates (50 states + DC + PR) | −1 | level |
+| `state_coincident_index.yml` | 50 | Philadelphia Fed state coincident activity indexes | +1 | pc1 |
+| `state_house_price.yml` | 14 | FHFA all-transactions state house price indexes | 0 | pc1 |
+| `regional_aggregates.yml` | 4 | Census-region unemployment rates | −1 | level |
 
-**Required build step — the state dimension.** These series carry a state in
-their `series_id` (e.g. `CAUR` = California unemployment rate) but nothing in
-Gold decodes it. Two options, in order of preference:
+**The state dimension is `dim_series` itself.** Filter it to
+`econ_category = 'REGIONAL'` and use `geo` as the map key — a USPS code for
+states (`CA`, `NY`, `DC`, `PR`) and a region name for the four census
+aggregates (`Midwest`, `Northeast`, `South`, `West`). Because the census-region
+rows share the table with state rows, **filter `geo` to two-character codes for
+the choropleth** or the four regions will fail to map.
 
-1. **Preferred — extend the pipeline.** Add the state series to
-   `config/series_catalog.yml` with a new `econ_category: REGIONAL` and a state
-   code, so `dim_series` carries them. This benefits every consumer, not just
-   this report, and keeps the semantics in the reviewed config where the rest
-   live. Requires a pipeline PR (§8-G1).
-2. **Interim — a report-local mapping table.** A hand-maintained
-   `dim_state` (state code, state name, FIPS, census region, series_id per
-   metric) as a Power Query table. Acceptable to unblock authoring; it is
-   report-local duplication and should be retired when option 1 lands.
+Split the three metrics apart with a Power Query grouping on the `series_id`
+suffix (`*UR`, `*PHCI`, `*STHPI`), or add a report-local metric column derived
+from `notes`. A metric field on the catalog would be cleaner and is worth
+raising if a second regional report appears.
+
+**The diffusion index is free.** `macro_category_summary` computes breadth per
+category, so its `REGIONAL` row is the share of state series improving
+(polarity-adjusted) — exactly what page 4 needs. Note it blends unemployment,
+activity, and house prices; for a pure activity diffusion count, compute it off
+the `*PHCI` subset instead.
 
 **Pages**
 
@@ -1306,10 +1322,29 @@ Gold decodes it. Two options, in order of preference:
    contracting, over time. This is the report's most decision-relevant page.
 5. *(hidden)* **State drillthrough** — all metrics for one state.
 
+**Key measures**
+
+```dax
+-- dim_series filtered to REGIONAL; geo is the map key.
+State Code = SELECTEDVALUE ( 'dim_series'[geo] )
+
+-- Census-region rows carry a name, not a 2-letter code; keep them off the map.
+Is Mappable State = IF ( LEN ( [State Code] ) = 2, TRUE (), FALSE () )
+
+State Diffusion % =
+CALCULATE (
+    SELECTEDVALUE ( 'macro_category_summary'[breadth_pct] ),
+    'macro_category_summary'[econ_category] = "REGIONAL"
+)
+```
+
 **Acceptance criteria**
-- Map covers all 50 states + DC for unemployment; partial-coverage pages label
-  their coverage explicitly.
-- No state appears with an unmapped/blank name.
+- Map covers all 50 states + DC for unemployment; PR and the four census
+  regions are excluded from the choropleth but present in the rankings table.
+- Partial-coverage pages (house prices, 14 states) label their coverage
+  explicitly.
+- Every rendered state resolves from `geo` — no title parsing anywhere in the
+  model.
 - Diffusion count reconciles against a manual count for one date.
 
 ---
@@ -1573,7 +1608,7 @@ shippable.
 | **2. Rates & credit** | #5 Funding & Liquidity, #6 Fed Policy Watch, #7 Credit Conditions | Phase 1 | Same shapes as phase 1; fast follow. |
 | **3. Verdict layer** | #8 Regime & Recession Risk, #2 Inflation Explorer | Phase 1 | #2 is richer once §8-G2 (BEA/BLS item manifests) is activated. |
 | **4. Research** | #9 Statistical Lab, #13 PIT & Revisions Lab | Phase 1 | Both need the sizing work in §6. |
-| **5. Breadth** | #10 Global Macro, #11 Equity & Factor, #12 Regional Map | §8-G1, G3, G4 | Each is gated on a listed prerequisite. |
+| **5. Breadth** | #10 Global Macro, #11 Equity & Factor, #12 Regional Map | G3, G4 | #12 is now unblocked (§8-G1 resolved) and can move earlier; #10 and #11 remain gated. |
 | **6. Operations** | #14 Pipeline Health | Phase 0 | Can be built in parallel at any time; different audience, no dependency on the others. |
 
 **#14 is the sleeper priority.** Every other report's credibility depends on
@@ -1586,25 +1621,49 @@ someone noticing when the pipeline breaks. Consider pulling it into phase 1.
 These are the things that must change outside Power BI. Each is a pipeline PR,
 not a report-authoring task.
 
-**G1 — `dim_series` covers 67 of 2,820 active series.**
+**G1 — `dim_series` covers 254 of 2,820 active series.** *(Partially resolved.)*
 Ingestion and presentation are separate layers. The manifests activate **2,820
 series** (of 2,920 declared) — fred 2,570, tiingo 85, bls 60, worldbank 37,
 bis 36, bea 23, sec 3, eia 2, treasury 2, census 1, ishares 1 — and all of them
-reach Gold. Separately, `config/series_catalog.yml` gives **67** of them
+reach Gold. Separately, `config/series_catalog.yml` gives some of them
 presentation semantics (`econ_category`, `polarity`, `default_transform`,
-`scale`, `decimals`), which is what `dim_series` and the ECON objects
+`geo`, `scale`, `decimals`), which is what `dim_series` and the ECON objects
 (`macro_indicator_dashboard`, `_sparkline`, `macro_category_summary`) iterate.
 
-The other 2,753 active series are fully ingested and queryable via
-`fred_latest_observation`, `fred_point_in_time`, `fred_feature_transforms`,
-`fred_series_zscore_rolling`, and `zscore_heatmap` — but arrive with no
-category, polarity, or formatting metadata. A report can chart them; it cannot
-say what they mean or which direction is good.
+The catalog was expanded from 67 to **254** entries:
 
-Note this gap does **not** affect the domain reports, which are driven by their
-own configs rather than the catalog: `curve.yml` (#3), `spreads.yml` (#4),
+| Bucket | Entries | |
+|---|---|---|
+| LABOR | 21 | RATES 22, INFLATION 17, CREDIT 15, FX 15 |
+| HOUSING | 10 | GROWTH 9, MONEY 9, ACTIVITY 8, CONSUMER 8 |
+| **REGIONAL** | **120** | new bucket: 52 state unemployment, 50 coincident indexes, 14 state HPI, 4 census regions |
+
+Every entry is verified active in a manifest (enforced by
+`test_repo_series_catalog_entries_are_all_ingested`), and every REGIONAL entry
+carries a `geo` code (enforced by
+`test_repo_series_catalog_regional_entries_carry_geo`). This unblocked Report 12
+and roughly doubled Report 1's national coverage.
+
+**What remains.** The other 2,566 active series are fully ingested and queryable
+via `fred_latest_observation`, `fred_point_in_time`, `fred_feature_transforms`,
+`fred_series_zscore_rolling`, and `zscore_heatmap` — but still arrive with no
+category, polarity, or formatting metadata. That is a deliberate curation
+boundary, not an oversight: the bulk of the remainder is the long tail of
+`prices_extra` (800), `money_banking` (366), `production_housing` (361),
+`labor_extra` (356), and `national_accounts_extra` (332), which exist to feed
+features and models rather than a dashboard. Extend the catalog when a specific
+report needs a specific series.
+
+This gap never affected the domain reports, which are driven by their own
+configs rather than the catalog: `curve.yml` (#3), `spreads.yml` (#4),
 `benchmark_rates.yml`/`funding.yml` (#5), `credit.yml` (#7), `regime.yml` (#8),
 `stats_pairs.yml` (#9), `global_series.yml` (#10).
+
+**Migration note.** `gold.dim_series` gained a `geo` column. A local SQLite file
+created before that change is upgraded automatically on open
+(`LocalWarehouse._apply_additive_migrations`); Databricks needs
+`sql/50_gold.sql` re-applied, or an
+`ALTER TABLE {catalog}.gold.dim_series ADD COLUMN geo STRING`.
 *Blocks:* #12 Regional Map (fully), and limits #1 Macro Cockpit's coverage.
 *Fix:* extend `series_catalog.yml`. For #12 specifically, add the state series
 with a new `econ_category: REGIONAL` plus a state identifier.
@@ -1699,7 +1758,7 @@ each object to its consumer in this suite.
 
 | Object | Type | Module | Grain | Intended visual | Report |
 |---|---|---|---|---|---|
-| `dim_series` | dimension | ALL | 1 / series | slicers + relationships | all |
+| `dim_series` | dimension | ALL | 1 / series | slicers + relationships (`geo` = map key for REGIONAL) | all |
 | `dim_date` | dimension | ALL | 1 / calendar day | date table + recession shading | all |
 | `market_calendar` | dimension | ALL | 1 / calendar × day | date table per market | 3, 5, 11 |
 | `macro_indicator_dashboard` | fact | ECON | 1 / series (latest) | KPI grid | 1 |

@@ -1,17 +1,21 @@
 # Series catalog for the market-terminal analytical views (gold.dim_series +
 # gold.macro_indicator_dashboard). Assigns presentation semantics to series the
 # pipeline ALREADY ingests — nothing here adds ingestion; it only tags existing
-# series into the terminal's 10 EconCategory buckets.
+# series into the terminal's 10 EconCategory buckets, plus REGIONAL for the
+# state/census-region panel.
 #
-# Fields (see src/fred_pipeline/catalog_config.py):
+# Fields (see src/fred_pipeline/gold_config/catalog_config.py):
 #   econ_category      GROWTH | INFLATION | LABOR | RATES | CREDIT | HOUSING |
-#                      CONSUMER | MONEY | ACTIVITY | FX
+#                      CONSUMER | MONEY | ACTIVITY | FX | REGIONAL
 #   polarity           +1 a rise is bullish, -1 a rise is bearish, 0 neutral
 #   default_transform  pc1 (YoY %) | pch (period %) | chg (diff) | bps | level
 #   surprise_window    trailing obs for the no-consensus "surprise" proxy
+#   geo                USPS state code / census-region name; "" = national
 #   scale / decimals   display hints for Power BI ("" = native units)
 #
 # Adding a series to the ECON dashboard = adding a line here (config, not code).
+# Every series listed here must already be active in a manifest — a catalog
+# entry for an un-ingested series yields a dim_series row with no observations.
 
 series:
   # ---- LABOR ----------------------------------------------------------------
@@ -24,6 +28,18 @@ series:
   - {series_id: JTSJOL,   econ_category: LABOR, polarity: 1,  default_transform: level, notes: JOLTS job openings}
   - {series_id: UEMPMED,  econ_category: LABOR, polarity: -1, default_transform: level, notes: Median weeks unemployed}
   - {series_id: AHETPI,   econ_category: LABOR, polarity: 1,  default_transform: pc1,   notes: Avg hourly earnings (production)}
+  - {series_id: CCSA,     econ_category: LABOR, polarity: -1, default_transform: level, surprise_window: 8, notes: Continued claims (weekly)}
+  - {series_id: UNEMPLOY, econ_category: LABOR, polarity: -1, default_transform: level, notes: Unemployment level}
+  - {series_id: U1RATE,   econ_category: LABOR, polarity: -1, default_transform: level, notes: U-1 long-term unemployed}
+  - {series_id: LNS11300060, econ_category: LABOR, polarity: 1, default_transform: level, notes: Prime-age (25-54) participation}
+  - {series_id: CES0500000003, econ_category: LABOR, polarity: 1, default_transform: pc1, notes: Avg hourly earnings (all employees)}
+  - {series_id: AWHAETP,  econ_category: LABOR, polarity: 1,  default_transform: level, notes: Avg weekly hours (all employees)}
+  - {series_id: JTSHIR,   econ_category: LABOR, polarity: 1,  default_transform: level, notes: JOLTS hires rate}
+  - {series_id: JTSQUR,   econ_category: LABOR, polarity: 1,  default_transform: level, notes: JOLTS quits rate}
+  - {series_id: JTSLDL,   econ_category: LABOR, polarity: -1, default_transform: level, notes: JOLTS layoffs and discharges}
+  - {series_id: MANEMP,   econ_category: LABOR, polarity: 1,  default_transform: chg,   notes: Manufacturing employment}
+  - {series_id: USCONS,   econ_category: LABOR, polarity: 1,  default_transform: chg,   notes: Construction employment}
+  - {series_id: USGOVT,   econ_category: LABOR, polarity: 0,  default_transform: chg,   notes: Government employment}
 
   # ---- INFLATION -------------------------------------------------------------
   - {series_id: CPIAUCSL, econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: CPI headline}
@@ -36,6 +52,13 @@ series:
   - {series_id: T5YIE,    econ_category: INFLATION, polarity: -1, default_transform: level, notes: 5y breakeven}
   - {series_id: T10YIE,   econ_category: INFLATION, polarity: -1, default_transform: level, notes: 10y breakeven}
   - {series_id: EXPINF1YR, econ_category: INFLATION, polarity: -1, default_transform: level, notes: Cleveland Fed 1y expected inflation}
+  - {series_id: T5YIFR,   econ_category: INFLATION, polarity: -1, default_transform: level, notes: 5y5y forward breakeven}
+  - {series_id: MEDCPIM094SFRBCLE, econ_category: INFLATION, polarity: -1, default_transform: pc1, notes: Cleveland Fed median CPI}
+  - {series_id: PPIFIS,   econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: PPI final demand}
+  - {series_id: CPIUFDSL, econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: CPI food}
+  - {series_id: CPIENGSL, econ_category: INFLATION, polarity: -1, default_transform: pc1,   notes: CPI energy}
+  - {series_id: CUSR0000SAH1, econ_category: INFLATION, polarity: -1, default_transform: pc1, source: bls, notes: CPI shelter (SA)}
+  - {series_id: CUSR0000SETB01, econ_category: INFLATION, polarity: -1, default_transform: pc1, source: bls, notes: CPI gasoline (SA)}
 
   # ---- GROWTH ----------------------------------------------------------------
   - {series_id: GDPC1,    econ_category: GROWTH, polarity: 1, default_transform: pc1, surprise_window: 8, notes: Real GDP}
@@ -43,6 +66,10 @@ series:
   - {series_id: GPDIC1,   econ_category: GROWTH, polarity: 1, default_transform: pc1, surprise_window: 8, notes: Real private investment}
   - {series_id: DGORDER,  econ_category: GROWTH, polarity: 1, default_transform: pc1, notes: Durable goods orders}
   - {series_id: NEWORDER, econ_category: GROWTH, polarity: 1, default_transform: pc1, notes: Core capital goods orders}
+  - {series_id: A939RX0Q048SBEA, econ_category: GROWTH, polarity: 1, default_transform: pc1, surprise_window: 8, notes: Real GDP per capita}
+  - {series_id: EXPGS,    econ_category: GROWTH, polarity: 1, default_transform: pc1, surprise_window: 8, notes: Exports of goods and services}
+  - {series_id: IMPGS,    econ_category: GROWTH, polarity: 0, default_transform: pc1, surprise_window: 8, notes: Imports of goods and services}
+  - {series_id: NETEXP,   econ_category: GROWTH, polarity: 0, default_transform: level, surprise_window: 8, notes: Net exports}
 
   # ---- ACTIVITY --------------------------------------------------------------
   - {series_id: INDPRO,   econ_category: ACTIVITY, polarity: 1, default_transform: pc1,   notes: Industrial production}
@@ -50,6 +77,9 @@ series:
   - {series_id: TCU,      econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: Capacity utilization}
   - {series_id: CFNAI,    econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: Chicago Fed national activity}
   - {series_id: CFNAIMA3, econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: CFNAI 3-month avg}
+  - {series_id: GACDISA066MSFRBNY,  econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: Empire State manufacturing survey}
+  - {series_id: GACDFSA066MSFRBPHI, econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: Philadelphia Fed manufacturing survey}
+  - {series_id: BACTSAMFRBDAL,      econ_category: ACTIVITY, polarity: 1, default_transform: level, notes: Dallas Fed manufacturing survey}
 
   # ---- RATES -----------------------------------------------------------------
   - {series_id: DGS3MO,   econ_category: RATES, polarity: 0, default_transform: level, notes: 3M Treasury}
@@ -59,6 +89,21 @@ series:
   - {series_id: FEDFUNDS, econ_category: RATES, polarity: 0, default_transform: level, notes: Effective fed funds (monthly)}
   - {series_id: SOFR,     econ_category: RATES, polarity: 0, default_transform: level, notes: SOFR}
   - {series_id: REAINTRATREARAT10Y, econ_category: RATES, polarity: 0, default_transform: level, notes: 10y real rate}
+  - {series_id: DGS1MO,   econ_category: RATES, polarity: 0, default_transform: level, notes: 1M Treasury}
+  - {series_id: DGS6MO,   econ_category: RATES, polarity: 0, default_transform: level, notes: 6M Treasury}
+  - {series_id: DGS1,     econ_category: RATES, polarity: 0, default_transform: level, notes: 1Y Treasury}
+  - {series_id: DGS5,     econ_category: RATES, polarity: 0, default_transform: level, notes: 5Y Treasury}
+  - {series_id: DGS7,     econ_category: RATES, polarity: 0, default_transform: level, notes: 7Y Treasury}
+  - {series_id: DGS20,    econ_category: RATES, polarity: 0, default_transform: level, notes: 20Y Treasury}
+  - {series_id: T10Y2Y,   econ_category: RATES, polarity: 0, default_transform: level, notes: 2s10s slope (FRED-computed)}
+  - {series_id: T10Y3M,   econ_category: RATES, polarity: 0, default_transform: level, notes: 3m10y slope (FRED-computed)}
+  - {series_id: EFFR,     econ_category: RATES, polarity: 0, default_transform: level, notes: Effective fed funds (daily)}
+  - {series_id: IORB,     econ_category: RATES, polarity: 0, default_transform: level, notes: Interest on reserve balances}
+  - {series_id: OBFR,     econ_category: RATES, polarity: 0, default_transform: level, notes: Overnight bank funding rate}
+  - {series_id: DFEDTARU, econ_category: RATES, polarity: 0, default_transform: level, notes: Fed funds target upper}
+  - {series_id: DFEDTARL, econ_category: RATES, polarity: 0, default_transform: level, notes: Fed funds target lower}
+  - {series_id: DPRIME,   econ_category: RATES, polarity: 0, default_transform: level, notes: Bank prime loan rate}
+  - {series_id: MORTGAGE30US, econ_category: RATES, polarity: 0, default_transform: level, notes: 30y fixed mortgage rate}
 
   # ---- CREDIT ----------------------------------------------------------------
   - {series_id: NFCI,     econ_category: CREDIT, polarity: -1, default_transform: level, notes: Chicago Fed financial conditions}
@@ -68,6 +113,14 @@ series:
   - {series_id: NFCIRISK, econ_category: CREDIT, polarity: -1, default_transform: level, notes: NFCI risk subindex}
   - {series_id: DRTSCILM, econ_category: CREDIT, polarity: -1, default_transform: level, surprise_window: 8, notes: SLOOS % tightening C&I (large/mid)}
   - {series_id: BUSLOANS, econ_category: CREDIT, polarity: 1,  default_transform: pc1,   notes: Bank C&I loans}
+  - {series_id: KCFSI,    econ_category: CREDIT, polarity: -1, default_transform: level, notes: Kansas City financial stress index}
+  - {series_id: BAMLC0A0CM,   econ_category: CREDIT, polarity: -1, default_transform: level, notes: IG corporate OAS}
+  - {series_id: BAMLH0A0HYM2, econ_category: CREDIT, polarity: -1, default_transform: level, notes: HY corporate OAS}
+  - {series_id: BAMLC0A4CBBB, econ_category: CREDIT, polarity: -1, default_transform: level, notes: BBB corporate OAS}
+  - {series_id: BAMLH0A3HYC,  econ_category: CREDIT, polarity: -1, default_transform: level, notes: CCC and lower OAS}
+  - {series_id: BAA10Y,   econ_category: CREDIT, polarity: -1, default_transform: level, notes: Baa spread over 10y Treasury}
+  - {series_id: AAA10Y,   econ_category: CREDIT, polarity: -1, default_transform: level, notes: Aaa spread over 10y Treasury}
+  - {series_id: VIXCLS,   econ_category: CREDIT, polarity: -1, default_transform: level, notes: VIX (equity implied vol)}
 
   # ---- HOUSING ---------------------------------------------------------------
   - {series_id: HOUST,    econ_category: HOUSING, polarity: 1,  default_transform: level, notes: Housing starts}
@@ -76,6 +129,10 @@ series:
   - {series_id: MSPUS,    econ_category: HOUSING, polarity: 0,  default_transform: pc1,   surprise_window: 8, notes: Median sales price}
   - {series_id: USSTHPI,  econ_category: HOUSING, polarity: 0,  default_transform: pc1,   surprise_window: 8, notes: FHFA house price index}
   - {series_id: MSACSR,   econ_category: HOUSING, polarity: -1, default_transform: level, notes: Months supply of new homes}
+  - {series_id: HOUST1F,  econ_category: HOUSING, polarity: 1,  default_transform: level, notes: Single-family housing starts}
+  - {series_id: EXHOSLUSM495S, econ_category: HOUSING, polarity: 1, default_transform: level, notes: Existing home sales}
+  - {series_id: CSUSHPINSA, econ_category: HOUSING, polarity: 0, default_transform: pc1, surprise_window: 8, notes: Case-Shiller national HPI}
+  - {series_id: TTLCONS,  econ_category: HOUSING, polarity: 1,  default_transform: pc1,   notes: Total construction spending}
 
   # ---- CONSUMER --------------------------------------------------------------
   - {series_id: RSXFS,    econ_category: CONSUMER, polarity: 1, default_transform: pc1,   notes: Retail sales ex food services}
@@ -84,6 +141,8 @@ series:
   - {series_id: DSPIC96,  econ_category: CONSUMER, polarity: 1, default_transform: pc1,   notes: Real disposable income}
   - {series_id: PSAVERT,  econ_category: CONSUMER, polarity: 0, default_transform: level, notes: Saving rate}
   - {series_id: TOTALSL,  econ_category: CONSUMER, polarity: 0, default_transform: pc1,   notes: Consumer credit}
+  - {series_id: UMCSENT,  econ_category: CONSUMER, polarity: 1, default_transform: level, notes: Michigan consumer sentiment}
+  - {series_id: PCE,      econ_category: CONSUMER, polarity: 1, default_transform: pc1,   notes: Nominal personal consumption}
 
   # ---- MONEY -----------------------------------------------------------------
   - {series_id: M2SL,     econ_category: MONEY, polarity: 0, default_transform: pc1, notes: M2}
@@ -91,6 +150,10 @@ series:
   - {series_id: WALCL,    econ_category: MONEY, polarity: 0, default_transform: chg, scale: $T, notes: Fed balance sheet}
   - {series_id: WRESBAL,  econ_category: MONEY, polarity: 0, default_transform: chg, scale: $T, notes: Reserve balances}
   - {series_id: BOGMBASE, econ_category: MONEY, polarity: 0, default_transform: pc1, notes: Monetary base}
+  - {series_id: RRPONTSYD, econ_category: MONEY, polarity: 0, default_transform: chg, scale: $B, notes: Overnight reverse repo (ON RRP)}
+  - {series_id: WTREGEN,  econ_category: MONEY, polarity: 0, default_transform: chg, scale: $B, notes: Treasury General Account}
+  - {series_id: TOTRESNS, econ_category: MONEY, polarity: 0, default_transform: pc1, notes: Total reserves}
+  - {series_id: DPSACBW027SBOG, econ_category: MONEY, polarity: 0, default_transform: pc1, notes: Commercial bank deposits}
 
   # ---- FX --------------------------------------------------------------------
   - {series_id: DTWEXBGS, econ_category: FX, polarity: 0, default_transform: level, notes: Broad dollar index}
@@ -100,3 +163,147 @@ series:
   - {series_id: DEXCHUS,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: CNY per USD}
   - {series_id: DEXCAUS,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: CAD per USD}
   - {series_id: DEXMXUS,  econ_category: FX, polarity: 0, default_transform: level, notes: MXN per USD}
+  - {series_id: DTWEXAFEGS, econ_category: FX, polarity: 0, default_transform: level, notes: Advanced foreign economies dollar index}
+  - {series_id: DEXUSAL,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: USD per AUD}
+  - {series_id: DEXSZUS,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: CHF per USD}
+  - {series_id: DEXKOUS,  econ_category: FX, polarity: 0, default_transform: level, notes: KRW per USD}
+  - {series_id: DEXBZUS,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: BRL per USD}
+  - {series_id: DEXINUS,  econ_category: FX, polarity: 0, default_transform: level, notes: INR per USD}
+  - {series_id: DEXNOUS,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: NOK per USD}
+  - {series_id: DEXSDUS,  econ_category: FX, polarity: 0, default_transform: level, decimals: 4, notes: SEK per USD}
+
+  # ---- REGIONAL --------------------------------------------------------------
+  # State / census-region panel. `geo` carries the USPS state code (or the
+  # census-region name) so a report can map these without parsing titles.
+  # Polarity follows the national convention: a rising unemployment rate is
+  # bearish, a rising activity index bullish, a house-price index neutral.
+  # macro_category_summary therefore yields a state diffusion index
+  # (% of states improving) as the REGIONAL row.
+
+  # State unemployment rates (state_unemployment.yml)
+  - {series_id: AKUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: AK, notes: Alaska unemployment rate}
+  - {series_id: ALUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: AL, notes: Alabama unemployment rate}
+  - {series_id: ARUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: AR, notes: Arkansas unemployment rate}
+  - {series_id: AZUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: AZ, notes: Arizona unemployment rate}
+  - {series_id: CAUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: CA, notes: California unemployment rate}
+  - {series_id: COUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: CO, notes: Colorado unemployment rate}
+  - {series_id: CTUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: CT, notes: Connecticut unemployment rate}
+  - {series_id: DCUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: DC, notes: the District of Columbia unemployment rate}
+  - {series_id: DEUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: DE, notes: Delaware unemployment rate}
+  - {series_id: FLUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: FL, notes: Florida unemployment rate}
+  - {series_id: GAUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: GA, notes: Georgia unemployment rate}
+  - {series_id: HIUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: HI, notes: Hawaii unemployment rate}
+  - {series_id: IAUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: IA, notes: Iowa unemployment rate}
+  - {series_id: IDUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: ID, notes: Idaho unemployment rate}
+  - {series_id: ILUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: IL, notes: Illinois unemployment rate}
+  - {series_id: INUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: IN, notes: Indiana unemployment rate}
+  - {series_id: KSUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: KS, notes: Kansas unemployment rate}
+  - {series_id: KYUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: KY, notes: Kentucky unemployment rate}
+  - {series_id: LAUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: LA, notes: Louisiana unemployment rate}
+  - {series_id: MAUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: MA, notes: Massachusetts unemployment rate}
+  - {series_id: MDUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: MD, notes: Maryland unemployment rate}
+  - {series_id: MEUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: ME, notes: Maine unemployment rate}
+  - {series_id: MIUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: MI, notes: Michigan unemployment rate}
+  - {series_id: MNUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: MN, notes: Minnesota unemployment rate}
+  - {series_id: MOUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: MO, notes: Missouri unemployment rate}
+  - {series_id: MSUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: MS, notes: Mississippi unemployment rate}
+  - {series_id: MTUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: MT, notes: Montana unemployment rate}
+  - {series_id: NCUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: NC, notes: North Carolina unemployment rate}
+  - {series_id: NDUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: ND, notes: North Dakota unemployment rate}
+  - {series_id: NEUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: NE, notes: Nebraska unemployment rate}
+  - {series_id: NHUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: NH, notes: New Hampshire unemployment rate}
+  - {series_id: NJUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: NJ, notes: New Jersey unemployment rate}
+  - {series_id: NMUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: NM, notes: New Mexico unemployment rate}
+  - {series_id: NVUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: NV, notes: Nevada unemployment rate}
+  - {series_id: NYUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: NY, notes: New York unemployment rate}
+  - {series_id: OHUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: OH, notes: Ohio unemployment rate}
+  - {series_id: OKUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: OK, notes: Oklahoma unemployment rate}
+  - {series_id: ORUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: OR, notes: Oregon unemployment rate}
+  - {series_id: PAUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: PA, notes: Pennsylvania unemployment rate}
+  - {series_id: PRUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: PR, notes: Puerto Rico unemployment rate}
+  - {series_id: RIUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: RI, notes: Rhode Island unemployment rate}
+  - {series_id: SCUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: SC, notes: South Carolina unemployment rate}
+  - {series_id: SDUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: SD, notes: South Dakota unemployment rate}
+  - {series_id: TNUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: TN, notes: Tennessee unemployment rate}
+  - {series_id: TXUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: TX, notes: Texas unemployment rate}
+  - {series_id: UTUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: UT, notes: Utah unemployment rate}
+  - {series_id: VAUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: VA, notes: Virginia unemployment rate}
+  - {series_id: VTUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: VT, notes: Vermont unemployment rate}
+  - {series_id: WAUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: WA, notes: Washington unemployment rate}
+  - {series_id: WIUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: WI, notes: Wisconsin unemployment rate}
+  - {series_id: WVUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: WV, notes: West Virginia unemployment rate}
+  - {series_id: WYUR,    econ_category: REGIONAL, polarity: -1, default_transform: level, geo: WY, notes: Wyoming unemployment rate}
+
+  # Philadelphia Fed state coincident activity indexes (state_coincident_index.yml)
+  - {series_id: AKPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: AK, notes: Alaska coincident activity index}
+  - {series_id: ALPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: AL, notes: Alabama coincident activity index}
+  - {series_id: ARPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: AR, notes: Arkansas coincident activity index}
+  - {series_id: AZPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: AZ, notes: Arizona coincident activity index}
+  - {series_id: CAPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: CA, notes: California coincident activity index}
+  - {series_id: COPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: CO, notes: Colorado coincident activity index}
+  - {series_id: CTPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: CT, notes: Connecticut coincident activity index}
+  - {series_id: DEPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: DE, notes: Delaware coincident activity index}
+  - {series_id: FLPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: FL, notes: Florida coincident activity index}
+  - {series_id: GAPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: GA, notes: Georgia coincident activity index}
+  - {series_id: HIPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: HI, notes: Hawaii coincident activity index}
+  - {series_id: IAPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: IA, notes: Iowa coincident activity index}
+  - {series_id: IDPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: ID, notes: Idaho coincident activity index}
+  - {series_id: ILPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: IL, notes: Illinois coincident activity index}
+  - {series_id: INPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: IN, notes: Indiana coincident activity index}
+  - {series_id: KSPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: KS, notes: Kansas coincident activity index}
+  - {series_id: KYPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: KY, notes: Kentucky coincident activity index}
+  - {series_id: LAPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: LA, notes: Louisiana coincident activity index}
+  - {series_id: MAPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: MA, notes: Massachusetts coincident activity index}
+  - {series_id: MDPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: MD, notes: Maryland coincident activity index}
+  - {series_id: MEPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: ME, notes: Maine coincident activity index}
+  - {series_id: MIPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: MI, notes: Michigan coincident activity index}
+  - {series_id: MNPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: MN, notes: Minnesota coincident activity index}
+  - {series_id: MOPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: MO, notes: Missouri coincident activity index}
+  - {series_id: MSPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: MS, notes: Mississippi coincident activity index}
+  - {series_id: MTPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: MT, notes: Montana coincident activity index}
+  - {series_id: NCPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: NC, notes: North Carolina coincident activity index}
+  - {series_id: NDPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: ND, notes: North Dakota coincident activity index}
+  - {series_id: NEPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: NE, notes: Nebraska coincident activity index}
+  - {series_id: NHPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: NH, notes: New Hampshire coincident activity index}
+  - {series_id: NJPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: NJ, notes: New Jersey coincident activity index}
+  - {series_id: NMPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: NM, notes: New Mexico coincident activity index}
+  - {series_id: NVPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: NV, notes: Nevada coincident activity index}
+  - {series_id: NYPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: NY, notes: New York coincident activity index}
+  - {series_id: OHPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: OH, notes: Ohio coincident activity index}
+  - {series_id: OKPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: OK, notes: Oklahoma coincident activity index}
+  - {series_id: ORPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: OR, notes: Oregon coincident activity index}
+  - {series_id: PAPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: PA, notes: Pennsylvania coincident activity index}
+  - {series_id: RIPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: RI, notes: Rhode Island coincident activity index}
+  - {series_id: SCPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: SC, notes: South Carolina coincident activity index}
+  - {series_id: SDPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: SD, notes: South Dakota coincident activity index}
+  - {series_id: TNPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: TN, notes: Tennessee coincident activity index}
+  - {series_id: TXPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: TX, notes: Texas coincident activity index}
+  - {series_id: UTPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: UT, notes: Utah coincident activity index}
+  - {series_id: VAPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: VA, notes: Virginia coincident activity index}
+  - {series_id: VTPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: VT, notes: Vermont coincident activity index}
+  - {series_id: WAPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: WA, notes: Washington coincident activity index}
+  - {series_id: WIPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: WI, notes: Wisconsin coincident activity index}
+  - {series_id: WVPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: WV, notes: West Virginia coincident activity index}
+  - {series_id: WYPHCI,  econ_category: REGIONAL, polarity: 1,  default_transform: pc1,   geo: WY, notes: Wyoming coincident activity index}
+
+  # FHFA all-transactions state house price indexes (state_house_price.yml)
+  - {series_id: AKSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: AK, notes: Alaska house price index}
+  - {series_id: ARSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: AR, notes: Arkansas house price index}
+  - {series_id: DESTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: DE, notes: Delaware house price index}
+  - {series_id: KSSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: KS, notes: Kansas house price index}
+  - {series_id: LASTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: LA, notes: Louisiana house price index}
+  - {series_id: MSSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: MS, notes: Mississippi house price index}
+  - {series_id: NDSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: ND, notes: North Dakota house price index}
+  - {series_id: NESTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: NE, notes: Nebraska house price index}
+  - {series_id: NMSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: NM, notes: New Mexico house price index}
+  - {series_id: NVSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: NV, notes: Nevada house price index}
+  - {series_id: OKSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: OK, notes: Oklahoma house price index}
+  - {series_id: SDSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: SD, notes: South Dakota house price index}
+  - {series_id: WVSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: WV, notes: West Virginia house price index}
+  - {series_id: WYSTHPI, econ_category: REGIONAL, polarity: 0,  default_transform: pc1,   surprise_window: 8, geo: WY, notes: Wyoming house price index}
+
+  # Census-region unemployment rates (regional_aggregates.yml)
+  - {series_id: CMWRUR,  econ_category: REGIONAL, polarity: -1, default_transform: level, geo: Midwest, notes: Midwest census region unemployment rate}
+  - {series_id: CNERUR,  econ_category: REGIONAL, polarity: -1, default_transform: level, geo: Northeast, notes: Northeast census region unemployment rate}
+  - {series_id: CSOUUR,  econ_category: REGIONAL, polarity: -1, default_transform: level, geo: South, notes: South census region unemployment rate}
+  - {series_id: CWSTUR,  econ_category: REGIONAL, polarity: -1, default_transform: level, geo: West, notes: West census region unemployment rate}

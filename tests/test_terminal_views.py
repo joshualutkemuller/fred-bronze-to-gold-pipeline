@@ -7,6 +7,7 @@ from __future__ import annotations
 import pytest
 
 from fred_pipeline.catalog_config import (
+    VALID_CATEGORIES,
     CatalogConfigError,
     CatalogEntry,
     load_series_catalog,
@@ -90,8 +91,48 @@ def test_load_series_catalog_rejects_malformed(tmp_path, body):
 
 def test_repo_series_catalog_parses():
     entries = load_series_catalog("config/series_catalog.yml")
-    assert len(entries) > 40
+    assert len(entries) > 200
     assert any(e.series_id == "UNRATE" and e.polarity == -1 for e in entries)
+
+
+def test_repo_series_catalog_covers_every_category():
+    """Each bucket is populated, so no dashboard category renders empty."""
+    entries = load_series_catalog("config/series_catalog.yml")
+    covered = {e.econ_category for e in entries}
+    assert covered == VALID_CATEGORIES
+
+
+def test_repo_series_catalog_regional_entries_carry_geo():
+    """A REGIONAL series without a geo can't be mapped -- guard against one
+    slipping in. National entries stay blank."""
+    entries = load_series_catalog("config/series_catalog.yml")
+    regional = [e for e in entries if e.econ_category == "REGIONAL"]
+    assert len(regional) >= 100
+    assert all(e.geo for e in regional)
+    assert any(e.series_id == "CAUR" and e.geo == "CA" for e in regional)
+    assert not any(e.geo for e in entries if e.econ_category != "REGIONAL")
+
+
+def test_repo_series_catalog_entries_are_all_ingested():
+    """Every cataloged series must be active in a manifest -- otherwise it
+    produces a dim_series row that no observation ever joins to."""
+    import glob
+
+    import yaml
+
+    active = set()
+    for path in glob.glob("manifests/*.yml"):
+        with open(path, encoding="utf-8") as fh:
+            doc = yaml.safe_load(fh) or {}
+        for spec in doc.get("series") or []:
+            if spec.get("active", True):
+                active.add(spec["series_id"])
+    orphans = [
+        e.series_id
+        for e in load_series_catalog("config/series_catalog.yml")
+        if e.series_id not in active
+    ]
+    assert orphans == []
 
 
 def test_load_curve_defs_fallback_and_repo_file(tmp_path):
@@ -122,9 +163,17 @@ def test_build_dim_series_merges_meta():
     assert row["title"] == "Unemployment Rate"
     assert row["econ_category"] == "LABOR"
     assert row["polarity"] == -1
+    assert row["geo"] == ""  # national series carry no geography
     # not in meta -> blank descriptive fields, catalog fields intact
     (bare,) = build_dim_series([CatalogEntry("X", "RATES")], [])
     assert bare["title"] == "" and bare["econ_category"] == "RATES"
+
+
+def test_build_dim_series_carries_geo_for_regional():
+    catalog = [CatalogEntry("CAUR", "REGIONAL", polarity=-1, geo="CA")]
+    (row,) = build_dim_series(catalog, [])
+    assert row["econ_category"] == "REGIONAL"
+    assert row["geo"] == "CA"
 
 
 def test_build_dim_date_calendar_attributes():

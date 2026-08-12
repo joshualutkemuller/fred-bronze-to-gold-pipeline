@@ -22,10 +22,16 @@ import yaml
 # Default location for the (checked-in, reviewable) catalog file.
 DEFAULT_CATALOG_PATH = "config/series_catalog.yml"
 
-# The terminal's 10 EconCategory buckets.
+# The terminal's 10 EconCategory buckets, plus REGIONAL for the state/census-
+# region panel (state unemployment, coincident activity, house prices). REGIONAL
+# is this pipeline's own addition, not a terminal module: it exists so the
+# already-ingested state series get presentation semantics and a geography, and
+# so macro_category_summary yields a state diffusion index (% of states
+# improving) alongside the national category breadths.
 VALID_CATEGORIES = {
     "GROWTH", "INFLATION", "LABOR", "RATES", "CREDIT",
     "HOUSING", "CONSUMER", "MONEY", "ACTIVITY", "FX",
+    "REGIONAL",
 }
 
 # FRED-style display transforms the terminal uses: pc1 = YoY %, pch = period %,
@@ -47,6 +53,11 @@ class CatalogEntry:
     (unemployment, inflation), 0 neutral (FX, policy rates).
     ``surprise_window``: trailing observations used for the dashboard's
     no-consensus "surprise" proxy (latest − trailing mean).
+    ``geo``: geography this series measures — a USPS state code ("CA"), a
+    census-region name ("Midwest"), or "" for a national series. Carried onto
+    ``gold.dim_series`` so a report can map a state series without parsing its
+    title; only REGIONAL entries are expected to set it, but nothing forbids
+    tagging a national series with "US".
     """
 
     series_id: str
@@ -57,6 +68,7 @@ class CatalogEntry:
     scale: str = ""
     decimals: int = 2
     surprise_window: int = 12
+    geo: str = ""
     notes: str = ""
 
     def __post_init__(self) -> None:
@@ -91,7 +103,7 @@ def _parse_entries(raw: Any, *, source: str) -> list[CatalogEntry]:
     seen: set[str] = set()
     known = {
         "series_id", "econ_category", "polarity", "default_transform",
-        "source", "scale", "decimals", "surprise_window", "notes",
+        "source", "scale", "decimals", "surprise_window", "geo", "notes",
     }
     for item in raw:
         if not isinstance(item, dict):
@@ -113,6 +125,7 @@ def _parse_entries(raw: Any, *, source: str) -> list[CatalogEntry]:
             scale=item.get("scale", ""),
             decimals=int(item.get("decimals", 2)),
             surprise_window=int(item.get("surprise_window", 12)),
+            geo=item.get("geo", ""),
             notes=item.get("notes", ""),
         )
         if entry.series_id in seen:
