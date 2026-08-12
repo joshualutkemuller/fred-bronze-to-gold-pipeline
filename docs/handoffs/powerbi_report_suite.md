@@ -1707,18 +1707,22 @@ register — so its redistribution and commercial-use status is unknown, and
 dimension — resolve it before anything derived from BIS data leaves the
 organisation.**
 
-**G7 — Funding stress gauge emits zero rows (`TGCR` id mismatch).** 🔴
-`config/funding.yml` and `config/benchmark_rates.yml` reference `TGCR`;
-`manifests/fed_funding.yml:61` ingests the same rate as `TGCRRATE`. Nothing
-joins them, so the `SOFR_TGCR` spread never computes — and because
+**G7 — Funding stress gauge emitted zero rows (`TGCR` id mismatch).** ✅ **Fixed.**
+`config/funding.yml` and `config/benchmark_rates.yml` referenced `TGCR` while
+`manifests/fed_funding.yml` declared FRED's real id, `TGCRRATE`. Nothing joined
+them, so the `SOFR_TGCR` spread never computed — and because
 `funding_stress_daily` emits only on dates where *every* component spread has a
-value, the whole 0–100 gauge produces nothing. `BGCR` is referenced by both
-configs with no manifest entry at all.
-*Blocks:* #5's hero visual entirely; degrades #8 (the recession probit's
-configured `funding_stress` feature drops out, visible as a reduced
-`n_features`).
-*Fix:* verify both ids live, correct the loser (FRED publishes the rate as
-`TGCR`), add a `BGCR` entry, re-run. Full detail and prevention in
+value, the whole 0–100 gauge produced nothing, and #8's recession probit
+silently lost its configured `funding_stress` feature.
+
+The configs were wrong, not the manifest: FRED publishes the repo reference
+rates with a `RATE` suffix (bare `TGCR`/`BGCR` are prefixes of the percentile
+and volume companions). Both configs now point at `TGCRRATE`; gauge components
+resolve 4/4. `BGCR` is now declared as `BGCRRATE` but ships `active: false`
+pending a live id check — it is a tape/board row, not a gauge component.
+
+Guarded by `tests/test_config_manifest_integrity.py`, which fails on any Gold
+config referencing a series id no manifest declares. Full detail in
 [`powerbi_report_build_plan.md`](powerbi_report_build_plan.md) §2 G-A.
 
 **G5 — FOMC probabilities are curve-derived, not futures-derived.**

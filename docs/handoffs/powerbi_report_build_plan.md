@@ -21,10 +21,10 @@ after any manifest or config change and this document's verdicts with it.
 | 2 | Inflation Explorer | 🟢 **Ready** | — all three item trees fully ingested |
 | 3 | Treasury Curve Lab | 🟢 **Ready** | — 11/11 tenors |
 | 4 | Spreads & Inversions | 🟢 **Ready** | — 9 spreads, all legs present |
-| 5 | Funding & Liquidity | 🔴 **Gated** | **G-A**: stress gauge emits zero rows (`TGCR` id mismatch); `BGCR` not ingested |
+| 5 | Funding & Liquidity | 🟢 **Ready** | G-A fixed; gauge components 4/4. `BGCRRATE` declared but inactive → tape 9/10, board 16/17 |
 | 6 | Fed Policy Watch | 🟢 **Ready** | — anchors + 4 forward tenors present |
 | 7 | Credit Conditions | 🟢 **Ready** | — 9/9 OAS instruments |
-| 8 | Regime & Recession Risk | 🟡 **Ready, degraded** | probit loses its `funding_stress` feature to G-A |
+| 8 | Regime & Recession Risk | 🟢 **Ready** | probit regains its `funding_stress` feature now G-A is fixed |
 | 9 | Statistical Lab | 🟢 **Ready** | — 11/11 pair series |
 | 10 | Global Macro Monitor | 🟡 **Ready, restricted** | data complete (38/38 + 38/38); **G-B**: BIS licensing unregistered → internal-only |
 | 11 | Equity & Factor Analytics | 🟡 **Ready, one page gated** | **G-C**: reconciliation page needs Stooq; all other pages populate from Tiingo |
@@ -32,8 +32,9 @@ after any manifest or config change and this document's verdicts with it.
 | 13 | PIT & Revisions Lab | 🟢 **Ready** | — vintage capture on by default |
 | 14 | Pipeline Health | 🟢 **Ready** | — audit/meta populate on every run |
 
-**Ten of fourteen fully ready. One blocked on a one-line config defect. Three
-partially constrained.**
+**Twelve of fourteen fully ready. Two constrained, neither by data:** Report 10
+by BIS licensing (G-B) and Report 11's single QA page by Stooq being inactive
+(G-C). Nothing is blocked.
 
 ### Corrections to the earlier spec's gap list
 
@@ -53,47 +54,56 @@ to match.
 
 ## 2. The three real gates
 
-### G-A — Funding stress gauge emits zero rows (`TGCR` id mismatch) 🔴
+### G-A — Funding stress gauge emitted zero rows (`TGCR` id mismatch) ✅ Fixed
 
-**The defect.** `config/funding.yml` and `config/benchmark_rates.yml` both
-reference a series called **`TGCR`**. The manifest ingests the Tri-Party General
-Collateral Rate under a *different* id, **`TGCRRATE`**
-(`manifests/fed_funding.yml:61`). Nothing joins them, so:
+**The defect.** `config/funding.yml` and `config/benchmark_rates.yml` referenced
+a series called **`TGCR`**, while `manifests/fed_funding.yml` declared the
+Tri-Party General Collateral Rate under FRED's actual id, **`TGCRRATE`**.
+Nothing joined them, so the `TGCR` tape row was empty, the `SOFR_TGCR` spread
+never computed, and because `funding_stress_daily` emits a row **only on dates
+where every component spread has a value**, the entire 0–100 stress gauge
+produced no rows. `funding_stress` is also a configured feature of the recession
+probit (`config/recession_model.yml`), so Report 8 silently ran on a reduced
+feature set.
 
-- the `TGCR` tape row is empty,
-- the `SOFR_TGCR` spread never computes,
-- and because `funding_stress_daily` emits a row **only on dates where every
-  component spread has a value**, and `SOFR_TGCR` is one of its three weighted
-  components, **the entire 0–100 stress gauge produces no rows at all.**
+**The resolution.** The *manifest* was right and the *configs* were wrong —
+the opposite of this document's first guess. FRED publishes the repo reference
+rates with a `RATE` suffix: the bare `TGCR`/`BGCR` strings are prefixes of the
+percentile and volume companions (`TGCR25THPERCENTILE`, `TGCRVOLUME`), not the
+rate series. Fixed by pointing both configs at `TGCRRATE`:
 
-That gauge is Report 5's hero visual, and `funding_stress` is also a configured
-feature of the recession probit (`config/recession_model.yml`), so the defect
-propagates into Report 8.
+- `config/funding.yml` — the `TGCR` metric's `series_id`, and the `SOFR_TGCR`
+  spread's `short_leg` (spread legs are series ids, not the `name` labels).
+- `config/benchmark_rates.yml` — the `TGCR` board row.
 
-**Separately**, `BGCR` (Broad General Collateral Rate) is referenced by both
-configs but has **no manifest entry at any status** — a board row and a tape row
-that can never populate.
+Stress-gauge components now resolve **4/4** and `funding_stress_daily` emits.
 
-**The fix.** One of the two spellings is wrong; they cannot both be right. FRED
-publishes the Tri-Party General Collateral Rate as **`TGCR`**, which suggests
-`TGCRRATE` in the manifest is a casualty of the README's own open item —
-*"Verify demo IDs live — the demo series IDs were built to the documented API
-shapes but not verified against the live APIs."* Recommended sequence:
+**`BGCR` — declared, still inactive.** It was referenced by both configs with no
+manifest entry at any status. It is now declared as **`BGCRRATE`** in
+`manifests/fed_funding.yml` with `active: false`: the id follows the same
+documented convention, but egress to `fred.stlouisfed.org` is blocked from the
+authoring environment, so it could not be confirmed live. Verify with
+`run --dry-run --series BGCRRATE` and flip to `active: true`. Until then the
+funding tape runs 9/10 metrics and the benchmark board 16/17 rates — a visible,
+non-blocking coverage gap. **BGCR is not a stress-gauge component**, so the
+gauge is unaffected either way.
 
-1. Verify both ids against the live FRED API (`fred_pipeline run --dry-run
-   --series TGCR` and `--series TGCRRATE`); exactly one will resolve.
-2. Correct the loser — almost certainly `manifests/fed_funding.yml:61`
-   `TGCRRATE` → `TGCR`.
-3. Add a `BGCR` manifest entry alongside it.
-4. Re-run `run` then `gold`; confirm `funding_stress_daily` is non-empty.
+**Prevention — shipped.** `tests/test_config_manifest_integrity.py` now
+cross-checks every series id referenced by a Gold config against the manifests:
 
-Until then, build Report 5 without the gauge page and label it pending. **Do not
-work around it in DAX** — a gauge computed report-side from two of three
-components is a different statistic wearing the same name.
+- `test_every_config_series_is_declared_in_a_manifest` fails on an id no
+  manifest declares (the typo/rename case), across curve, spreads, funding,
+  benchmark rates, credit, regime, stats pairs, ML features, inflation items,
+  and FOMC configs.
+- `test_funding_stress_gauge_components_are_resolvable` guards the gauge's
+  components specifically, and fails on *inactive* legs too — one unresolvable
+  leg empties the whole gauge, so "declared but not ingested" is also a failure
+  there.
 
-**Prevention.** Nothing currently cross-checks config series references against
-the manifests. The audit in Appendix A does exactly that and is worth promoting
-into the test suite — it would have caught this at the commit that introduced it.
+Both were confirmed to fail when the `TGCR` spelling is reintroduced. The tests
+deliberately tolerate declared-but-inactive ids elsewhere: shipping a series
+inactive is a coverage decision, while naming an id that exists nowhere is
+always a defect.
 
 ### G-B — BIS licensing unregistered 🟡
 
@@ -414,24 +424,26 @@ selected window. Drive it from the `spread_name` slicer and render
 
 ---
 
-### Report 5 — Funding & Liquidity 🔴 Gated (G-A)
+### Report 5 — Funding & Liquidity 🟢 Ready
 
 **Readiness detail.**
 
 | Component | Status |
 |---|---|
-| Funding tape metrics | 8/10 — missing `BGCR`, `TGCR` |
-| Funding spread legs | 3/4 — missing `TGCR` |
-| **Stress gauge components** | **3/4 — `SOFR_TGCR` unresolvable** |
-| **`funding_stress_daily`** | **emits zero rows** |
-| Benchmark rate board | 15/17 — missing `BGCR`, `TGCR` |
+| Funding tape metrics | 9/10 — `BGCRRATE` declared but inactive |
+| Funding spread legs | 4/4 |
+| **Stress gauge components** | **4/4 — all resolvable** |
+| **`funding_stress_daily`** | **emits** |
+| Benchmark rate board | 16/17 — `BGCRRATE` declared but inactive |
 
-The gauge is the report's hero visual and it produces nothing. See §2 G-A for
-the cause (`TGCRRATE` in the manifest vs `TGCR` in the configs) and the fix.
+G-A is fixed (§2): the configs now reference `TGCRRATE`, FRED's real id for the
+Tri-Party General Collateral Rate, so the `SOFR_TGCR` spread computes and the
+gauge populates.
 
-**Build order:** ship pages 2–3 (tape and board, both usable at 8/10 and 15/17)
-and hold page 1 behind the fix. Do not synthesise the gauge in DAX from the
-three available components.
+The one remaining gap is `BGCRRATE`, shipped `active: false` pending a live id
+check. It is a tape row and a board row, **not** a gauge component, so it costs
+coverage rather than correctness. Label the tape's BGCR row as pending rather
+than letting it render as a silent blank.
 
 **Source queries**
 
@@ -440,7 +452,7 @@ three available components.
 SELECT metric_name, metric_type, observation_date, value, zscore, percentile
 FROM   ${p_Catalog}.gold.funding_tape_daily;
 
--- qFundingStress : the 0-100 gauge. EMPTY until G-A is fixed.
+-- qFundingStress : the 0-100 gauge. Populates now that G-A is fixed.
 SELECT observation_date, composite_z, stress_score, stress_bucket, n_components
 FROM   ${p_Catalog}.gold.funding_stress_daily;
 
@@ -579,7 +591,7 @@ BB_OAS 6, B_OAS 7, CCC_OAS 8
 
 ---
 
-### Report 8 — Regime & Recession Risk 🟡 Ready, degraded
+### Report 8 — Regime & Recession Risk 🟢 Ready
 
 **Readiness detail.** All five regime pillars resolve **3/3** inputs
 (growth, inflation, liquidity, credit, policy) — the config's "(inactive)"
@@ -588,11 +600,12 @@ comments on `BAMLH0A0HYM2` and `EFFR` are stale; both are active now.
 recession shading and the probit's label both work.
 
 **The degradation:** `config/recession_model.yml` enables a `funding_stress`
-feature, which reads `gold.funding_stress_daily` — empty because of G-A. The
-model drops the unavailable feature and records the count in `n_features`, so it
-still fits, on a smaller feature set than configured. **Surface `n_features` on
-the probability page** so a reader can see the model is running degraded, and
-re-check it after G-A is fixed.
+feature, which reads `gold.funding_stress_daily`. That table was empty before
+G-A was fixed, and the model silently dropped the feature — it fits on whatever
+features resolve and records the count in `n_features`. With G-A fixed the
+feature is back. **Surface `n_features` on the probability page anyway**: it is
+the only visible signal that the probit is running on fewer inputs than
+configured, and it costs one card.
 
 **Source queries**
 
@@ -1149,10 +1162,10 @@ built on a timestamp against a date dimension without truncation.
 | **3** | **2** Inflation, **8** Regime (note `n_features`), **12** Regional Map | All ready; #2 and #12 both moved earlier once auditing corrected their status |
 | **4** | **9** Statistical Lab, **13** PIT Lab | Ready but need the sizing work in the spec's §6 |
 | **5** | **11** Equity (skip recon page), **10** Global (internal workspace) | Ready with documented constraints |
-| **6** | **5** Funding & Liquidity | **Blocked on G-A.** Tape and board can ship earlier; the gauge cannot |
+| **6** | **5** Funding & Liquidity | Ready (G-A fixed). Label the BGCR tape/board row pending until `BGCRRATE` is verified and activated |
 
-The pipeline fix for G-A is small and unblocks both the gauge and Report 8's
-full feature set — worth doing before wave 6 rather than deferring.
+G-A is fixed, so Report 5 can move earlier than wave 6 if it is wanted sooner —
+the ordering below is by shape and audience, not by dependency any more.
 
 ---
 
@@ -1160,7 +1173,7 @@ full feature set — worth doing before wave 6 rather than deferring.
 
 Re-run after any manifest or config change. It resolves every Gold-table config
 against the active series universe and prints missing ids per surface. This is
-the check that found G-A.
+the check that found G-A. It is now enforced by `tests/test_config_manifest_integrity.py`.
 
 ```python
 # scripts/audit_report_readiness.py
@@ -1216,10 +1229,17 @@ report('inflation_items.yml',
        [i['series_id'] for i in cfg('inflation_items.yml')['items']])
 ```
 
-**Promote this into the test suite.** A test asserting that every config-
-referenced series id exists in an active manifest would have caught the
-`TGCR`/`TGCRRATE` mismatch at the commit that introduced it, instead of at
-report-build time.
+**Now enforced in CI.** `tests/test_config_manifest_integrity.py` runs this
+cross-check on every commit:
+
+- `test_every_config_series_is_declared_in_a_manifest` — fails on any id no
+  manifest declares, across all ten Gold configs.
+- `test_funding_stress_gauge_components_are_resolvable` — fails if any gauge
+  component leg is missing *or inactive*, since one bad leg empties the gauge.
+
+Keep the script above for ad-hoc coverage reporting (it shows *inactive*
+declared series, which the tests deliberately tolerate); rely on the tests to
+catch the defect class.
 
 ---
 
