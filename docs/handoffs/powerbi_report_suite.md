@@ -3,6 +3,11 @@
 **Status:** approved scope, ready to build
 **Owner:** BI / report authoring
 **Upstream:** `fred-bronze-to-gold-pipeline` Gold layer (Databricks Unity Catalog `macro_{env}` / local SQLite mirror)
+**Build layer:** [`powerbi_report_build_plan.md`](powerbi_report_build_plan.md) —
+the source query and model specification for every table in every report, plus a
+verified per-report readiness verdict. Read this document for *what* to build
+and that one for *how*.
+
 **Companion docs:** [`docs/dictionary/data_dictionary.md`](../dictionary/data_dictionary.md) ·
 [`docs/handoffs/completed/market_terminal_gold_views.md`](completed/market_terminal_gold_views.md) ·
 [`docs/deployment/architecture.md`](../deployment/architecture.md) ·
@@ -1669,23 +1674,27 @@ created before that change is upgraded automatically on open
 with a new `econ_category: REGIONAL` plus a state identifier.
 *Owner:* pipeline. *Interim:* report-local `dim_state` (§5, Report 12).
 
-**G2 — Inflation item trees depend on inactive manifests.**
-`bls_cpi_basket.yml` / `bls_cpi_basket_sa.yml` (CPI item hierarchy) and
-`bea_pce_items.yml` (21 BEA NIPA 2.4.4 items, needs a BEA API key) drive the
-depth of `inflation_explorer` / `inflation_contribution`. Without them the tree
-is headline-and-core only.
-*Blocks:* #2 Inflation Explorer pages 2–3 (partially).
-*Fix:* provision the BEA key, verify the demo series IDs against the live APIs,
-activate. Note the PCE contribution weights are documented as **approximate
-nominal-PCE expenditure shares** — refresh from BEA Section 2 Underlying Detail
-for precise contributions.
+**G2 — Inflation item trees.** ~~Depend on inactive manifests.~~ **Resolved —
+the claim was wrong.** `bls_cpi_basket.yml` (30), `bls_cpi_basket_sa.yml` (29),
+and `bea_pce_items.yml` (21) are all active, and all three trees resolve
+completely: CPI/NSA 30/30, CPI/SA 29/29, PCE/SA 23/23. Report #2 is fully ready.
+The original claim came from the README's stale "seven inactive demo manifests"
+text rather than from the manifests themselves.
 
-**G3 — `equity_stooq.yml` is fully inactive (89 series, all `active: false`).**
-*Blocks:* `gold.equity_return_daily` and `gold.equity_price_reconciliation` —
-i.e. #11 Equity page 7 and the price-return comparison.
-*Fix:* activate the manifest, or build #11 on the Tiingo total-return path only
-and mark the reconciliation page as pending. `equity_tiingo.yml` (85 series) is
-active, so the rest of #11 populates.
+One caveat survives, as a labelling requirement rather than a gate: the PCE
+contribution weights are **approximate nominal-PCE expenditure shares**, not
+BEA's published relative importances. Refresh from BEA Section 2 Underlying
+Detail for precise contributions, and say which is in use on the page.
+
+**G3 — `equity_stooq.yml` is fully inactive (89 series).** *Narrower than
+originally stated.* `select_canonical_equity_price_rows` converts Tiingo
+`adjClose` into `<ticker>:close` rows for any ticker with no Stooq close, so
+`equity_return_daily`, `realized_volatility`, `equity_factor_attribution`, and
+`equity_factor_implied_return` **all populate from Tiingo's 85 active series**.
+*Blocks:* only `gold.equity_price_reconciliation` (#11's hidden QA page), which
+by construction needs both sources on the same (ticker, date).
+*Fix:* activate the manifest when you want the cross-source price check;
+otherwise mark that one page pending and ship the rest of #11.
 
 **G4 — `bis` is missing from `config/data_licensing.yml`.**
 `manifests/bis_policy_rates.yml` is active with 36 series and feeds
@@ -1697,6 +1706,20 @@ register — so its redistribution and commercial-use status is unknown, and
 *Owner:* pipeline / governance. **This is the only gap with a compliance
 dimension — resolve it before anything derived from BIS data leaves the
 organisation.**
+
+**G7 — Funding stress gauge emits zero rows (`TGCR` id mismatch).** 🔴
+`config/funding.yml` and `config/benchmark_rates.yml` reference `TGCR`;
+`manifests/fed_funding.yml:61` ingests the same rate as `TGCRRATE`. Nothing
+joins them, so the `SOFR_TGCR` spread never computes — and because
+`funding_stress_daily` emits only on dates where *every* component spread has a
+value, the whole 0–100 gauge produces nothing. `BGCR` is referenced by both
+configs with no manifest entry at all.
+*Blocks:* #5's hero visual entirely; degrades #8 (the recession probit's
+configured `funding_stress` feature drops out, visible as a reduced
+`n_features`).
+*Fix:* verify both ids live, correct the loser (FRED publishes the rate as
+`TGCR`), add a `BGCR` entry, re-run. Full detail and prevention in
+[`powerbi_report_build_plan.md`](powerbi_report_build_plan.md) §2 G-A.
 
 **G5 — FOMC probabilities are curve-derived, not futures-derived.**
 Not a defect — a documented design decision (option A, no CME connector). But it
