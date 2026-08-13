@@ -113,6 +113,29 @@ def test_repo_series_catalog_regional_entries_carry_geo():
     assert not any(e.geo for e in entries if e.econ_category != "REGIONAL")
 
 
+def test_repo_series_catalog_regional_entries_carry_metric():
+    """REGIONAL mixes unemployment rates, activity indexes and house-price
+    indexes -- three different units. Without a metric a report would have to
+    re-derive it from the series-id suffix, and a visual could put them on one
+    axis."""
+    entries = load_series_catalog("config/series_catalog.yml")
+    regional = [e for e in entries if e.econ_category == "REGIONAL"]
+    assert all(e.metric for e in regional)
+    assert {e.metric for e in regional} == {
+        "Unemployment Rate",
+        "Coincident Activity",
+        "House Price Index",
+    }
+    # the metric must agree with the series-id family it came from
+    for entry in regional:
+        if entry.series_id.endswith("PHCI"):
+            assert entry.metric == "Coincident Activity", entry.series_id
+        elif entry.series_id.endswith("STHPI"):
+            assert entry.metric == "House Price Index", entry.series_id
+        elif entry.series_id.endswith("UR"):
+            assert entry.metric == "Unemployment Rate", entry.series_id
+
+
 def test_repo_series_catalog_entries_are_all_ingested():
     """Every cataloged series must be active in a manifest -- otherwise it
     produces a dim_series row that no observation ever joins to."""
@@ -170,10 +193,15 @@ def test_build_dim_series_merges_meta():
 
 
 def test_build_dim_series_carries_geo_for_regional():
-    catalog = [CatalogEntry("CAUR", "REGIONAL", polarity=-1, geo="CA")]
+    catalog = [
+        CatalogEntry(
+            "CAUR", "REGIONAL", polarity=-1, geo="CA", metric="Unemployment Rate"
+        )
+    ]
     (row,) = build_dim_series(catalog, [])
     assert row["econ_category"] == "REGIONAL"
     assert row["geo"] == "CA"
+    assert row["metric"] == "Unemployment Rate"
 
 
 def test_build_dim_date_calendar_attributes():

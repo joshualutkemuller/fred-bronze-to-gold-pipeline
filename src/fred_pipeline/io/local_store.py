@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS gold_fred_revision_stats (
 CREATE TABLE IF NOT EXISTS gold_dim_series (
     series_id TEXT PRIMARY KEY, title TEXT, source TEXT, frequency TEXT,
     units TEXT, econ_category TEXT, polarity INTEGER, default_transform TEXT,
-    scale TEXT, decimals INTEGER, geo TEXT, notes TEXT
+    scale TEXT, decimals INTEGER, geo TEXT, metric TEXT, notes TEXT
 );
 CREATE TABLE IF NOT EXISTS gold_dim_date (
     -- date identifiers
@@ -634,6 +634,9 @@ class LocalWarehouse:
     _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
         # (table, column, type) -- geo landed with the REGIONAL series catalog.
         ("gold_dim_series", "geo", "TEXT"),
+        # metric disambiguates measures that share an econ_category (REGIONAL
+        # spans unemployment, activity and house prices).
+        ("gold_dim_series", "metric", "TEXT"),
     )
 
     def _apply_additive_migrations(self) -> None:

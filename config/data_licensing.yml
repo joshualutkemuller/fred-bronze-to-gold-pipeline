@@ -100,6 +100,36 @@ sources:
       above, this genuinely requires attribution on redistribution, not
       just a stated preference.
 
+  - source: bis
+    license_type: attribution-noncommercial
+    redistribution_allowed: true
+    commercial_use_allowed: false
+    attribution_required: true
+    terms_url: https://www.bis.org/terms_conditions.htm
+    last_reviewed_date: "2026-08-13"
+    notes: >
+      Bank for International Settlements. The BIS retains copyright and other
+      intellectual property rights in all statistical data on its website
+      ("BIS Material"). Its published terms permit users to download, display,
+      print and REDISTRIBUTE BIS Material without written permission FOR
+      NON-COMMERCIAL PURPOSES; commercial use is not covered by that grant and
+      needs permission from the BIS. Attribution to the BIS as source is
+      expected, and unlike the U.S. federal sources this is a copyright
+      condition rather than a preference.
+
+      Practical effect here: manifests/bis_policy_rates.yml (36 active policy
+      rate series) feeds gold.global_policy_rates and the Power BI Global Macro
+      Monitor. Internal and non-commercial analysis and redistribution are
+      fine with attribution; a commercially distributed product built on these
+      series needs BIS permission first, which is why commercial_use_allowed
+      is false and `validate --commercial` flags it.
+
+      Sourced from the BIS's published terms-and-conditions page, which could
+      not be fetched directly from the environment this entry was written in
+      (egress to bis.org is blocked). Re-read terms_url and bump
+      last_reviewed_date before relying on this for a real compliance
+      decision, particularly before any commercial distribution.
+
   - source: tiingo
     license_type: free-tier-personal-use
     redistribution_allowed: false

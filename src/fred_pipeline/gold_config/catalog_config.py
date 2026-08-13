@@ -58,6 +58,11 @@ class CatalogEntry:
     ``gold.dim_series`` so a report can map a state series without parsing its
     title; only REGIONAL entries are expected to set it, but nothing forbids
     tagging a national series with "US".
+    ``metric``: what is being measured, when one ``econ_category`` holds several
+    incompatible measures. REGIONAL spans unemployment rates, activity indexes
+    and house-price indexes, which share no axis — a report slices on this
+    instead of re-deriving it from the series-id suffix. Blank where
+    ``econ_category`` alone is enough (every national bucket today).
     """
 
     series_id: str
@@ -69,6 +74,7 @@ class CatalogEntry:
     decimals: int = 2
     surprise_window: int = 12
     geo: str = ""
+    metric: str = ""
     notes: str = ""
 
     def __post_init__(self) -> None:
@@ -103,7 +109,8 @@ def _parse_entries(raw: Any, *, source: str) -> list[CatalogEntry]:
     seen: set[str] = set()
     known = {
         "series_id", "econ_category", "polarity", "default_transform",
-        "source", "scale", "decimals", "surprise_window", "geo", "notes",
+        "source", "scale", "decimals", "surprise_window", "geo", "metric",
+        "notes",
     }
     for item in raw:
         if not isinstance(item, dict):
@@ -126,6 +133,7 @@ def _parse_entries(raw: Any, *, source: str) -> list[CatalogEntry]:
             decimals=int(item.get("decimals", 2)),
             surprise_window=int(item.get("surprise_window", 12)),
             geo=item.get("geo", ""),
+            metric=item.get("metric", ""),
             notes=item.get("notes", ""),
         )
         if entry.series_id in seen:

@@ -8,6 +8,16 @@
 # meeting), verified live against
 # https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm (2026-07-17).
 # Refresh this list as the Fed publishes further-out calendars.
+#
+# The Fed's preliminary schedule currently runs through JANUARY 2028 only —
+# 2027 is complete (8 meetings) and 2028 has just its January meeting. The rest
+# of 2028 is not published yet; add it when the Fed announces it, normally
+# about two years ahead.
+#
+# tests/test_fomc_probability.py fails when fewer than 120 days of runway
+# remain, because compute_fomc_probability filters to `d >= today` — an expired
+# list empties gold.fomc_probability / gold.fomc_meeting_path silently rather
+# than erroring.
 meeting_dates:
   - "2026-07-29"
   - "2026-09-16"
@@ -21,6 +31,11 @@ meeting_dates:
   - "2027-09-15"
   - "2027-10-27"
   - "2027-12-08"
+  # 2028-01-25/26 (Tue/Wed) — from the Fed's preliminary schedule through
+  # January 2028. Taken from secondary reporting of that announcement, not read
+  # off the Fed calendar page directly (egress blocked); confirm on the next
+  # calendar refresh.
+  - "2028-01-26"
 
 bucket_step_bps: 25
 

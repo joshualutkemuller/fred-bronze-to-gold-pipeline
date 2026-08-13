@@ -241,6 +241,10 @@ Rules:
 - `dim_series[geo]` carries a USPS state code (`"CA"`) or census-region name
   (`"Midwest"`) for `econ_category = 'REGIONAL'` rows, and is blank for
   national series. Use it as the map key in Report 12 — never parse the title.
+- `dim_series[metric]` names the measure where one `econ_category` holds several
+  incompatible ones: REGIONAL spans `Unemployment Rate`, `Coincident Activity`,
+  and `House Price Index`. Slice on it rather than deriving the split from the
+  series-id suffix, and never put two of them on one axis.
 
 ### 4.3 Core measure library
 
@@ -337,10 +341,10 @@ pipeline's own provenance convention.
 |---|---|---|---|---|
 | fred, bls, treasury, census, bea, sec, eia | public-domain | ✅ | ✅ | not required |
 | worldbank | open-data (CC BY 4.0) | ✅ | ✅ | **required** |
+| **bis** | **attribution-noncommercial** | ✅ non-commercial only | ❌ | **required** |
 | tiingo | free-tier personal-use | ❌ | ❌ | — |
 | stooq | requires-agreement | ❌ | ❌ | — |
 | ishares | requires-agreement | ❌ | ❌ | — |
-| **bis** | **NOT IN REGISTER** | unknown | unknown | unknown | 
 
 This produces two distribution tiers:
 
@@ -352,9 +356,13 @@ This produces two distribution tiers:
   internal-only workspace, must not be shared to external Entra guests, and must
   not use publish-to-web. The restriction is on *redistribution of the data*, not
   on internal analysis.
-- **#10 Global Macro Monitor is blocked from Tier A** until the `bis` licensing
-  gap (§8-G4) is resolved, because `gold.global_policy_rates` is largely
-  BIS-sourced. Treat it as Tier B in the interim.
+- **#10 Global Macro Monitor is Tier A for non-commercial distribution only.**
+  `gold.global_policy_rates` is largely BIS-sourced, and the BIS permits
+  redistribution without written permission **for non-commercial purposes**
+  while retaining copyright; commercial use needs BIS permission. Attribution to
+  the BIS is a copyright condition, so the About page must carry it alongside
+  the World Bank CC BY notice. If this report ever becomes part of a
+  commercially distributed product, clear it with the BIS first.
 
 Enforcement is workspace placement plus a sensitivity label, not report logic.
 `python -m fred_pipeline validate --commercial` is the upstream guardrail that
@@ -1108,7 +1116,8 @@ preferred.
 target, who is hiking, who is cutting.
 
 **Audience.** Executive-first (map and board), analyst detail behind.
-**Tier.** **B until §8-G4 is resolved** (BIS licensing unregistered).
+**Tier.** **A for non-commercial distribution, with BIS + World Bank
+attribution.** Commercial distribution needs BIS permission first (§8-G4).
 
 **Tables**
 
@@ -1721,16 +1730,22 @@ by construction needs both sources on the same (ticker, date).
 *Fix:* activate the manifest when you want the cross-source price check;
 otherwise mark that one page pending and ship the rest of #11.
 
-**G4 — `bis` is missing from `config/data_licensing.yml`.**
-`manifests/bis_policy_rates.yml` is active with 36 series and feeds
-`gold.global_policy_rates`, but the source has no entry in the licensing
-register — so its redistribution and commercial-use status is unknown, and
-`validate --commercial` cannot assess it.
-*Blocks:* #10 Global Macro Monitor from Tier A (external distribution).
-*Fix:* research BIS statistics terms of use and add the register entry.
-*Owner:* pipeline / governance. **This is the only gap with a compliance
-dimension — resolve it before anything derived from BIS data leaves the
-organisation.**
+**G4 — `bis` licensing.** ✅ **Registered** (the answer is a constraint, not a
+clearance). `bis` now has a `config/data_licensing.yml` entry recording that the
+BIS retains copyright in its statistical data, permits redistribution **without
+written permission for non-commercial purposes**, requires permission for
+commercial use, and treats attribution as a copyright condition.
+
+*Effect on #10 Global Macro Monitor:* internal and non-commercial distribution
+is fine with a BIS attribution on the About page; commercial distribution needs
+BIS permission first. `validate --commercial` still flags `bis` — correctly, and
+now with a real reason (`license_type='attribution-noncommercial'`) instead of
+"unreviewed".
+
+*Caveat:* written from the BIS's published terms page, which could not be
+fetched directly from the authoring environment (egress to bis.org blocked).
+**Re-read `terms_url` and bump `last_reviewed_date` before relying on this for a
+real compliance decision, especially before any commercial distribution.**
 
 **G7 — Funding stress gauge emitted zero rows (`TGCR` id mismatch).** ✅ **Fixed.**
 `config/funding.yml` and `config/benchmark_rates.yml` referenced `TGCR` while

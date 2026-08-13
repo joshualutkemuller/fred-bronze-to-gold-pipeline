@@ -21,12 +21,12 @@ after any manifest or config change and this document's verdicts with it.
 | 2 | Inflation Explorer | 🟢 **Ready** | — all three item trees fully ingested |
 | 3 | Treasury Curve Lab | 🟢 **Ready** | — 11/11 tenors |
 | 4 | Spreads & Inversions | 🟢 **Ready** | — 9 spreads, all legs present |
-| 5 | Funding & Liquidity | 🟢 **Ready** | G-A fixed; gauge components 4/4. `BGCRRATE` declared but inactive → tape 9/10, board 16/17 |
+| 5 | Funding & Liquidity | 🟢 **Ready** | G-A fixed; gauge components 4/4, tape 10/10, board 17/17 |
 | 6 | Fed Policy Watch | 🟢 **Ready** | — anchors + 4 forward tenors present |
 | 7 | Credit Conditions | 🟢 **Ready** | — 9/9 OAS instruments |
 | 8 | Regime & Recession Risk | 🟢 **Ready** | probit regains its `funding_stress` feature now G-A is fixed |
 | 9 | Statistical Lab | 🟢 **Ready** | — 11/11 pair series |
-| 10 | Global Macro Monitor | 🟡 **Ready, restricted** | data complete (38/38 + 38/38); **G-B**: BIS licensing unregistered → internal-only |
+| 10 | Global Macro Monitor | 🟡 **Ready, non-commercial** | data complete (38/38 + 38/38); **G-B**: BIS terms permit non-commercial redistribution with attribution, not commercial |
 | 11 | Equity & Factor Analytics | 🟡 **Ready, one page gated** | **G-C**: reconciliation page needs Stooq; all other pages populate from Tiingo |
 | 12 | Regional & State Map | 🟢 **Ready** | — 120 REGIONAL catalog entries with `geo` |
 | 13 | PIT & Revisions Lab | 🟢 **Ready** | — vintage capture on by default |
@@ -79,14 +79,16 @@ rate series. Fixed by pointing both configs at `TGCRRATE`:
 Stress-gauge components now resolve **4/4** and `funding_stress_daily` emits.
 
 **`BGCR` — declared, still inactive.** It was referenced by both configs with no
-manifest entry at any status. It is now declared as **`BGCRRATE`** in
-`manifests/fed_funding.yml` with `active: false`: the id follows the same
-documented convention, but egress to `fred.stlouisfed.org` is blocked from the
-authoring environment, so it could not be confirmed live. Verify with
-`run --dry-run --series BGCRRATE` and flip to `active: true`. Until then the
-funding tape runs 9/10 metrics and the benchmark board 16/17 rates — a visible,
-non-blocking coverage gap. **BGCR is not a stress-gauge component**, so the
-gauge is unaffected either way.
+manifest entry at any status. It is now declared and **active** as
+**`BGCRRATE`** in `manifests/fed_funding.yml`, completing the funding tape at
+10/10 metrics and the benchmark board at 17/17 rates.
+
+The id follows the same RATE-suffix convention as the confirmed `TGCRRATE` but
+could not be checked live (egress to `fred.stlouisfed.org` is blocked from the
+authoring environment). If it is wrong, the first run records one failed series
+in `audit.etl_series_run` and affects nothing else — **check there after the
+next run**. `BGCR` is not a stress-gauge component, so the gauge is unaffected
+either way.
 
 **Prevention — shipped.** `tests/test_config_manifest_integrity.py` now
 cross-checks every series id referenced by a Gold config against the manifests:
@@ -105,14 +107,29 @@ deliberately tolerate declared-but-inactive ids elsewhere: shipping a series
 inactive is a coverage decision, while naming an id that exists nowhere is
 always a defect.
 
-### G-B — BIS licensing unregistered 🟡
+### G-B — BIS data is non-commercial 🟡 Registered
 
-`manifests/bis_policy_rates.yml` is active with 36 series feeding
-`gold.global_policy_rates`, but `bis` has no entry in
-`config/data_licensing.yml`, so redistribution and commercial-use status are
-unknown and `validate --commercial` cannot assess it. Report 10's data is
-complete; the constraint is distribution. Keep it in an internal workspace until
-the register entry lands. This is the only gate with a compliance dimension.
+`bis` now has a `config/data_licensing.yml` entry, so the register no longer
+reports it as unreviewed. The answer it records is a real constraint rather than
+a clean bill of health:
+
+- The BIS **retains copyright** in its statistical data.
+- Its published terms permit download, display and **redistribution without
+  written permission for non-commercial purposes**.
+- **Commercial use is not covered by that grant** and needs BIS permission.
+- **Attribution is a copyright condition**, not a courtesy — unlike the US
+  federal sources, closer to World Bank CC BY.
+
+So Report 10 is fine for internal and non-commercial use with a BIS attribution
+on the About page, and needs permission before it becomes part of anything
+commercially distributed. `validate --commercial` still flags it — correctly
+now, with `license_type='attribution-noncommercial'` rather than "unreviewed",
+alongside tiingo and ishares.
+
+The entry was written from the BIS's published terms page, which could not be
+fetched directly (egress to bis.org is blocked from the authoring environment).
+Re-read `terms_url` and bump `last_reviewed_date` before making a real
+compliance decision, particularly before any commercial distribution.
 
 ### G-C — Stooq inactive 🟡
 
@@ -430,20 +447,20 @@ selected window. Drive it from the `spread_name` slicer and render
 
 | Component | Status |
 |---|---|
-| Funding tape metrics | 9/10 — `BGCRRATE` declared but inactive |
+| Funding tape metrics | 10/10 |
 | Funding spread legs | 4/4 |
 | **Stress gauge components** | **4/4 — all resolvable** |
 | **`funding_stress_daily`** | **emits** |
-| Benchmark rate board | 16/17 — `BGCRRATE` declared but inactive |
+| Benchmark rate board | 17/17 |
 
 G-A is fixed (§2): the configs now reference `TGCRRATE`, FRED's real id for the
 Tri-Party General Collateral Rate, so the `SOFR_TGCR` spread computes and the
 gauge populates.
 
-The one remaining gap is `BGCRRATE`, shipped `active: false` pending a live id
-check. It is a tape row and a board row, **not** a gauge component, so it costs
-coverage rather than correctness. Label the tape's BGCR row as pending rather
-than letting it render as a silent blank.
+`BGCRRATE` is now active, completing the tape at 10/10 and the board at 17/17.
+Its id was inferred from the confirmed `TGCRRATE` convention rather than checked
+live (egress blocked), so **confirm it in `audit.etl_series_run` after the first
+run** — a wrong id shows up there as one failed series and nothing else.
 
 **Source queries**
 
@@ -756,7 +773,7 @@ a two-column composite key cannot be a Power BI relationship.
 
 ---
 
-### Report 10 — Global Macro Monitor 🟡 Ready, restricted (G-B)
+### Report 10 — Global Macro Monitor 🟡 Ready, non-commercial (G-B)
 
 **Readiness detail.** Data is **complete**: 38/38 configured inflation series
 and 38/38 policy-rate series resolve across 76 countries. The constraint is
@@ -816,7 +833,8 @@ Also:
 - `iso3` is the map key; `country` is the display name.
 - Diverging palette centred on zero for `vs_target_pp`.
 - About page: **World Bank CC BY 4.0 attribution is required.**
-- Workspace: internal-only until G-B clears.
+- Workspace: internal or non-commercial distribution is permitted with BIS
+  attribution; commercial distribution needs BIS permission first (§2 G-B).
 
 ---
 
@@ -917,21 +935,19 @@ relationship would drop unpriced holdings from the treemap. Keep it standalone.
 ### Report 12 — Regional & State Economic Map 🟢 Ready
 
 **Readiness detail.** Unblocked by the catalog expansion: 120 `REGIONAL`
-entries, each carrying a `geo` code on `gold.dim_series` — 52 state unemployment
-rates, 50 coincident activity indexes, 14 state house price indexes, 4 census
-regions. No report-local state mapping table is needed.
+entries on `gold.dim_series`, each carrying both a `geo` code and a `metric`
+name — 52 state unemployment rates, 50 coincident activity indexes, 14 state
+house price indexes, 4 census regions. No report-local state mapping table and
+no series-id parsing is needed: the map keys off `geo`, the measure slicer off
+`metric`.
 
 **Source queries**
 
 ```sql
--- qStateDim : dim_series is the state dimension. metric derived from the
--- series_id suffix; geo is the map key.
-SELECT series_id, title, geo, polarity, default_transform, notes,
-       CASE
-         WHEN series_id LIKE '%PHCI'  THEN 'Coincident Activity'
-         WHEN series_id LIKE '%STHPI' THEN 'House Price Index'
-         WHEN series_id LIKE '%UR'    THEN 'Unemployment Rate'
-       END AS metric,
+-- qStateDim : dim_series is the state dimension. `geo` is the map key and
+-- `metric` names the measure -- both are catalog columns now, so nothing here
+-- parses a series id or a title.
+SELECT series_id, title, geo, metric, polarity, default_transform, notes,
        CASE WHEN LENGTH(geo) = 2 THEN true ELSE false END AS is_state
 FROM   ${p_Catalog}.gold.dim_series
 WHERE  econ_category = 'REGIONAL';
@@ -1168,7 +1184,7 @@ built on a timestamp against a date dimension without truncation.
 | **3** | **2** Inflation, **8** Regime (note `n_features`), **12** Regional Map | All ready; #2 and #12 both moved earlier once auditing corrected their status |
 | **4** | **9** Statistical Lab, **13** PIT Lab | Ready but need the sizing work in the spec's §6 |
 | **5** | **11** Equity (skip recon page), **10** Global (internal workspace) | Ready with documented constraints |
-| **6** | **5** Funding & Liquidity | Ready (G-A fixed). Label the BGCR tape/board row pending until `BGCRRATE` is verified and activated |
+| **6** | **5** Funding & Liquidity | Ready (G-A fixed, tape 10/10, board 17/17). Confirm `BGCRRATE` ingested after the first run |
 
 G-A is fixed, so Report 5 can move earlier than wave 6 if it is wanted sooner —
 the ordering below is by shape and audience, not by dependency any more.

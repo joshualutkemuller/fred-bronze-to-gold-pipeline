@@ -149,6 +149,7 @@ def build_dim_series(
             "scale": e.scale,
             "decimals": e.decimals,
             "geo": e.geo,
+            "metric": e.metric,
             "notes": e.notes,
         })
     return sorted(out, key=lambda r: (r["econ_category"], r["series_id"]))
