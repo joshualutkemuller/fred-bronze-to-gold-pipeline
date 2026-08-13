@@ -7,20 +7,27 @@ dashboards, optimizer inputs, and **point-in-time** macro features.
 
 Started FRED-only; the source layer is now pluggable, so a series declares its
 upstream API (`source:` in the manifest) and flows through the same path.
-**Eight sources are wired**: FRED, BLS, EIA, US Treasury, World Bank, BEA,
-Census, and SEC (company financials) — see [Data sources](#data-sources).
+**Twelve sources are wired**: FRED, BLS, EIA, US Treasury, World Bank, BIS, BEA,
+Census, SEC (company financials), Tiingo, Stooq, and iShares — see
+[Data sources](#data-sources).
 
 > 📄 The original product spec / engineering handoff lives in
-> [`handoff.md`](./handoff.md). This README is the practical guide to the
-> implementation. Architecture rationale is in
-> [`docs/architecture.md`](./docs/architecture.md); every table/column is in
-> [`docs/data_dictionary.md`](./docs/data_dictionary.md); the data-quality
-> rules and where to review/change them are in
-> [`docs/validation.md`](./docs/validation.md). A dataset-agnostic, reusable
-> build spec (usable as a prompt for standing up a *new* ETL like this one) is in
-> [`docs/etl_build_spec.md`](./docs/etl_build_spec.md). To run with the
-> non-FRED sources (which API keys, activating series, exact commands), see
-> [`docs/running_multi_source.md`](./docs/running_multi_source.md).
+> [`docs/handoffs/completed/handoff.md`](./docs/handoffs/completed/handoff.md).
+> This README is the practical guide to the implementation. Architecture
+> rationale is in
+> [`docs/deployment/architecture.md`](./docs/deployment/architecture.md); every
+> table/column is in
+> [`docs/dictionary/data_dictionary.md`](./docs/dictionary/data_dictionary.md);
+> the data-quality rules and where to review/change them are in
+> [`docs/validation/validation.md`](./docs/validation/validation.md). A
+> dataset-agnostic, reusable build spec (usable as a prompt for standing up a
+> *new* ETL like this one) is in
+> [`docs/instructions/etl_build_spec.md`](./docs/instructions/etl_build_spec.md).
+> To run with the non-FRED sources (which API keys, activating series, exact
+> commands), see
+> [`docs/instructions/running_multi_source.md`](./docs/instructions/running_multi_source.md).
+> The Power BI report suite built on the Gold layer is specified in
+> [`docs/handoffs/powerbi_report_suite.md`](./docs/handoffs/powerbi_report_suite.md).
 
 ## What it does
 
@@ -190,7 +197,7 @@ only the flags that differ in meaning are listed per command. (Full detail:
 ## Deploy to Databricks
 
 > Full go-live checklist (provisioning steps + the quant/ops decisions, with
-> owners): [`docs/deployment_runbook.md`](docs/deployment_runbook.md).
+> owners): [`docs/deployment/deployment_runbook.md`](docs/deployment/deployment_runbook.md).
 
 ```bash
 # One-time per environment: create catalog/schemas/tables and the secret scope
@@ -275,34 +282,56 @@ on the CLI, use the config file, `FRED_API_KEY`, or a Databricks secret scope.
 ## Data sources
 
 A series' `source:` selects its upstream API and its client; every source lands
-in the same tables, tagged by `source` in the natural key. FRED is active by
-default; the other seven ship as **inactive demo manifests** (`active: false`)
-so a default run doesn't hit them until you opt in.
+in the same tables, tagged by `source` in the natural key. **Twelve source
+clients are wired**, eleven of which have active series today.
 
-| Source | `source:` | API key | Status | Demo manifest |
+Counts below are the currently-active series per source
+(`active: true` in `manifests/*.yml`) — **2,820 active of 2,920 declared**.
+
+| Source | `source:` | API key | Active series | Manifests |
 |---|---|---|---|---|
-| FRED | `fred` | required | **active** (~2,300 series) | the domain manifests |
-| BLS | `bls` | optional (keyless) | demo | `bls_labor.yml` |
-| EIA | `eia` | **required** | demo | `eia_energy.yml` |
-| US Treasury | `treasury` | none | demo | `treasury_fiscal.yml` |
-| World Bank | `worldbank` | none | demo | `worldbank_global.yml` |
-| BEA | `bea` | **required** | demo | `bea_national_accounts.yml` |
-| Census | `census` | optional (keyless) | demo | `census_indicators.yml` |
-| SEC (company financials) | `sec` | none (User-Agent) | demo | `sec_financials.yml` |
+| FRED | `fred` | required | **2,570** | the domain manifests |
+| Tiingo | `tiingo` | **required** | 85 | `equity_tiingo.yml` |
+| BLS | `bls` | optional (keyless) | 60 | `bls_cpi_basket.yml`, `bls_cpi_basket_sa.yml`, `bls_labor.yml` |
+| World Bank | `worldbank` | none | 37 | `worldbank_global.yml` |
+| BIS | `bis` | none | 36 | `bis_policy_rates.yml` |
+| BEA | `bea` | **required** | 23 | `bea_pce_items.yml`, `bea_national_accounts.yml` |
+| SEC (company financials) | `sec` | none (User-Agent) | 3 | `sec_financials.yml` |
+| EIA | `eia` | **required** | 2 | `eia_energy.yml` |
+| US Treasury | `treasury` | none | 2 | `treasury_fiscal.yml` |
+| Census | `census` | optional (keyless) | 1 | `census_indicators.yml` |
+| iShares | `ishares` | none | 1 | `etf_holdings.yml` |
+| Stooq | `stooq` | none | **0** (manifest inactive) | `equity_stooq.yml` |
 
 SEC is the one that exercises the point-in-time machinery — each filing's `filed`
-date becomes a vintage. To add a source, see
-[`docs/adding_a_source.md`](docs/adding_a_source.md); to take the demos to
-production (keys, egress, activation), see the decision register in
-[`docs/deployment_runbook.md`](docs/deployment_runbook.md).
+date becomes a vintage. Stooq ships inactive: its 89 entries are the price-return
+counterpart to the Tiingo total-return series, activated when you want the
+cross-source price reconciliation (`gold.equity_price_reconciliation`).
+
+Before activating anything for redistribution, check
+[`config/data_licensing.yml`](config/data_licensing.yml) — Tiingo, Stooq, and
+iShares are all non-redistributable, and `validate --commercial` gates on it.
+To add a source, see [`docs/instructions/adding_a_source.md`](docs/instructions/adding_a_source.md);
+for keys, egress, and activation decisions see the register in
+[`docs/deployment/deployment_runbook.md`](docs/deployment/deployment_runbook.md).
 
 ## The series universe
 
-The FRED universe spans **~2,300 series** across the domain manifests (rates,
-inflation, labor, growth, money/banking, prices, production/housing,
-international, national accounts). It grew from the handoff's 27-series seed via
-**API-driven discovery** (below). It is a deliberate, reviewed set — not all of
-FRED (~800k series). Grow it three ways:
+The FRED universe spans **2,570 active series** across the domain manifests
+(rates, inflation, labor, growth, money/banking, prices, production/housing,
+international, national accounts, regional/state). It grew from the handoff's
+27-series seed via **API-driven discovery** (below). It is a deliberate,
+reviewed set — not all of FRED (~800k series). Grow it three ways:
+
+> **Ingestion and presentation are separate layers.** A manifest entry decides
+> what gets *pulled*; [`config/series_catalog.yml`](config/series_catalog.yml)
+> decides what gets *presentation semantics* (`econ_category`, `polarity`,
+> `default_transform`, `geo`). The catalog currently covers **254** of the
+> active series — those are the ones `gold.dim_series`,
+> `gold.macro_indicator_dashboard`, and `gold.macro_category_summary` are built
+> from. Everything else is still fully queryable via
+> `gold.fred_latest_observation` / `gold.fred_feature_transforms` /
+> `gold.zscore_heatmap`, just without a category or polarity.
 
 ### 1. Add a series by hand
 
@@ -343,7 +372,7 @@ inactive demos under `manifests/` (`bls_labor.yml`, `bls_cpi_basket.yml` — the
 full CPI-U item hierarchy, more complete than FRED's partial mirror —
 `eia_energy.yml`, `treasury_fiscal.yml`, `worldbank_global.yml`,
 `bea_national_accounts.yml`, `census_indicators.yml`, `sec_financials.yml`), and
-[`docs/adding_a_source.md`](docs/adding_a_source.md) for how to add a new source
+[`docs/instructions/adding_a_source.md`](docs/instructions/adding_a_source.md) for how to add a new source
 (one client module + one registry entry).
 
 ## Metadata governance (drift + lifecycle + all-source staleness)
@@ -447,7 +476,7 @@ where it matters, and commit it like any other manifest.
 
 The code is complete; what's left is provisioning + domain calls, tracked as a
 checkboxed decision register in
-[`docs/deployment_runbook.md`](docs/deployment_runbook.md). In short:
+[`docs/deployment/deployment_runbook.md`](docs/deployment/deployment_runbook.md). In short:
 
 - **Which sources/series to activate** — the seven non-FRED demos are inactive;
   turn on what you want (and, for SEC at scale, generate the manifest with
@@ -467,9 +496,9 @@ checkboxed decision register in
 
 ## Status
 
-Implemented and tested (**246 unit tests + a Spark/Delta integration suite in
-CI**, green on the latest commit). Highlights: **eight pluggable sources**
-(FRED active; BLS/EIA/Treasury/World Bank/BEA/Census/SEC as inactive demos) with
+Implemented and tested (**857 unit tests + a Spark/Delta integration suite in
+CI**, green on the latest commit). Highlights: **twelve pluggable sources**
+(eleven with active series; Stooq ships inactive) with
 `source` in the natural key and source-aware Bronze lineage + replay;
 **API-driven FRED discovery**; **metadata governance** (drift + lifecycle vs.
 live FRED); **incremental loads** (full-on-first-run, then restate last N);

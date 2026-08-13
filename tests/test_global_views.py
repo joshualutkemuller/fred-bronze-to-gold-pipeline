@@ -181,34 +181,73 @@ def test_powerbi_catalog_rows_are_unique_and_typed():
     rows = powerbi_catalog_rows()
     names = [r["object_name"] for r in rows]
     assert len(names) == len(set(names))
-    assert all(r["object_type"] in {"dimension", "fact", "reference"} for r in rows)
+    # 'view' is computed on read rather than materialized -- worth flagging to a
+    # report author, who may want to import rather than DirectQuery it.
+    assert all(
+        r["object_type"] in {"dimension", "fact", "reference", "view"} for r in rows
+    )
     assert all(r["grain"] and r["intended_visual"] and r["description"] for r in rows)
 
 
 def test_powerbi_catalog_covers_gold_tables():
-    """Every gold_* table in the local schema must have a catalog row — this
-    is the guard that keeps POWERBI_CATALOG current as Gold objects are added.
-    Legacy/internal objects are explicitly exempted below."""
+    """Every gold_* table AND view in the local schema must have a catalog row.
+
+    gold.powerbi_catalog is what a report author browses to discover what the
+    Gold layer offers (it is rendered as the documentation page of the Pipeline
+    Health report), so an object missing from it is effectively invisible to
+    them. Views count: the PIT and governance reports bind to several.
+
+    The exempt list is deliberately short — only objects no report should be
+    built on. Adding to it is a claim that the object is not report-facing;
+    if a report binds to it, catalog it instead.
+    """
     import re
 
     from fred_pipeline import local_store
 
     exempt = {
-        # superseded by curve_spread_daily / macro_feature views, kept for
-        # backward compatibility; or PIT/audit-oriented rather than report-facing
-        "fred_point_in_time",
+        # Superseded for reporting by the terminal views; kept for backward
+        # compatibility with earlier consumers.
         "fred_macro_feature_daily",
         "fred_curve_spread",
-        "fred_cross_series_feature",
-        "fred_cross_series_feature_pit",
-        "fred_source_reconciliation",
+        # Silver-backed convenience lenses; reports use the Gold tables that
+        # are built from them.
+        "v_latest_revised",
+        "v_point_in_time",
+        "v_series_latest_value",
+        # SEC company financials — out of scope for the v1 Power BI suite
+        # (manifests/sec_financials.yml carries three demo companies). Catalog
+        # these when the SEC manifest is generated at scale.
         "fred_company_fundamentals",
         "fred_company_ratios",
-        "fred_revision_stats",
+        "v_company_ratio_ranks",
     }
-    tables = set(
+    objects = set(
         re.findall(r"CREATE TABLE IF NOT EXISTS gold_(\w+)", local_store._SCHEMA)
+    ) | set(
+        re.findall(r"CREATE VIEW IF NOT EXISTS gold_(\w+)", local_store._SCHEMA)
     )
     cataloged = {r["object_name"] for r in POWERBI_CATALOG}
-    missing = tables - cataloged - exempt
-    assert not missing, f"gold tables missing from POWERBI_CATALOG: {sorted(missing)}"
+    missing = objects - cataloged - exempt
+    assert not missing, (
+        "Gold objects missing from POWERBI_CATALOG (report authors cannot "
+        f"discover them): {sorted(missing)}"
+    )
+
+
+def test_powerbi_catalog_has_no_phantom_entries():
+    """The inverse guard: a catalog row for an object that no longer exists
+    sends a report author to a table they cannot query."""
+    import re
+
+    from fred_pipeline import local_store
+
+    objects = set(
+        re.findall(r"CREATE TABLE IF NOT EXISTS gold_(\w+)", local_store._SCHEMA)
+    ) | set(
+        re.findall(r"CREATE VIEW IF NOT EXISTS gold_(\w+)", local_store._SCHEMA)
+    )
+    phantom = {r["object_name"] for r in POWERBI_CATALOG} - objects
+    assert not phantom, (
+        f"POWERBI_CATALOG lists objects that do not exist in Gold: {sorted(phantom)}"
+    )

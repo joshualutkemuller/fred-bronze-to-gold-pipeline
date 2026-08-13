@@ -17,8 +17,12 @@ metrics:
   - {name: EFFR,        series_id: EFFR,        metric_type: rate}
   - {name: IORB,        series_id: IORB,        metric_type: rate}
   - {name: OBFR,        series_id: OBFR,        metric_type: rate}
-  - {name: BGCR,        series_id: BGCR,        metric_type: rate}
-  - {name: TGCR,        series_id: TGCR,        metric_type: rate}
+  # FRED publishes the repo reference rates with a RATE suffix (the bare TGCR/
+  # BGCR prefixes belong to the percentile/volume companions, e.g.
+  # TGCR25THPERCENTILE, TGCRVOLUME). `name` stays short for display; series_id
+  # must be the real FRED id or the metric silently emits no rows.
+  - {name: BGCR,        series_id: BGCRRATE,    metric_type: rate}
+  - {name: TGCR,        series_id: TGCRRATE,    metric_type: rate}
   # --- balances ---
   - {name: FED_ASSETS,  series_id: WALCL,       metric_type: balance}
   - {name: RESERVES,    series_id: WRESBAL,     metric_type: balance}
@@ -29,7 +33,8 @@ spreads:
   - {name: SOFR_EFFR, long_leg: SOFR, short_leg: EFFR}
   - {name: SOFR_IORB, long_leg: SOFR, short_leg: IORB}
   - {name: EFFR_IORB, long_leg: EFFR, short_leg: IORB}
-  - {name: SOFR_TGCR, long_leg: SOFR, short_leg: TGCR}
+  # long_leg/short_leg are FRED series ids, not the `name` labels above.
+  - {name: SOFR_TGCR, long_leg: SOFR, short_leg: TGCRRATE}
 
 stress:
   components:

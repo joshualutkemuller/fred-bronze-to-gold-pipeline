@@ -232,3 +232,52 @@ def test_local_warehouse_build_gold_populates_fomc_tables(tmp_path, monkeypatch)
     path_rows = wh.conn.execute("SELECT * FROM gold_fomc_meeting_path").fetchall()
     assert len(prob_rows) > 0
     assert len(path_rows) > 0
+
+
+# ---- meeting-date runway -----------------------------------------------------
+# compute_fomc_probability filters to `d >= today`, so once config/fomc.yml's
+# last meeting passes, gold.fomc_probability and gold.fomc_meeting_path emit
+# nothing and the Power BI Fed Policy Watch report goes blank -- with no error
+# anywhere. These two tests are deliberately time-dependent: they are the alarm
+# that fires while there is still time to refresh the list.
+
+MIN_RUNWAY_DAYS = 120  # ~2-3 meetings' notice to refresh the calendar
+
+
+def test_fomc_config_has_a_future_meeting():
+    """Hard failure: no future meeting means the FOMC tables are empty today."""
+    cfg = load_fomc_config("config/fomc.yml")
+    assert cfg is not None, "config/fomc.yml is missing"
+    today = date.today()
+    future = [d for d in cfg.meeting_dates if d >= today]
+    assert future, (
+        "config/fomc.yml has no meeting dates on or after today, so "
+        "gold.fomc_probability and gold.fomc_meeting_path will be EMPTY and the "
+        "Fed Policy Watch report will render blank. Refresh meeting_dates from "
+        "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm "
+        "(use the second day of each two-day meeting -- the decision date)."
+    )
+
+
+def test_fomc_meeting_dates_have_runway():
+    """Early warning: fail while there is still time to act, not after."""
+    cfg = load_fomc_config("config/fomc.yml")
+    assert cfg is not None
+    last = max(cfg.meeting_dates)
+    remaining = (last - date.today()).days
+    assert remaining >= MIN_RUNWAY_DAYS, (
+        f"config/fomc.yml runs out in {remaining} days (last meeting {last}). "
+        f"Add the next year's meeting dates from "
+        f"https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm — the "
+        f"Fed publishes roughly two years ahead. Use the DECISION date (the "
+        f"second day of each two-day meeting), keep the list ascending, and "
+        f"update the 'verified against' comment at the top of the file."
+    )
+
+
+def test_fomc_meeting_dates_are_unique():
+    """A duplicated date would double-count that meeting in the implied path."""
+    cfg = load_fomc_config("config/fomc.yml")
+    assert cfg is not None
+    dates = list(cfg.meeting_dates)
+    assert len(dates) == len(set(dates)), "config/fomc.yml has duplicate meeting_dates"

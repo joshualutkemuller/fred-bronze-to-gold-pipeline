@@ -34,6 +34,12 @@ VALID_LICENSE_TYPES = {
     "open-data",
     "free-tier-personal-use",
     "free-tier-commercial-ok",
+    # Copyright retained by the publisher, who permits redistribution for
+    # NON-commercial purposes without written permission but requires it for
+    # commercial use. Distinct from 'open-data' (commercial use is fine) and
+    # from 'requires-agreement' (nothing is permitted without one). BIS
+    # statistics are the reference case.
+    "attribution-noncommercial",
     "requires-agreement",
 }
 

@@ -285,6 +285,9 @@ JOIN base l ON l.series_id = b.series_id AND l.observation_date = b.observation_
 -- Star-schema hub: presentation semantics (config/series_catalog.yml) merged
 -- with title/frequency/units from meta.fred_series. polarity: +1 a rise is
 -- bullish, -1 bearish, 0 neutral. default_transform: pc1|pch|chg|bps|level.
+-- geo: USPS state code / census-region name for REGIONAL series, '' national.
+-- metric: what is measured, where one econ_category holds several incompatible
+-- measures (REGIONAL: unemployment rate / activity index / house price index).
 CREATE TABLE IF NOT EXISTS gold.dim_series (
     series_id         STRING,
     title             STRING,
@@ -296,6 +299,8 @@ CREATE TABLE IF NOT EXISTS gold.dim_series (
     default_transform STRING,
     scale             STRING,
     decimals          INT,
+    geo               STRING,
+    metric            STRING,
     notes             STRING
 )
 USING DELTA;

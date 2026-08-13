@@ -189,7 +189,7 @@ CREATE TABLE IF NOT EXISTS gold_fred_revision_stats (
 CREATE TABLE IF NOT EXISTS gold_dim_series (
     series_id TEXT PRIMARY KEY, title TEXT, source TEXT, frequency TEXT,
     units TEXT, econ_category TEXT, polarity INTEGER, default_transform TEXT,
-    scale TEXT, decimals INTEGER, notes TEXT
+    scale TEXT, decimals INTEGER, geo TEXT, metric TEXT, notes TEXT
 );
 CREATE TABLE IF NOT EXISTS gold_dim_date (
     -- date identifiers
@@ -620,7 +620,37 @@ class LocalWarehouse:
         self.conn.execute("PRAGMA cache_size=-65536")    # 64 MB
         self.conn.execute("PRAGMA mmap_size=268435456")  # 256 MB
         self.conn.executescript(_SCHEMA)
+        self._apply_additive_migrations()
         self.conn.commit()
+
+    # ---- schema migrations ----------------------------------------------
+
+    # Columns added to an existing table after that table shipped. ``_SCHEMA``
+    # uses CREATE TABLE IF NOT EXISTS, which is a no-op against a database file
+    # created by an earlier version -- so a new column would be missing there
+    # and every insert would fail with "table X has no column named Y". SQLite
+    # supports ADD COLUMN cheaply (metadata-only), so replay the additions on
+    # open. Additive only: renames and drops still need a rebuild.
+    _ADDED_COLUMNS: tuple[tuple[str, str, str], ...] = (
+        # (table, column, type) -- geo landed with the REGIONAL series catalog.
+        ("gold_dim_series", "geo", "TEXT"),
+        # metric disambiguates measures that share an econ_category (REGIONAL
+        # spans unemployment, activity and house prices).
+        ("gold_dim_series", "metric", "TEXT"),
+    )
+
+    def _apply_additive_migrations(self) -> None:
+        for table, column, coltype in self._ADDED_COLUMNS:
+            existing = {
+                row[1]
+                for row in self.conn.execute(f"PRAGMA table_info({table})")
+            }
+            if not existing:
+                continue  # table absent entirely; _SCHEMA just created it
+            if column not in existing:
+                self.conn.execute(
+                    f"ALTER TABLE {table} ADD COLUMN {column} {coltype}"
+                )
 
     # ---- low-level helpers ---------------------------------------------
 
