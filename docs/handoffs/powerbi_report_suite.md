@@ -1698,11 +1698,21 @@ configs rather than the catalog: `curve.yml` (#3), `spreads.yml` (#4),
 `benchmark_rates.yml`/`funding.yml` (#5), `credit.yml` (#7), `regime.yml` (#8),
 `stats_pairs.yml` (#9), `global_series.yml` (#10).
 
-**Migration note.** `gold.dim_series` gained a `geo` column. A local SQLite file
-created before that change is upgraded automatically on open
-(`LocalWarehouse._apply_additive_migrations`); Databricks needs
-`sql/50_gold.sql` re-applied, or an
-`ALTER TABLE {catalog}.gold.dim_series ADD COLUMN geo STRING`.
+**Migration note.** `gold.dim_series` gained `geo` and `metric` columns. Both
+backends pick them up without manual DDL:
+
+- **SQLite** — a database file created before either column is upgraded on open
+  by `LocalWarehouse._apply_additive_migrations`.
+- **Databricks** — the Gold builder writes `dim_series` with
+  `.mode("overwrite").option("overwriteSchema", "true")`, so the next `gold`
+  build replaces the table's schema in place. **No `ALTER TABLE` is needed**
+  (an earlier revision of this document said otherwise — that was wrong).
+
+What *does* need to stay in step is the Spark `StructType` in
+`fred_pipeline.writer.gold`: a row key with no matching `StructField` is
+dropped on the Databricks write while the SQLite path stays fine, which is
+invisible wherever the Spark tests skip. `tests/test_dim_series_schema_parity.py`
+now compares all four declarations of this table.
 *Blocks:* #12 Regional Map (fully), and limits #1 Macro Cockpit's coverage.
 *Fix:* extend `series_catalog.yml`. For #12 specifically, add the state series
 with a new `econ_category: REGIONAL` plus a state identifier.

@@ -528,6 +528,11 @@ def _build_terminal_views(config: PipelineConfig, spark: Any) -> None:
         StructField("polarity", IntegerType()),
         StructField("default_transform", StringType()),
         StructField("scale", StringType()), StructField("decimals", IntegerType()),
+        # geo/metric: the REGIONAL panel's map key and measure name. Must stay
+        # in step with build_dim_series' output keys, the gold_dim_series DDL in
+        # local_store, and sql/50_gold.sql -- guarded by
+        # tests/test_dim_series_schema_parity.py.
+        StructField("geo", StringType()), StructField("metric", StringType()),
         StructField("notes", StringType()),
     ]), ["*"])
 
