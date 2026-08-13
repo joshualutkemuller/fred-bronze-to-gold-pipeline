@@ -1,0 +1,114 @@
+# Run alerting: who gets the stage-summary email, and how it is sent.
+#
+# Loaded by src/fred_pipeline/governance/alerting_config.py. Resolution order is
+# an explicit path, then $FRED_ALERTING_FILE, then this file. A MISSING file
+# disables alerting quietly (it is opt-in); a MALFORMED file raises, because
+# silently not alerting due to a YAML typo is the exact failure this guards.
+#
+# Why this exists: FredPipeline.run() rebuilds the Gold layer inside a try/except
+# that logs and continues, and RunStatus is computed from series outcomes alone.
+# So a run whose Gold build failed still reports "succeeded" while every Power BI
+# report serves stale tables. The stage tracker records what actually happened at
+# each step, and this file decides who hears about it.
+#
+# ---------------------------------------------------------------------------
+# SECRETS
+# This file is in git. Never put a password, client secret or token in it.
+# Use `password_env:` / `client_secret_env:` to name an ENVIRONMENT VARIABLE.
+# The loader REJECTS a config that looks like it inlines a credential.
+# ---------------------------------------------------------------------------
+
+# Master switch. Shipped false so a fresh clone never tries to send mail.
+enabled: false
+
+# never   — no email, ever
+# failure — only partial/failure runs (default; the sane production setting)
+# always  — every run, including clean ones
+policy: failure
+
+# The sending mailbox. Must be one the transport is authorised to send as.
+from_address: fred-pipeline@example.com
+from_name: FRED Pipeline
+
+# Prefix on every subject line, so mail rules can filter on it.
+subject_prefix: "[FRED]"
+
+# Only alert for these environments. Empty/omitted = all of them. Set to
+# [prod] once dev runs stop being interesting.
+environments: []
+
+# Attach the full stage detail as JSON. Handy for incident write-ups; noisy for
+# a daily green run.
+attach_run_json: false
+
+# Cap on failing series listed in the body before it truncates.
+max_failures_listed: 25
+
+# ---------------------------------------------------------------------------
+# TRANSPORT — pick one `kind`.
+#
+#   outlook_smtp   Microsoft 365 / Outlook over SMTP+STARTTLS.
+#                  host smtp.office365.com, port 587. Note that many tenants
+#                  disable SMTP AUTH by default; if login fails with a policy
+#                  error, either enable it for the sending mailbox or switch to
+#                  microsoft_graph below.
+#   smtp           Any other SMTP relay (internal relays often need no auth).
+#   microsoft_graph  Graph API sendMail. The modern Outlook path and the one
+#                  that works when SMTP AUTH is off. Needs an app registration
+#                  with the Mail.Send APPLICATION permission and admin consent.
+#   console        Log the message instead of sending. The default, so alerting
+#                  is visible before it is configured.
+#   file           Write .html/.txt into output_dir. Good for CI and for
+#                  eyeballing the HTML in a browser first.
+# ---------------------------------------------------------------------------
+transport:
+  kind: console
+
+  # --- outlook_smtp / smtp ---
+  # kind: outlook_smtp
+  # host: smtp.office365.com
+  # port: 587
+  # use_starttls: true
+  # username: fred-pipeline@example.com
+  # password_env: FRED_SMTP_PASSWORD      # <-- env var NAME, not the password
+
+  # --- microsoft_graph ---
+  # kind: microsoft_graph
+  # tenant_id: 00000000-0000-0000-0000-000000000000
+  # client_id: 00000000-0000-0000-0000-000000000000
+  # client_secret_env: FRED_GRAPH_CLIENT_SECRET
+
+  # --- file ---
+  # kind: file
+  # output_dir: ./alerts
+
+  timeout_seconds: 30
+
+# ---------------------------------------------------------------------------
+# ROUTES — who hears about what.
+#
+# Keys: success | partial | failure | default (used when a verdict has no entry).
+# Each takes `to`, and optionally `cc` / `bcc`. A single string works too.
+#
+# Every address is validated on load: a typo means an alert that goes nowhere
+# while you believe you are covered, so the loader refuses to start with one.
+#
+# The verdicts come from governance/stages.py::overall_verdict —
+#   failure : a REQUIRED stage failed (extract, gold, persist), or every series
+#             failed. This includes the "series fine, Gold broken" case.
+#   partial : some series failed, or an optional stage failed, or a stage warned.
+#   success : every stage completed.
+# ---------------------------------------------------------------------------
+routes:
+  failure:
+    to:
+      - data-oncall@example.com
+    cc:
+      - analytics-leads@example.com
+  partial:
+    to:
+      - data-oncall@example.com
+  # Uncomment with policy: always for a daily "it ran and it was fine" note.
+  # success:
+  #   to:
+  #     - data-team@example.com
