@@ -1643,15 +1643,25 @@ shippable.
 | Phase | Reports | Depends on | Notes |
 |---|---|---|---|
 | **0. Kernel** | — | — | `fnGold`, dimensions, core measures, theme, PBIP scaffold, dev SQLite build. **Nothing else starts until this is done.** |
-| **1. Core macro** | #1 Macro Cockpit, #3 Curve Lab, #4 Spreads & Inversions | Phase 0 | Highest-value, fully-populated data, no prerequisites. |
-| **2. Rates & credit** | #5 Funding & Liquidity, #6 Fed Policy Watch, #7 Credit Conditions | Phase 1 | Same shapes as phase 1; fast follow. |
-| **3. Verdict layer** | #8 Regime & Recession Risk, #2 Inflation Explorer | Phase 1 | #2 is richer once §8-G2 (BEA/BLS item manifests) is activated. |
-| **4. Research** | #9 Statistical Lab, #13 PIT & Revisions Lab | Phase 1 | Both need the sizing work in §6. |
-| **5. Breadth** | #10 Global Macro, #11 Equity & Factor, #12 Regional Map | G3, G4 | #12 is now unblocked (§8-G1 resolved) and can move earlier; #10 and #11 remain gated. |
-| **6. Operations** | #14 Pipeline Health | Phase 0 | Can be built in parallel at any time; different audience, no dependency on the others. |
+| **1. Operations** | **#14 Pipeline Health** | Phase 0 | **Built first, on its own.** No data prerequisites, and it is the only report that says whether the other thirteen can be trusted. |
+| **2. Core macro** | #1 Macro Cockpit, #3 Curve Lab | Phase 1 | Highest-value pair for the executive audience; fully-populated data. |
+| **3. Rates & credit** | #4 Spreads & Inversions, #6 Fed Policy Watch, #7 Credit Conditions | Phase 2 | Same shapes as phase 2; fast follow. |
+| **4. Verdict layer** | #8 Regime & Recession Risk, #2 Inflation Explorer | Phase 2 | Both fully ready — §8-G2's "inactive manifests" claim was wrong; all three inflation trees resolve. |
+| **5. Research** | #9 Statistical Lab, #13 PIT & Revisions Lab | Phase 2 | Both need the sizing work in §6. |
+| **6. Breadth** | #12 Regional Map, #11 Equity & Factor, #10 Global Macro | G3, G4 | #12 is unblocked (§8-G1); #11 loses only its reconciliation page (G3); #10 is non-commercial-only (G4). |
+| **7. Funding** | #5 Funding & Liquidity | Phase 3 | G7 fixed, so the stress gauge populates. Confirm `BGCRRATE` ingested after the first run. |
 
-**#14 is the sleeper priority.** Every other report's credibility depends on
-someone noticing when the pipeline breaks. Consider pulling it into phase 1.
+**Report 14 is built first, and finished, before phase 2 starts.** It is the
+cheapest report here and the only one that answers "can I trust what the other
+thirteen are showing me". It has no data prerequisites — the audit and meta
+tables are written on every run regardless of which sources are active — and it
+doubles as the acceptance test for the pipeline itself: which series failed, the
+DQ pass rate, per-source staleness, and whether the Gold layer actually contains
+what this document claims. Finding that out through a blank KPI card on the
+Macro Cockpit is a much worse day.
+
+Phases 3–7 are ordered by shape and audience rather than dependency, so they can
+be resequenced freely to suit whoever is waiting.
 
 ---
 

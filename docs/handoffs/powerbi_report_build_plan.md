@@ -1082,9 +1082,13 @@ which no Power BI relationship can express. It is implemented in the
 ### Report 14 — Pipeline Health & Governance 🟢 Ready
 
 **Readiness detail.** Audit and meta tables are written on every run regardless
-of which sources are active, so this report has no data prerequisite. It is the
-one report that should be built first — every other report's credibility depends
-on someone noticing when the pipeline breaks.
+of which sources are active, so this report has no data prerequisite.
+
+**This is wave 1 — build it first and finish it before any other report
+starts** (§5). Every other report's credibility depends on someone noticing when
+the pipeline breaks, and this is also the acceptance test for the first live
+pipeline run: it is where you confirm `BGCRRATE` resolved, see which series
+failed, read the DQ pass rate, and check per-source freshness.
 
 **Source queries**
 
@@ -1179,15 +1183,41 @@ built on a timestamp against a date dimension without truncation.
 | Wave | Reports | Rationale |
 |---|---|---|
 | **0** | Kernel (`fnGold`, dimensions, measures, theme) | Nothing starts without it |
-| **1** | **14** Pipeline Health, **1** Macro Cockpit, **3** Curve Lab | All ready; #14 first so pipeline breakage is visible while the rest are built |
-| **2** | **4** Spreads, **7** Credit, **6** Fed Policy | All ready, same shapes as wave 1 |
-| **3** | **2** Inflation, **8** Regime (note `n_features`), **12** Regional Map | All ready; #2 and #12 both moved earlier once auditing corrected their status |
-| **4** | **9** Statistical Lab, **13** PIT Lab | Ready but need the sizing work in the spec's §6 |
-| **5** | **11** Equity (skip recon page), **10** Global (internal workspace) | Ready with documented constraints |
-| **6** | **5** Funding & Liquidity | Ready (G-A fixed, tape 10/10, board 17/17). Confirm `BGCRRATE` ingested after the first run |
+| **1** | **14 Pipeline Health — on its own** | Build it first and finish it before anything else starts. See below. |
+| **2** | **1** Macro Cockpit, **3** Curve Lab | All ready; the highest-value pair for the executive audience |
+| **3** | **4** Spreads, **7** Credit, **6** Fed Policy | All ready, same shapes as wave 2 |
+| **4** | **2** Inflation, **8** Regime (note `n_features`), **12** Regional Map | All ready; #2 and #12 both moved earlier once auditing corrected their status |
+| **5** | **9** Statistical Lab, **13** PIT Lab | Ready but need the sizing work in the spec's §6 |
+| **6** | **11** Equity (skip recon page), **10** Global (non-commercial workspace) | Ready with documented constraints |
+| **7** | **5** Funding & Liquidity | Ready (G-A fixed, tape 10/10, board 17/17). Confirm `BGCRRATE` ingested after the first run |
 
-G-A is fixed, so Report 5 can move earlier than wave 6 if it is wanted sooner —
-the ordering below is by shape and audience, not by dependency any more.
+### Why Report 14 goes first, alone
+
+It is the cheapest report in the suite and the only one that answers *"can I
+trust what the other thirteen are showing me?"*. Three concrete reasons it comes
+before, not alongside, the rest:
+
+1. **No prerequisites.** The audit and meta tables are written on every run
+   regardless of which sources are active, so it needs nothing that could
+   delay it.
+2. **It is the acceptance test for the pipeline itself.** Every readiness
+   verdict in §1 is static analysis of configs against manifests — no report in
+   this suite has yet been pointed at a populated warehouse. Report 14 is how
+   you find out whether the run actually succeeded, which series failed, what
+   the DQ pass rate is, and how stale each source is. Discovering that through
+   a blank KPI card on the Macro Cockpit is a much worse day.
+3. **It de-risks specific open items.** After the first run it immediately
+   shows whether `BGCRRATE` resolved (§2 G-A), whether any series is failing
+   quietly, and — via `gold.powerbi_catalog` on page 8 — what the Gold layer
+   actually contains versus what this document claims.
+
+Build it, run it against real data, and only then start wave 2. If the numbers
+on Report 14 look wrong, every downstream report would have inherited the same
+problem invisibly.
+
+**Everything after wave 2 is ordered by shape and audience, not dependency.**
+G-A is fixed, so Report 5 can move earlier than wave 7 if it is wanted sooner,
+and waves 3–7 can be resequenced freely to suit whoever is waiting.
 
 ---
 
