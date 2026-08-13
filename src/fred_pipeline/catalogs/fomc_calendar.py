@@ -14,11 +14,24 @@ importing I/O lazily (as the pipeline does with PySpark):
 
 * :func:`parse_fomc_calendar` and :func:`diff_against_config` are pure — HTML or
   dates in, data out. No network, no browser. Fully unit-tested.
-* :func:`fetch_calendar_html` is the only function that touches Selenium, and it
-  imports it inside the function body so ``import fred_pipeline`` never requires
-  selenium to be installed.
+* :func:`fetch_calendar_html` is the only I/O, and it dispatches between two
+  backends.
 
-Swapping Selenium for ``requests`` later is a change to that one function.
+Two fetch backends, because they fail in different ways:
+
+``requests``
+    The page is server-rendered static HTML, so a plain GET is enough. Fast,
+    no browser, no driver, and ``requests`` is already a core dependency of
+    this pipeline. This is the default.
+``selenium``
+    Renders JavaScript and behaves like a real browser. Slower and needs a
+    matching chromedriver/Chrome pair, but it is the answer if the Fed ever
+    makes the calendar client-rendered or starts refusing plain HTTP clients.
+    Imported inside the function body, so ``import fred_pipeline`` never
+    requires selenium to be installed.
+
+``backend="auto"`` (the default) tries ``requests`` and falls back to
+``selenium`` — see :func:`fetch_calendar_html`.
 """
 
 from __future__ import annotations
@@ -373,10 +386,129 @@ def format_yaml_block(meetings: Iterable[FOMCMeeting]) -> str:
     return "\n".join(lines)
 
 
-# ---- Selenium fetch (the only I/O in this module) ---------------------------
+# ---- fetching (the only I/O in this module) ---------------------------------
+
+VALID_BACKENDS = ("auto", "requests", "selenium")
+
+# Identify the tool honestly rather than impersonating a browser. A plain
+# python-requests UA is sometimes refused; this says what it is and why.
+DEFAULT_USER_AGENT = (
+    "fred-bronze-to-gold-pipeline/fomc-calendar-scraper "
+    "(+https://github.com/joshualutkemuller/fred-bronze-to-gold-pipeline; "
+    "refreshes config/fomc.yml a few times a year)"
+)
 
 
 def fetch_calendar_html(
+    url: str = FOMC_CALENDAR_URL,
+    *,
+    backend: str = "auto",
+    headless: bool = True,
+    chromedriver_path: Optional[str] = None,
+    chrome_binary: Optional[str] = None,
+    timeout_seconds: int = 30,
+    user_agent: str = DEFAULT_USER_AGENT,
+) -> str:
+    """Fetch the calendar page and return its HTML.
+
+    ``backend``:
+
+    ``"requests"``
+        Plain HTTP GET. The page is server-rendered, so this is sufficient and
+        is the fast path — no browser, no driver, and ``requests`` is already a
+        core dependency.
+    ``"selenium"``
+        Drive a real browser. Needed only if the page becomes JavaScript-
+        rendered or starts refusing plain HTTP clients.
+    ``"auto"`` (default)
+        Try ``requests``; on failure fall back to ``selenium``. If both fail,
+        the raised error reports both causes — the requests failure is usually
+        the informative one, and hiding it behind a driver error would send you
+        debugging the wrong layer.
+    """
+    if backend not in VALID_BACKENDS:
+        raise FOMCScrapeError(
+            f"unknown backend {backend!r}; expected one of {list(VALID_BACKENDS)}"
+        )
+
+    if backend == "requests":
+        return fetch_calendar_html_requests(
+            url, timeout_seconds=timeout_seconds, user_agent=user_agent
+        )
+    if backend == "selenium":
+        return fetch_calendar_html_selenium(
+            url,
+            headless=headless,
+            chromedriver_path=chromedriver_path,
+            chrome_binary=chrome_binary,
+            timeout_seconds=timeout_seconds,
+        )
+
+    # auto
+    try:
+        return fetch_calendar_html_requests(
+            url, timeout_seconds=timeout_seconds, user_agent=user_agent
+        )
+    except FOMCScrapeError as requests_exc:
+        print(
+            f"note: requests backend failed ({requests_exc}); trying Selenium",
+            file=sys.stderr,
+        )
+        try:
+            return fetch_calendar_html_selenium(
+                url,
+                headless=headless,
+                chromedriver_path=chromedriver_path,
+                chrome_binary=chrome_binary,
+                timeout_seconds=timeout_seconds,
+            )
+        except FOMCScrapeError as selenium_exc:
+            raise FOMCScrapeError(
+                f"both fetch backends failed for {url}.\n"
+                f"  requests: {requests_exc}\n"
+                f"  selenium: {selenium_exc}"
+            ) from selenium_exc
+
+
+def fetch_calendar_html_requests(
+    url: str = FOMC_CALENDAR_URL,
+    *,
+    timeout_seconds: int = 30,
+    user_agent: str = DEFAULT_USER_AGENT,
+) -> str:
+    """Fetch the calendar page with a plain HTTP GET.
+
+    The page is server-rendered static HTML, so this is the right tool: no
+    browser, no driver-version coupling, and ``requests`` is already in
+    ``requirements.txt``. Kept deliberately small — no retry loop, because this
+    is a hand-run maintenance tool used a couple of times a year, not an
+    ingestion path.
+    """
+    try:
+        import requests
+    except ImportError as exc:  # pragma: no cover - requests is a core dep
+        raise FOMCScrapeError(
+            "requests is not installed (it is a core dependency of this "
+            "pipeline; run `pip install -r requirements.txt`). Alternatively "
+            "use --backend selenium, or --html-file to parse a saved page."
+        ) from exc
+
+    try:
+        response = requests.get(
+            url,
+            timeout=timeout_seconds,
+            headers={"User-Agent": user_agent, "Accept": "text/html"},
+        )
+        response.raise_for_status()
+    except Exception as exc:
+        raise FOMCScrapeError(f"HTTP GET {url} failed: {exc}") from exc
+
+    if not response.text or not response.text.strip():
+        raise FOMCScrapeError(f"HTTP GET {url} returned an empty body")
+    return response.text
+
+
+def fetch_calendar_html_selenium(
     url: str = FOMC_CALENDAR_URL,
     *,
     headless: bool = True,

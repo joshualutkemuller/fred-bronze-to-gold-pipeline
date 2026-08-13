@@ -2,10 +2,11 @@
 
 Spec: ``docs/handoffs/fomc_calendar_scraper.md``.
 
-These tests exercise the PURE half of the scraper against fixture HTML. The
-Selenium fetch is deliberately untested: it is I/O against a third-party site,
-and a test that drives a real browser would make the suite slow, flaky, and
-network-dependent — which the rest of this repo's tests are not.
+These tests cover the parser, the differ, the YAML renderer, and the `requests`
+fetch backend (intercepted with `responses`, so the suite stays hermetic — no
+network). The Selenium backend is deliberately untested: driving a real browser
+would make the suite slow, flaky, and driver-dependent, which the rest of this
+repo's tests are not.
 
 The fixture is hand-built to the documented page structure, not a capture of
 the live page (see the banner comment inside it). These tests therefore prove
@@ -20,11 +21,15 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+import responses
 
 from fred_pipeline.catalogs.fomc_calendar import (
+    FOMC_CALENDAR_URL,
     FOMCMeeting,
     FOMCScrapeError,
     diff_against_config,
+    fetch_calendar_html,
+    fetch_calendar_html_requests,
     format_yaml_block,
     parse_fomc_calendar,
 )
@@ -167,6 +172,101 @@ def test_importing_the_module_does_not_import_selenium():
         "importing fomc_calendar pulled in selenium; the import must stay "
         "inside fetch_calendar_html so the module works without the extra"
     )
+
+
+# ---- fetch backends ---------------------------------------------------------
+# The requests backend IS tested -- `responses` intercepts HTTP, so these stay
+# hermetic. The Selenium backend is not: driving a real browser would make the
+# suite slow, flaky and driver-dependent.
+
+@responses.activate
+def test_requests_backend_returns_the_page_body():
+    responses.add(responses.GET, FOMC_CALENDAR_URL, body="<html>ok</html>", status=200)
+    assert fetch_calendar_html_requests(FOMC_CALENDAR_URL) == "<html>ok</html>"
+
+
+@responses.activate
+def test_requests_backend_identifies_itself_honestly():
+    """The User-Agent says what the tool is rather than impersonating a
+    browser, and points at the repo so an admin can see who is calling."""
+    responses.add(responses.GET, FOMC_CALENDAR_URL, body="<html>ok</html>", status=200)
+    fetch_calendar_html_requests(FOMC_CALENDAR_URL)
+    sent = responses.calls[0].request.headers["User-Agent"]
+    assert "fomc-calendar-scraper" in sent
+    assert "Mozilla" not in sent
+
+
+@responses.activate
+@pytest.mark.parametrize("status", [403, 404, 500, 503])
+def test_requests_backend_raises_on_http_error(status):
+    responses.add(responses.GET, FOMC_CALENDAR_URL, body="nope", status=status)
+    with pytest.raises(FOMCScrapeError, match="HTTP GET"):
+        fetch_calendar_html_requests(FOMC_CALENDAR_URL)
+
+
+@responses.activate
+def test_requests_backend_raises_on_empty_body():
+    responses.add(responses.GET, FOMC_CALENDAR_URL, body="   ", status=200)
+    with pytest.raises(FOMCScrapeError, match="empty body"):
+        fetch_calendar_html_requests(FOMC_CALENDAR_URL)
+
+
+@responses.activate
+def test_auto_backend_uses_requests_when_it_works():
+    """Selenium must not be touched on the happy path -- if it were, the
+    scraper would need a driver for a page that is plain static HTML."""
+    responses.add(responses.GET, FOMC_CALENDAR_URL, body="<html>ok</html>", status=200)
+    assert fetch_calendar_html(FOMC_CALENDAR_URL, backend="auto") == "<html>ok</html>"
+    assert len(responses.calls) == 1
+
+
+@responses.activate
+def test_auto_backend_falls_back_to_selenium_and_reports_both_failures(monkeypatch):
+    responses.add(responses.GET, FOMC_CALENDAR_URL, status=503)
+
+    def _boom(*_args, **_kwargs):
+        raise FOMCScrapeError("driver unavailable")
+
+    monkeypatch.setattr(
+        "fred_pipeline.catalogs.fomc_calendar.fetch_calendar_html_selenium", _boom
+    )
+    with pytest.raises(FOMCScrapeError) as excinfo:
+        fetch_calendar_html(FOMC_CALENDAR_URL, backend="auto")
+
+    message = str(excinfo.value)
+    # Both causes must survive: the requests failure is usually the
+    # informative one, and hiding it sends you debugging the wrong layer.
+    assert "requests:" in message and "HTTP GET" in message
+    assert "selenium:" in message and "driver unavailable" in message
+
+
+@responses.activate
+def test_explicit_requests_backend_never_falls_back(monkeypatch):
+    responses.add(responses.GET, FOMC_CALENDAR_URL, status=500)
+    monkeypatch.setattr(
+        "fred_pipeline.catalogs.fomc_calendar.fetch_calendar_html_selenium",
+        lambda *a, **k: pytest.fail("selenium must not be used for backend='requests'"),
+    )
+    with pytest.raises(FOMCScrapeError):
+        fetch_calendar_html(FOMC_CALENDAR_URL, backend="requests")
+
+
+def test_unknown_backend_is_rejected():
+    with pytest.raises(FOMCScrapeError, match="unknown backend"):
+        fetch_calendar_html(FOMC_CALENDAR_URL, backend="curl")
+
+
+@responses.activate
+def test_requests_backend_feeds_the_parser_end_to_end():
+    """The two halves fit: fetch over HTTP, parse to meetings, no browser."""
+    responses.add(
+        responses.GET,
+        FOMC_CALENDAR_URL,
+        body=FIXTURE.read_text(encoding="utf-8"),
+        status=200,
+    )
+    html = fetch_calendar_html(FOMC_CALENDAR_URL, backend="requests")
+    assert len(parse_fomc_calendar(html, warn=False)) == 19
 
 
 # ---- diffing ----------------------------------------------------------------

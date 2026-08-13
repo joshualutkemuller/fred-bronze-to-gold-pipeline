@@ -8,7 +8,7 @@ Run this when ``test_fomc_meeting_dates_have_runway`` starts failing — it fire
 ``gold.fomc_probability`` / ``gold.fomc_meeting_path`` emit nothing and the
 Power BI Fed Policy Watch report render blank, with no error anywhere.
 
-    # what the Fed currently lists
+    # what the Fed currently lists (plain HTTP; the page is static HTML)
     python scripts/scrape_fomc_calendar.py
 
     # only what the config is missing, paste-ready
@@ -16,6 +16,9 @@ Power BI Fed Policy Watch report render blank, with no error anywhere.
 
     # CI / cron: non-zero exit when config and page disagree
     python scripts/scrape_fomc_calendar.py --check
+
+    # force a real browser (needed only if the page becomes JS-rendered)
+    python scripts/scrape_fomc_calendar.py --backend selenium
 
     # no browser, no network -- parse a saved page
     python scripts/scrape_fomc_calendar.py --html-file tests/fixtures/fomccalendars.html
@@ -42,6 +45,7 @@ import yaml  # noqa: E402
 
 from fred_pipeline.catalogs.fomc_calendar import (  # noqa: E402
     FOMC_CALENDAR_URL,
+    VALID_BACKENDS,
     FOMCScrapeError,
     diff_against_config,
     fetch_calendar_html,
@@ -101,9 +105,19 @@ def _build_parser() -> argparse.ArgumentParser:
         help="ignore meetings before this calendar year",
     )
     p.add_argument(
+        "--backend",
+        choices=VALID_BACKENDS,
+        default="auto",
+        help=(
+            "how to fetch: 'requests' (fast, no browser -- the page is static "
+            "HTML), 'selenium' (real browser), or 'auto' (default: requests, "
+            "falling back to selenium)"
+        ),
+    )
+    p.add_argument(
         "--no-headless",
         action="store_true",
-        help="show the browser (debugging a parse failure)",
+        help="show the browser (debugging a parse failure; selenium only)",
     )
     p.add_argument("--chromedriver", help="path to chromedriver")
     p.add_argument("--chrome-binary", help="path to the Chrome/Chromium binary")
@@ -116,24 +130,44 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
 
+    def _fetch(backend: str) -> str:
+        html = fetch_calendar_html(
+            args.url,
+            backend=backend,
+            headless=not args.no_headless,
+            chromedriver_path=args.chromedriver,
+            chrome_binary=args.chrome_binary,
+            timeout_seconds=args.timeout,
+        )
+        if args.save_html:
+            args.save_html.write_text(html, encoding="utf-8")
+            print(f"saved page to {args.save_html}", file=sys.stderr)
+        return html
+
     try:
         if args.html_file:
             html = args.html_file.read_text(encoding="utf-8")
             print(f"parsing {args.html_file} (no browser)", file=sys.stderr)
+            meetings = parse_fomc_calendar(html)
         else:
-            print(f"fetching {args.url} with Selenium…", file=sys.stderr)
-            html = fetch_calendar_html(
-                args.url,
-                headless=not args.no_headless,
-                chromedriver_path=args.chromedriver,
-                chrome_binary=args.chrome_binary,
-                timeout_seconds=args.timeout,
-            )
-            if args.save_html:
-                args.save_html.write_text(html, encoding="utf-8")
-                print(f"saved page to {args.save_html}", file=sys.stderr)
-
-        meetings = parse_fomc_calendar(html)
+            print(f"fetching {args.url} (backend: {args.backend})", file=sys.stderr)
+            html = _fetch(args.backend)
+            try:
+                meetings = parse_fomc_calendar(html)
+            except FOMCScrapeError:
+                # A page that fetches fine but parses to nothing is the
+                # signature of client-side rendering -- exactly the case
+                # Selenium exists for. Retry once through the browser before
+                # concluding the parser is broken.
+                if args.backend != "auto":
+                    raise
+                print(
+                    "note: page fetched but parsed to 0 meetings; retrying "
+                    "with Selenium in case it is now JavaScript-rendered",
+                    file=sys.stderr,
+                )
+                html = _fetch("selenium")
+                meetings = parse_fomc_calendar(html)
     except FileNotFoundError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
