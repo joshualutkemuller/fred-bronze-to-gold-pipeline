@@ -28,10 +28,16 @@ in **§8 Prerequisites & gaps**, which lists the handful of things that must be
 built or activated before a specific report can be populated.
 
 The pipeline ships a machine-readable manifest of its own Gold objects at
-`gold.powerbi_catalog` (source of truth:
+`gold.powerbi_catalog` — 54 rows, including the `PIT` and `GOV` modules that
+Reports 13 and 14 bind to (source of truth:
 `fred_pipeline.writer.global_views.POWERBI_CATALOG`). Appendix A reproduces it.
 **When this document and `gold.powerbi_catalog` disagree, the table wins** — it
 is generated from the code that builds the data.
+
+Two tests keep it honest: `test_powerbi_catalog_covers_gold_tables` fails when a
+Gold table *or view* has no catalog row, and
+`test_powerbi_catalog_has_no_phantom_entries` fails when the catalog lists an
+object that no longer exists.
 
 ---
 
@@ -1569,10 +1575,29 @@ alone.
 |---|---|---|---|
 | Snapshot facts | `macro_indicator_dashboard`, `benchmark_rate_board`, `macro_category_summary`, `funding_stress_daily` | tiny (10²–10³ rows) | full import |
 | Curated daily facts | `treasury_curve*`, `curve_spread*`, `credit_spread*`, `funding_tape_daily`, `macro_regime_daily` | small (10⁴–10⁵) | full import |
-| Windowed facts | `*_rolling`, `realized_volatility`, `fred_series_zscore_rolling` | medium (10⁵–10⁶; ×7 windows) | full import; window slicer defaults to one window |
+| Windowed facts | `curve_spread_rolling`, `credit_spread_rolling`, `treasury_curve_rolling`, `realized_volatility` | medium (10⁵–10⁶; ×7 windows) | full import; window slicer defaults to one window |
+| **Universe-scope z-score facts** | `zscore_heatmap`, `fred_series_zscore_rolling` | **large** — built from *all* 2,820 active series, not the 254 cataloged ones | **restrict on load** (see below) |
 | Universe facts | `fred_latest_observation`, `fred_feature_transforms`, `ml_feature_matrix` | large | restrict series; incremental refresh |
 | Vintage facts | `fred_point_in_time`, `silver.fred_observation` | largest | restrict series + incremental refresh; DirectQuery last resort |
 | Audit facts | `etl_series_run`, `data_quality_result` | grows every run | incremental refresh on run date |
+
+**The z-score tables are a sizing trap.** `_build_zscore_views` reads the whole
+of `gold.fred_feature_transforms`, so `zscore_heatmap` is one row per
+(series, date) across the **entire active universe** and
+`fred_series_zscore_rolling` multiplies that by four observation windows.
+Neither is restricted to `config/series_catalog.yml`. Binding either one
+unfiltered will dominate a model.
+
+The fix is a load-time inner join to `dim_series`, which restricts to the 254
+cataloged series as a side effect of the join:
+
+```sql
+FROM   ${p_Catalog}.gold.zscore_heatmap z
+JOIN   ${p_Catalog}.gold.dim_series d ON d.series_id = z.series_id
+```
+
+That join is load-bearing, not cosmetic — drop it and the query returns the full
+universe. The build plan's Report 8 and Report 9 queries already carry it.
 
 ### 6.2 Incremental refresh policy
 

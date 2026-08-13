@@ -104,6 +104,32 @@ def _referenced() -> dict[str, list[str]]:
     for tenor in fomc.get("tenors") or []:
         add(tenor.get("series_id"), "fomc.yml tenors")
 
+    for feature in _load("cross_series.yml").get("features") or []:
+        for leg in feature.get("legs") or []:
+            # a leg is either a bare series id or {series_id, weight}
+            add(leg if isinstance(leg, str) else leg.get("series_id"),
+                "cross_series.yml legs")
+
+    for rec in _load("reconciliations.yml").get("reconciliations") or []:
+        add(rec.get("series_a"), "reconciliations.yml series_a")
+        add(rec.get("series_b"), "reconciliations.yml series_b")
+
+    for key, value in _load("global_series.yml").items():
+        if isinstance(value, list):
+            for country in value:
+                if isinstance(country, dict):
+                    add(country.get("series_id"), f"global_series.yml {key}")
+
+    for release in _load("release_calendar.yml").get("releases") or []:
+        add(release.get("representative_series_id"),
+            "release_calendar.yml representative_series_id")
+
+    for series_id in _load("inflation_forecast.yml").get("series") or []:
+        add(series_id, "inflation_forecast.yml series")
+
+    add((_load("recession_model.yml").get("features") or {}).get("hy_oas_instrument"),
+        "recession_model.yml hy_oas_instrument")
+
     return refs
 
 

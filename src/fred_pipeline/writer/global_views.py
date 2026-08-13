@@ -609,6 +609,82 @@ POWERBI_CATALOG: tuple[dict[str, Any], ...] = (
         "forecast_value and CI bounds are MoM decimal fractions. "
         "model_type: 'ar' (univariate) or 'var' (bivariate CPI+PCE joint model).",
     ),
+    # ---- point-in-time / revisions (PIT) ------------------------------------
+    # Previously treated as internal. They are report-facing as of the Power BI
+    # suite's PIT & Revisions Lab (docs/handoffs/powerbi_report_build_plan.md).
+    _entry(
+        "fred_point_in_time",
+        "fact",
+        "PIT",
+        "1 / series x observation x vintage",
+        "as-of slicer + vintage-vs-today overlay",
+        "Every vintage of every vintage-enabled series. Filter with a range predicate "
+        "(realtime_start <= as_of AND (realtime_end >= as_of OR realtime_end IS NULL)) to "
+        "reconstruct what was known on a date. The largest object in the Gold layer — "
+        "restrict to the series under study and apply incremental refresh.",
+    ),
+    _entry(
+        "fred_revision_stats",
+        "fact",
+        "PIT",
+        "1 / series x observation",
+        "revision-magnitude scatter / ranking table",
+        "How far each observation moved between its first print and today: first_value, "
+        "latest_value, revision_delta, revision_pct, revision_count. Non-vintage series "
+        "always show revision_count = 1 — exclude them from revision rankings rather than "
+        "ranking them as 'never revised'.",
+    ),
+    _entry(
+        "v_series_revision_summary",
+        "view",
+        "PIT",
+        "1 / series",
+        "'trust the first print?' ranking table",
+        "Per-series roll-up of fred_revision_stats: avg/max revision count and avg/max "
+        "absolute revision percent. The quickest read on which series can be acted on at "
+        "first print (market/price series) and which cannot (GDP, payrolls).",
+    ),
+    _entry(
+        "fred_cross_series_feature",
+        "fact",
+        "PIT",
+        "1 / feature x date",
+        "line, paired against the _pit variant",
+        "Frequency-aware N-leg cross-series features (config/cross_series.yml) built on "
+        "LATEST-REVISED values. Pair with fred_cross_series_feature_pit to measure how much "
+        "a naive backtest would absorb from revisions.",
+    ),
+    _entry(
+        "fred_cross_series_feature_pit",
+        "fact",
+        "PIT",
+        "1 / feature x date",
+        "line, paired against the revised variant",
+        "The realtime_start-aligned (leak-free) twin of fred_cross_series_feature: each leg "
+        "uses the value actually known at the time. Carries an extra `basis` column "
+        "recording how each leg was aligned.",
+    ),
+    # ---- governance (GOV) ---------------------------------------------------
+    _entry(
+        "fred_source_reconciliation",
+        "fact",
+        "GOV",
+        "1 / concept x date",
+        "divergence line / exception table",
+        "Same-concept series from different sources (config/reconciliations.yml) aligned and "
+        "compared, with a `diverged` flag when |pct_diff| exceeds the configured tolerance. "
+        "Data-lineage QA for the Pipeline Health report, not a research feature.",
+    ),
+    _entry(
+        "v_source_coverage",
+        "view",
+        "GOV",
+        "1 / source x series",
+        "freshness matrix / stale-series list",
+        "Latest observation, observation count, and a cadence-aware staleness verdict per "
+        "(source, series). Covers every source because it reads ingested data rather than "
+        "calling each upstream API — unlike drift, which is FRED-only.",
+    ),
 )
 
 

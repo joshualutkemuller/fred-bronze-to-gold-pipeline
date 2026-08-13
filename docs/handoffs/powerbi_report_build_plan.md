@@ -654,6 +654,12 @@ WHERE  d.econ_category <> 'REGIONAL';
 `zscore_*`/`percentile_*` columns into `window` / `zscore` / `percentile` in
 Power Query; for a single-date heatmap, bind the wide columns directly.
 
+**The `dim_series` join above is load-bearing.** `zscore_heatmap` is built from
+the whole of `fred_feature_transforms` — one row per (series, date) across all
+2,820 active series, not the 254 cataloged ones. The inner join restricts it to
+the catalog as a side effect. Remove the join "to simplify the query" and the
+model imports the entire universe.
+
 **Data model**
 
 | From | To | Cardinality | Direction | Active |
