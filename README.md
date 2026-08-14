@@ -27,7 +27,11 @@ Census, SEC (company financials), Tiingo, Stooq, and iShares — see
 > commands), see
 > [`docs/instructions/running_multi_source.md`](./docs/instructions/running_multi_source.md).
 > The Power BI report suite built on the Gold layer is specified in
-> [`docs/handoffs/powerbi_report_suite.md`](./docs/handoffs/powerbi_report_suite.md).
+> [`docs/handoffs/powerbi_report_suite.md`](./docs/handoffs/powerbi_report_suite.md),
+> with per-report source queries, data models and readiness in
+> [`docs/handoffs/powerbi_report_build_plan.md`](./docs/handoffs/powerbi_report_build_plan.md).
+> Run alerting (who gets emailed when a stage fails) is in
+> [`docs/handoffs/run_alerting.md`](./docs/handoffs/run_alerting.md).
 
 ## What it does
 
@@ -72,7 +76,8 @@ fred-bronze-to-gold-pipeline/
 │   ├── data/                 # Bronze/Silver: raw payload retention, normalization
 │   ├── ml/                # statistical/ML models (PCA, Nelson-Siegel, recession
 │   │                     #   probability, anomaly detection, inflation forecast)
-│   ├── governance/        # audit/lineage, metadata drift+lifecycle, notifications
+│   ├── governance/        # audit/lineage, metadata drift+lifecycle, licensing,
+│   │                     #   stage tracking + run alerting (email/webhook)
 │   ├── validation/        # data-quality rules
 │   └── writer/            # Gold-layer builder engines (feature tables, quant
 │                          #   transforms, terminal/equity/regime/z-score views)
@@ -82,8 +87,9 @@ fred-bronze-to-gold-pipeline/
 ├── notebooks/            # Databricks job entrypoint
 ├── .github/workflows/    # CI: unit matrix + Spark/Delta integration job
 ├── tests/                # pytest suite (Spark tests auto-skip if PySpark absent)
-└── docs/                 # architecture, data dictionary, validation,
-                          #   adding_a_source, deployment_runbook, incremental_loading
+└── docs/                 # architecture, data dictionary, validation, handoffs
+                          #   (Power BI report suite + build plan, run alerting,
+                          #   FOMC calendar scraper), instructions, deployment
 ```
 
 ## Quickstart (local)
@@ -502,7 +508,7 @@ CI**, green on the latest commit). Highlights: **twelve pluggable sources**
 `source` in the natural key and source-aware Bronze lineage + replay;
 **API-driven FRED discovery**; **metadata governance** (drift + lifecycle vs.
 live FRED); **incremental loads** (full-on-first-run, then restate last N);
-**replay-from-Bronze** rebuild; **run notifications**; richer **data quality**
+**replay-from-Bronze** rebuild; **stage tracking + run-summary email alerting** (Outlook/Microsoft 365 SMTP, Microsoft Graph, or a Slack-compatible webhook — reports *which phase* failed, so a run whose Gold rebuild broke is no longer reported as a success); richer **data quality**
 (freshness + value bounds); **quant Gold features** (MoM/YoY/diff/z-score, curve
 spreads, **frequency-aware N-leg cross-series features** — `config/cross_series.yml`,
 as-of alignment for cross-source/cross-frequency spreads/ratios/composites,
