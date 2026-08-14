@@ -312,3 +312,197 @@ def test_fomc_tables_build_end_to_end_on_spark(spark, monkeypatch):
         f"SELECT COUNT(*) AS n FROM {config.table('gold', 'fomc_meeting_path')}"
     ).collect()
     assert path[0]["n"] == 12
+
+
+# ---------------------------------------------------------------------------
+# Terminal views: the Gold objects the Power BI suite actually binds to.
+#
+# These were the largest untested surface on the Delta path.
+# ``_build_terminal_views`` writes 18 tables, each through its own
+# ``_write(name, rows, StructType([...]), casts)``. The StructType is written by
+# hand, so a column added to a pure engine's output dict but not to its
+# StructType is silently dropped on the Databricks write while the SQLite
+# mirror stays correct -- invisible to every other test in the repo.
+#
+# That is not hypothetical: gold.dim_series shipped without `geo` and `metric`
+# for exactly this reason. tests/test_dim_series_schema_parity.py guards that
+# one table by reading source; this guards all 18 by actually building them on
+# Delta and comparing the result against the shipped DDL in sql/50_gold.sql.
+# ---------------------------------------------------------------------------
+
+# Written by _build_terminal_views, in the order the function writes them.
+TERMINAL_TABLES = (
+    "dim_series",
+    "dim_date",
+    "market_calendar",
+    "macro_indicator_dashboard",
+    "macro_indicator_sparkline",
+    "macro_category_summary",
+    "treasury_curve",
+    "treasury_curve_metrics",
+    "treasury_curve_rolling",
+    "yield_curve_ns_factors",
+    "curve_spread_daily",
+    "spread_inversion_episode",
+    "curve_spread_rolling",
+    "benchmark_rate_board",
+    "funding_tape_daily",
+    "funding_stress_daily",
+    "credit_spread_daily",
+    "credit_spread_rolling",
+    "inflation_explorer",
+    "inflation_contribution",
+)
+
+
+def _ddl_columns(table: str) -> list[str]:
+    """Column names declared for ``gold.<table>`` in sql/50_gold.sql.
+
+    That file is the contract shipped to engineers who build Gold from pure
+    SQL, so it is the right reference: if the Spark writer and the DDL
+    disagree, one of the two backends is wrong regardless of which.
+    """
+    import re
+    from pathlib import Path
+
+    sql = (Path(__file__).resolve().parents[1] / "sql" / "50_gold.sql").read_text(
+        encoding="utf-8"
+    )
+    match = re.search(
+        rf"CREATE TABLE IF NOT EXISTS gold\.{table} \((.*?)\)\s*USING DELTA;",
+        sql,
+        re.DOTALL,
+    )
+    assert match, f"gold.{table} has no CREATE TABLE in sql/50_gold.sql"
+    columns = []
+    for line in match.group(1).splitlines():
+        line = line.strip()
+        if not line or line.startswith("--"):
+            continue
+        columns.append(line.split()[0].rstrip(","))
+    return columns
+
+
+@pytest.fixture(scope="module")
+def terminal_build(spark, tmp_path_factory):
+    """Build every terminal view once on real Delta, and hand back the config.
+
+    Inputs are deliberately small but *real*: a handful of cataloged series
+    (including a REGIONAL one, so dim_series' geo/metric are exercised), the
+    curve tenors the spreads need, and USREC for the recession overlay. Tables
+    whose inputs are absent simply come out empty -- which is the documented
+    behaviour, and still enough to verify their schema.
+    """
+    from fred_pipeline.config import Environment, PipelineConfig
+    from fred_pipeline.writer.gold import _build_terminal_views
+
+    original_catalog = PipelineConfig.catalog
+    PipelineConfig.catalog = property(lambda self: "spark_catalog")
+    try:
+        config = PipelineConfig(environment=Environment.DEV, fred_api_key="k")
+        spark.sql("CREATE DATABASE IF NOT EXISTS spark_catalog.gold")
+        spark.sql("CREATE DATABASE IF NOT EXISTS spark_catalog.meta")
+
+        meta_rows = [
+            {"series_id": "UNRATE", "title": "Unemployment Rate", "frequency": "m", "units": "Percent"},
+            {"series_id": "CAUR", "title": "Unemployment Rate in California", "frequency": "m", "units": "Percent"},
+            {"series_id": "DGS2", "title": "2-Year Treasury", "frequency": "d", "units": "Percent"},
+            {"series_id": "DGS10", "title": "10-Year Treasury", "frequency": "d", "units": "Percent"},
+            {"series_id": "DGS3MO", "title": "3-Month Treasury", "frequency": "d", "units": "Percent"},
+        ]
+        spark.createDataFrame(meta_rows).write.format("delta").mode(
+            "overwrite"
+        ).option("overwriteSchema", "true").saveAsTable(
+            config.table("meta", "fred_series")
+        )
+
+        observations = []
+        for day, (unrate, caur, two, ten, three_m, usrec) in {
+            "2026-01-01": (4.0, 5.0, 4.20, 4.50, 4.30, 0.0),
+            "2026-02-01": (4.1, 5.1, 4.25, 4.45, 4.35, 0.0),
+            "2026-03-01": (4.2, 5.2, 4.35, 4.30, 4.40, 0.0),
+            "2026-04-01": (4.1, 5.0, 4.40, 4.25, 4.45, 1.0),
+        }.items():
+            for series_id, value in (
+                ("UNRATE", unrate), ("CAUR", caur), ("DGS2", two),
+                ("DGS10", ten), ("DGS3MO", three_m), ("USREC", usrec),
+            ):
+                observations.append({
+                    "series_id": series_id,
+                    "observation_date": day,
+                    "realtime_start": day,
+                    "value": value,
+                    "is_missing": False,
+                })
+        _silver_df(spark, observations).write.format("delta").mode(
+            "overwrite"
+        ).option("overwriteSchema", "true").saveAsTable(
+            config.table("gold", "fred_latest_observation")
+        )
+
+        _build_terminal_views(config, spark)
+        yield config
+    finally:
+        PipelineConfig.catalog = original_catalog
+
+
+@pytest.mark.parametrize("table", TERMINAL_TABLES)
+def test_terminal_view_schema_matches_shipped_ddl(spark, terminal_build, table):
+    """Every terminal table's written schema must match sql/50_gold.sql.
+
+    This is the generic form of the dim_series geo/metric bug: a hand-written
+    StructType that has drifted from the engine's output. Comparing against the
+    shipped DDL catches it for all 18 tables at once.
+    """
+    written = set(spark.table(terminal_build.table("gold", table)).columns)
+    declared = set(_ddl_columns(table))
+    assert written == declared, (
+        f"gold.{table} written schema disagrees with sql/50_gold.sql — "
+        f"missing from the Spark write: {sorted(declared - written)}; "
+        f"unexpected: {sorted(written - declared)}"
+    )
+
+
+def test_dim_series_carries_geo_and_metric_on_delta(spark, terminal_build):
+    """The specific regression: the REGIONAL panel's map key and measure name
+    must survive the Databricks write, not just the SQLite one."""
+    row = spark.sql(
+        f"SELECT series_id, econ_category, geo, metric, title "
+        f"FROM {terminal_build.table('gold', 'dim_series')} "
+        f"WHERE series_id = 'CAUR'"
+    ).collect()
+    assert row, "CAUR missing from dim_series (is it still in config/series_catalog.yml?)"
+    assert row[0]["econ_category"] == "REGIONAL"
+    assert row[0]["geo"] == "CA"
+    assert row[0]["metric"] == "Unemployment Rate"
+    # merged from meta.fred_series, proving the join half works too
+    assert row[0]["title"] == "Unemployment Rate in California"
+
+
+def test_terminal_views_populate_their_core_tables(spark, terminal_build):
+    """Schema parity alone would pass on 18 empty tables. These are the ones
+    whose inputs the fixture provides, so they must actually have rows."""
+    for table, minimum in (
+        ("dim_series", 200),   # the catalog is 254 entries
+        ("dim_date", 90),      # ~4 months of daily rows
+        ("market_calendar", 90),
+        ("macro_indicator_dashboard", 2),   # UNRATE + CAUR at least
+        ("treasury_curve", 3),              # 3 tenors x 4 dates
+        ("curve_spread_daily", 1),
+    ):
+        count = spark.sql(
+            f"SELECT COUNT(*) AS n FROM {terminal_build.table('gold', table)}"
+        ).collect()[0]["n"]
+        assert count >= minimum, f"gold.{table} has {count} rows, expected >= {minimum}"
+
+
+def test_dim_date_recession_flag_survives_the_delta_write(spark, terminal_build):
+    """is_recession is nullable BOOLEAN and NULL means 'USREC not ingested'.
+    A cast that turned NULL into false would silently mis-shade every
+    time-series visual in the Power BI suite."""
+    flags = spark.sql(
+        f"SELECT DISTINCT is_recession FROM {terminal_build.table('gold', 'dim_date')}"
+    ).collect()
+    values = {row["is_recession"] for row in flags}
+    assert values <= {True, False, None}
+    assert True in values, "the fixture marks 2026-04 as a recession month"

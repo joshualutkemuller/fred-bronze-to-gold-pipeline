@@ -309,6 +309,7 @@ class FredPipeline:
         warehouse: Warehouse | None = None,
         persist_audit: bool = True,
         notify_transport: Any = None,
+        alert_transport: Any = None,
     ):
         self.config = config
         self.persist_audit = persist_audit
@@ -319,6 +320,11 @@ class FredPipeline:
         if client is not None:
             self._clients.setdefault("fred", client)
         self._notify_transport = notify_transport
+        # Injectable so tests never touch a mailbox; None means the
+        # transport named in config/alerting.yml (console by default).
+        self._alert_transport = alert_transport
+        self._stage_tracker: Any = None
+        self._alert_sent = False
         # Resolve the storage backend: explicit warehouse > Spark > None (dry run).
         if warehouse is not None:
             self.warehouse: Warehouse | None = warehouse
@@ -418,100 +424,149 @@ class FredPipeline:
         )
         log.info("Starting run %s (%d series)", run.run_id, len(specs))
 
+        # Stage tracking runs alongside the audit trail, not instead of it.
+        # EtlRun.status reflects SERIES outcomes; the tracker records whether
+        # each PHASE did its job, which is a different question -- a run can
+        # ingest every series cleanly and still fail to rebuild Gold.
+        from fred_pipeline.governance.stages import RunStageTracker
+
+        tracker = RunStageTracker()
+        self._stage_tracker = tracker
+
         # Phase 1 (sequential): decide each series' load window. This reads the
         # warehouse (one SQLite/Delta connection), so it must not run
         # concurrently with itself or with later writes. Series audit rows are
         # opened in manifest order so the final run object stays deterministic
         # even though extraction finishes out of order.
-        series_runs = [
-            run.start_series(spec.series_id, load_type=spec.load_type.value)
-            for spec in specs
-        ]
-        run.series_total = len(series_runs)
-        plans = [self._plan_extract(spec, force_full=force_full) for spec in specs]
-        work_items = list(zip(specs, plans, series_runs))
+        with tracker.stage("plan") as stage:
+            series_runs = [
+                run.start_series(spec.series_id, load_type=spec.load_type.value)
+                for spec in specs
+            ]
+            run.series_total = len(series_runs)
+            plans = [self._plan_extract(spec, force_full=force_full) for spec in specs]
+            work_items = list(zip(specs, plans, series_runs))
+            stage.detail["series_planned"] = len(work_items)
 
         # Phase 2/3 (source-aware extraction, streaming finish): network-bound
         # fetches run in per-source pools, while Bronze/Silver/DQ/audit writes
         # happen immediately as each future completes on this main thread. This
         # avoids losing completed FRED/Stooq work when a low-quota source is
         # still sleeping in retry/backoff.
-        grouped: dict[str, list[tuple[int, SeriesSpec, tuple[str | None, str]]]] = (
-            defaultdict(list)
-        )
-        for idx, (spec, plan) in enumerate(zip(specs, plans)):
-            grouped[(getattr(spec, "source", "fred") or "fred").lower()].append(
-                (idx, spec, plan)
-            )
-        for source in grouped:
-            if source in self._clients or source in SOURCE_FACTORIES:
-                self._client_for_source(source)  # build clients before threads race
-        pools: list[ThreadPoolExecutor] = []
-        futures = {}
-        completed = 0
+        # A hard extraction failure still propagates (callers rely on it),
+        # but the alert goes out first -- an operator must hear about the
+        # run that died, not just the ones that finished.
         try:
-            for source, items in grouped.items():
-                workers = _extract_workers_for_source(self.config, source)
-                pool = ThreadPoolExecutor(
-                    max_workers=workers,
-                    thread_name_prefix=f"{source}-extract",
+            with tracker.stage("extract") as extract_stage:
+                grouped: dict[str, list[tuple[int, SeriesSpec, tuple[str | None, str]]]] = (
+                    defaultdict(list)
                 )
-                pools.append(pool)
-                log.info(
-                    "Submitted %d %s series (%d workers, %d rpm)",
-                    len(items),
-                    source,
-                    workers,
-                    _rate_limit_for_source(self.config, source),
-                )
-                for idx, spec, plan in items:
-                    futures[pool.submit(self._safe_extract, spec, plan)] = idx
-
-            for fut in as_completed(futures):
-                idx = futures[fut]
-                spec, (_observation_start, load_type), sr = work_items[idx]
-                outcome = fut.result()
-                self._finish_series(run, spec, load_type, outcome, series_run=sr)
-                completed += 1
-                self._update_run_progress(run, total=len(specs))
-                self._persist_incremental_audit(run, sr)
-                if (
-                    completed == len(futures)
-                    or completed % 25 == 0
-                    or sr.status == RunStatus.FAILED
-                ):
-                    log.info(
-                        "Run %s progress: %d/%d completed (%d ok / %d failed)",
-                        run.run_id,
-                        completed,
-                        len(futures),
-                        run.series_succeeded,
-                        run.series_failed,
+                for idx, (spec, plan) in enumerate(zip(specs, plans)):
+                    grouped[(getattr(spec, "source", "fred") or "fred").lower()].append(
+                        (idx, spec, plan)
                     )
+                for source in grouped:
+                    if source in self._clients or source in SOURCE_FACTORIES:
+                        self._client_for_source(source)  # build clients before threads race
+                pools: list[ThreadPoolExecutor] = []
+                futures = {}
+                completed = 0
+                try:
+                    for source, items in grouped.items():
+                        workers = _extract_workers_for_source(self.config, source)
+                        pool = ThreadPoolExecutor(
+                            max_workers=workers,
+                            thread_name_prefix=f"{source}-extract",
+                        )
+                        pools.append(pool)
+                        log.info(
+                            "Submitted %d %s series (%d workers, %d rpm)",
+                            len(items),
+                            source,
+                            workers,
+                            _rate_limit_for_source(self.config, source),
+                        )
+                        for idx, spec, plan in items:
+                            futures[pool.submit(self._safe_extract, spec, plan)] = idx
+
+                    for fut in as_completed(futures):
+                        idx = futures[fut]
+                        spec, (_observation_start, load_type), sr = work_items[idx]
+                        outcome = fut.result()
+                        self._finish_series(run, spec, load_type, outcome, series_run=sr)
+                        completed += 1
+                        self._update_run_progress(run, total=len(specs))
+                        self._persist_incremental_audit(run, sr)
+                        if (
+                            completed == len(futures)
+                            or completed % 25 == 0
+                            or sr.status == RunStatus.FAILED
+                        ):
+                            log.info(
+                                "Run %s progress: %d/%d completed (%d ok / %d failed)",
+                                run.run_id,
+                                completed,
+                                len(futures),
+                                run.series_succeeded,
+                                run.series_failed,
+                            )
+                except BaseException:
+                    for fut in futures:
+                        fut.cancel()
+                    for pool in pools:
+                        pool.shutdown(wait=False, cancel_futures=True)
+                    raise
+                else:
+                    for pool in pools:
+                        pool.shutdown(wait=True)
+                extract_stage.detail["series_succeeded"] = run.series_succeeded
+                extract_stage.detail["series_failed"] = run.series_failed
+                extract_stage.detail["sources"] = ", ".join(sorted(grouped))
         except BaseException:
-            for fut in futures:
-                fut.cancel()
-            for pool in pools:
-                pool.shutdown(wait=False, cancel_futures=True)
+            self._send_run_alert(run, tracker)
             raise
-        else:
-            for pool in pools:
-                pool.shutdown(wait=True)
 
         run.finalize()
 
+        # Gold: swallow=True keeps the historical behaviour (a Gold failure does
+        # not abort a run whose ingestion succeeded) but the failure is now
+        # RECORDED rather than only logged, so the run summary can say so.
         if build_gold_layer and run.series_succeeded > 0 and self.warehouse is not None:
-            try:
-                self.warehouse.build_gold()
+            with tracker.stage("gold", swallow=True) as stage:
+                result = self.warehouse.build_gold()
+                if isinstance(result, dict):
+                    stage.detail["tables_built"] = len(result)
+                    not_ok = {k: v for k, v in result.items() if v != "ok"}
+                    if not_ok:
+                        stage.detail["tables_not_ok"] = ", ".join(sorted(not_ok))
                 log.info("Gold layer refreshed for run %s", run.run_id)
-            except Exception:
+            gold_stage = tracker.get("gold")
+            if gold_stage is not None and gold_stage.error_message:
                 log.exception("Gold refresh failed for run %s", run.run_id)
+            elif gold_stage is not None and gold_stage.detail.get("tables_not_ok"):
+                tracker.warn(
+                    "gold",
+                    f"tables not ok: {gold_stage.detail['tables_not_ok']}",
+                )
+        elif not build_gold_layer:
+            tracker.skip("gold", "build_gold_layer=False")
+        elif self.warehouse is None:
+            tracker.skip("gold", "no warehouse (dry run)")
+        else:
+            tracker.skip("gold", "no series succeeded")
 
         if build_gold_layer and self.warehouse is not None:
-            self._refresh_release_calendar(run)
+            with tracker.stage("release_calendar", swallow=True):
+                self._refresh_release_calendar(run)
+        else:
+            tracker.skip("release_calendar", "gold layer not built")
 
-        self._persist_run(run)
+        with tracker.stage("persist", swallow=True) as stage:
+            self._persist_run(run)
+            stage.detail["series_rows"] = len(run.series_runs)
+
         self._notify(run)
+        self._send_run_alert(run, tracker)
         log.info(
             "Run %s finished: %s (%d ok / %d failed)",
             run.run_id,
@@ -520,6 +575,33 @@ class FredPipeline:
             run.series_failed,
         )
         return run
+
+    def _send_run_alert(self, run: EtlRun, tracker: Any) -> None:
+        """Email the stage summary (config/alerting.yml).
+
+        Complements ``_notify``'s webhook rather than replacing it: the webhook
+        answers "did the run fail", this answers "which stage, and was the run
+        ultimately a success" — including the case where every series ingested
+        but the Gold rebuild did not.
+
+        Never raises. An alerting problem must not turn a good run into a bad
+        one, and :func:`send_run_alert` already logs the summary via the console
+        transport when no mailbox is configured.
+        """
+        if getattr(self, "_alert_sent", False):
+            return
+        self._alert_sent = True
+        try:
+            from fred_pipeline.governance.alerting import send_run_alert
+
+            send_run_alert(
+                run,
+                tracker,
+                environment=self.config.environment.value,
+                transport=self._alert_transport,
+            )
+        except Exception:  # never let alerting fail a run
+            log.exception("Run alert step failed for run %s", run.run_id)
 
     def _notify(self, run: EtlRun) -> None:
         from fred_pipeline import notify
