@@ -9,13 +9,33 @@
 # plus this project's own prior research (Tiingo's personal-use decision,
 # already recorded in docs/handoffs/completed/handoff.md; the iShares
 # holdings-CSV caveat already noted in sources/ishares.py) -- not a fresh
-# live fetch of every terms page in one pass. Spot-check terms_url and
-# last_reviewed_date before relying on this for a real compliance decision,
-# and bump last_reviewed_date whenever you do.
+# live fetch of every terms page in one pass.
+#
+# review_status records HOW MUCH AUTHORITY an entry carries, so a researched
+# entry cannot be mistaken for a signed-off one:
+#
+#   verified     a human read terms_url and signed off. REQUIRES reviewed_by --
+#                a verification nobody's name is on is an assertion, not a
+#                review. Goes stale after two years; terms change.
+#   provisional  researched from secondary sources. Fine to operate on
+#                internally; NOT a basis for external redistribution.
+#   unreviewed   placeholder -- treat the source as unknown.
+#
+# `fred_pipeline validate --licensing-review` FAILS while any source that
+# permits redistribution is unverified. U.S. federal sources are exempt: they
+# are public domain by statute (17 U.S.C. 105), not by a terms page.
+#
+# Every entry below is currently `provisional`. Nobody has performed a primary
+# read. Clear the ones that matter before publishing externally.
 
 sources:
   - source: fred
     license_type: public-domain
+    review_status: provisional
+    source_of_truth: >
+      U.S. federal government work, public domain by statute
+      (17 U.S.C. 105) rather than by a terms page. Exempt from the
+      redistribution-review check for that reason.
     redistribution_allowed: true
     commercial_use_allowed: true
     attribution_required: false
@@ -33,6 +53,11 @@ sources:
 
   - source: bls
     license_type: public-domain
+    review_status: provisional
+    source_of_truth: >
+      U.S. federal government work, public domain by statute
+      (17 U.S.C. 105) rather than by a terms page. Exempt from the
+      redistribution-review check for that reason.
     redistribution_allowed: true
     commercial_use_allowed: true
     attribution_required: false
@@ -42,6 +67,11 @@ sources:
 
   - source: treasury
     license_type: public-domain
+    review_status: provisional
+    source_of_truth: >
+      U.S. federal government work, public domain by statute
+      (17 U.S.C. 105) rather than by a terms page. Exempt from the
+      redistribution-review check for that reason.
     redistribution_allowed: true
     commercial_use_allowed: true
     attribution_required: false
@@ -51,6 +81,11 @@ sources:
 
   - source: census
     license_type: public-domain
+    review_status: provisional
+    source_of_truth: >
+      U.S. federal government work, public domain by statute
+      (17 U.S.C. 105) rather than by a terms page. Exempt from the
+      redistribution-review check for that reason.
     redistribution_allowed: true
     commercial_use_allowed: true
     attribution_required: false
@@ -60,6 +95,11 @@ sources:
 
   - source: bea
     license_type: public-domain
+    review_status: provisional
+    source_of_truth: >
+      U.S. federal government work, public domain by statute
+      (17 U.S.C. 105) rather than by a terms page. Exempt from the
+      redistribution-review check for that reason.
     redistribution_allowed: true
     commercial_use_allowed: true
     attribution_required: false
@@ -69,6 +109,11 @@ sources:
 
   - source: sec
     license_type: public-domain
+    review_status: provisional
+    source_of_truth: >
+      U.S. federal government work, public domain by statute
+      (17 U.S.C. 105) rather than by a terms page. Exempt from the
+      redistribution-review check for that reason.
     redistribution_allowed: true
     commercial_use_allowed: true
     attribution_required: false
@@ -81,6 +126,11 @@ sources:
 
   - source: eia
     license_type: public-domain
+    review_status: provisional
+    source_of_truth: >
+      U.S. federal government work, public domain by statute
+      (17 U.S.C. 105) rather than by a terms page. Exempt from the
+      redistribution-review check for that reason.
     redistribution_allowed: true
     commercial_use_allowed: true
     attribution_required: false
@@ -90,6 +140,11 @@ sources:
 
   - source: worldbank
     license_type: open-data
+    review_status: provisional
+    source_of_truth: >
+      CC BY 4.0 per the World Bank Open Data terms page, taken as read
+      from its widely-published summary rather than a primary read.
+      Needs a human to confirm terms_url before external redistribution.
     redistribution_allowed: true
     commercial_use_allowed: true
     attribution_required: true
@@ -102,6 +157,14 @@ sources:
 
   - source: bis
     license_type: attribution-noncommercial
+    review_status: provisional
+    source_of_truth: >
+      Secondary reporting of the BIS published terms. The primary page
+      (terms_url) could NOT be read when this entry was written: egress to
+      bis.org is blocked by the authoring environment's network policy.
+      A human must read terms_url and set review_status: verified with
+      their name in reviewed_by before anything BIS-derived is
+      redistributed outside the organisation.
     redistribution_allowed: true
     commercial_use_allowed: false
     attribution_required: true
@@ -132,6 +195,7 @@ sources:
 
   - source: tiingo
     license_type: free-tier-personal-use
+    review_status: provisional
     redistribution_allowed: false
     commercial_use_allowed: false
     attribution_required: false
@@ -145,6 +209,7 @@ sources:
 
   - source: stooq
     license_type: requires-agreement
+    review_status: provisional
     redistribution_allowed: false
     commercial_use_allowed: false
     attribution_required: false
@@ -157,6 +222,7 @@ sources:
 
   - source: ishares
     license_type: requires-agreement
+    review_status: provisional
     redistribution_allowed: false
     commercial_use_allowed: false
     attribution_required: false

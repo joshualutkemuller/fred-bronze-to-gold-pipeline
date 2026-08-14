@@ -317,7 +317,8 @@ def _cmd_validate(args: argparse.Namespace) -> int:
         print(f"  - {man.name}: {len(man.series)} series ({man.source_path})")
 
     from fred_pipeline.governance.licensing import (
-        check_commercial_use, load_data_licensing_config,
+        check_commercial_use, check_redistribution_review,
+        load_data_licensing_config,
     )
 
     licensing = load_data_licensing_config()
@@ -332,6 +333,27 @@ def _cmd_validate(args: argparse.Namespace) -> int:
                       f"{v.reason}", file=sys.stderr)
             return 2
         print("Commercial-use licensing check: all active sources cleared.")
+
+    if args.licensing_review:
+        # Separate question from --commercial: not "may we sell it" but
+        # "is our belief that we may redistribute it actually established".
+        findings = check_redistribution_review(active, licensing)
+        if findings:
+            print(
+                "ERROR: redistribution-review check failed -- these sources "
+                "permit redistribution on unverified authority:",
+                file=sys.stderr,
+            )
+            for v in findings:
+                print(f"  - {v.source} ({v.series_count} active series): "
+                      f"{v.reason}", file=sys.stderr)
+            print(
+                "  Read each terms_url, then set review_status: verified and "
+                "reviewed_by: <name> in config/data_licensing.yml.",
+                file=sys.stderr,
+            )
+            return 2
+        print("Redistribution-review check: all redistributed sources verified.")
     return 0
 
 
@@ -587,6 +609,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--commercial", action="store_true",
         help="fail if any active source's license doesn't clear commercial "
              "use (see config/data_licensing.yml)",
+    )
+    v.add_argument(
+        "--licensing-review", action="store_true",
+        help="fail if any active source permits redistribution but nobody has "
+             "verified its terms (review_status != verified). Run this before "
+             "publishing anything derived from the data outside the org.",
     )
     v.set_defaults(func=_cmd_validate)
 

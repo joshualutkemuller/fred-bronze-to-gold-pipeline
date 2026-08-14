@@ -1762,10 +1762,32 @@ BIS permission first. `validate --commercial` still flags `bis` — correctly, a
 now with a real reason (`license_type='attribution-noncommercial'`) instead of
 "unreviewed".
 
-*Caveat:* written from the BIS's published terms page, which could not be
-fetched directly from the authoring environment (egress to bis.org blocked).
-**Re-read `terms_url` and bump `last_reviewed_date` before relying on this for a
-real compliance decision, especially before any commercial distribution.**
+*Caveat — now tracked, not just noted:* the entry was written from secondary
+reporting of the BIS terms. The primary page could not be read (egress to
+bis.org is blocked by the authoring environment's network policy), so it carries
+`review_status: provisional` and a `source_of_truth` saying exactly that.
+
+`fred_pipeline validate --licensing-review` **fails** while any source that
+permits redistribution is unverified. Today that is `bis` and `worldbank`:
+
+```
+ERROR: redistribution-review check failed -- these sources permit
+redistribution on unverified authority:
+  - bis (36 active series): permits redistribution but
+    review_status='provisional' -- nobody has confirmed this against
+    https://www.bis.org/terms_conditions.htm
+  - worldbank (37 active series): ...
+```
+
+U.S. federal sources are exempt: they are public domain by statute
+(17 U.S.C. 105), not by a terms page, so requiring a read there would be noise
+that trains people to ignore the check.
+
+**To clear it:** read `terms_url`, then set `review_status: verified` and
+`reviewed_by: <name>` in `config/data_licensing.yml`. A `verified` entry with no
+name is rejected, and a verification older than two years is flagged stale.
+Run this check before publishing anything derived from the data outside the
+organisation.
 
 **G7 — Funding stress gauge emitted zero rows (`TGCR` id mismatch).** ✅ **Fixed.**
 `config/funding.yml` and `config/benchmark_rates.yml` referenced `TGCR` while
