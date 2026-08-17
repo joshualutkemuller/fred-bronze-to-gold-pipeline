@@ -1,0 +1,369 @@
+# Warehouse Configuration — Pluggable Storage Backends
+
+**Purpose:** Configure where Gold layer tables are persisted (SQLite, Databricks, DuckDB, or in-memory).  
+**File:** `config/warehouse.yml`  
+**Code:** `src/fred_pipeline/io/warehouse_factory.py`
+
+---
+
+## Overview
+
+The pipeline supports multiple storage backends, allowing you to:
+
+1. **Develop locally** with SQLite (default)
+2. **Switch to Databricks** for production without code changes
+3. **Fallback gracefully** if the primary backend fails
+
+All configuration is done via `config/warehouse.yml` or environment variables. The CLI can override file settings with flags (`--local`, `--db-path`).
+
+---
+
+## Backends
+
+### Local (SQLite) — Development & Testing
+
+**Best for:** Local development, CI, demos, quick inspection.
+
+**Configuration:**
+
+```yaml
+default:
+  primary_backend: local
+  backends:
+    local:
+      db_path: ./fred.db
+```
+
+**Setup:**
+
+```bash
+FRED_API_KEY=... python -m fred_pipeline run --env dev
+# Creates ./fred.db with all tables
+```
+
+**Query Gold tables:**
+
+```bash
+sqlite3 fred.db "SELECT * FROM gold_fred_latest_observation LIMIT 10;"
+```
+
+**Pros:**
+- Zero setup, works on laptop
+- Fast iteration
+- No credentials needed
+- Easy to back up and version
+
+**Cons:**
+- Single-user only (SQLite doesn't support concurrent writes)
+- Not suitable for production
+- Limited query performance on large datasets
+
+### Databricks (Delta Lake) — Production
+
+**Best for:** Production workloads, multi-user environments, BI tools.
+
+**Configuration:**
+
+```yaml
+environments:
+  prod:
+    primary_backend: databricks
+    backends:
+      databricks:
+        workspace_url: https://my-workspace.cloud.databricks.com
+        http_path: /sql/1.0/warehouses/abc123
+        catalog: macro_prod  # or omit to use environment's catalog
+```
+
+**Setup:**
+
+```bash
+export DATABRICKS_HOST=https://my-workspace.cloud.databricks.com
+export DATABRICKS_TOKEN=dapi123...
+export FRED_API_KEY=...
+python -m fred_pipeline run --env prod
+```
+
+**Query Gold tables:**
+
+```sql
+SELECT * FROM macro_prod.gold.fred_latest_observation LIMIT 10;
+```
+
+**Pros:**
+- Multi-user, concurrent writes
+- Production-grade performance
+- Integrates with Unity Catalog governance
+- Native to Power BI & BI tools
+- Audit/versioning built-in (Delta Lake)
+
+**Cons:**
+- Requires Databricks workspace + warehouse
+- Monthly costs
+- Needs credentials management
+
+### DuckDB — Experimental (Future)
+
+**Status:** Not yet implemented.
+
+Planned for high-performance analytical workloads without Databricks cost.
+
+---
+
+## Fallback Chain
+
+If the primary backend fails to initialize, the pipeline tries fallback backends in order:
+
+```yaml
+prod:
+  primary_backend: databricks
+  fallback_backends:
+    - duckdb       # Try DuckDB if Databricks fails
+    - local        # Fall back to SQLite if DuckDB fails
+  backends:
+    databricks: {...}
+    duckdb: {...}
+    local:
+      db_path: /tmp/fred_emergency.db
+```
+
+**Example flow:**
+
+1. Try Databricks → `ConnectionError` (workspace down)
+2. Try DuckDB → `FileNotFoundError` (disk full)
+3. Fall back to local SQLite at `/tmp/fred_emergency.db`
+4. Run completes, warns about fallbacks in logs
+
+This ensures the pipeline never silently fails to write; it degrades gracefully.
+
+---
+
+## Configuration Precedence
+
+From highest to lowest:
+
+1. **CLI flags** — `--local`, `--db-path`, `--dry-run`
+2. **Environment variables** — `FRED_WAREHOUSE_CONFIG`, `DATABRICKS_HOST`, `DATABRICKS_TOKEN`
+3. **Config file** — `config/warehouse.yml` (or `$FRED_WAREHOUSE_CONFIG`)
+4. **Built-in defaults** — Local SQLite at `./fred.db`
+
+**Example:**
+
+```bash
+# Use config file setting (prod → Databricks)
+python -m fred_pipeline run --env prod
+
+# Override with CLI flag → use local SQLite instead
+python -m fred_pipeline run --env prod --local --db-path /tmp/emergency.db
+
+# Dry run (in-memory, no writes)
+python -m fred_pipeline run --env prod --dry-run
+```
+
+---
+
+## Common Scenarios
+
+### Scenario 1: Quick Local Development
+
+**Setup:** No config needed.
+
+```bash
+FRED_API_KEY=... python -m fred_pipeline run --env dev
+```
+
+**Result:** `./fred.db` created with all tables, ready to query or export.
+
+### Scenario 2: Export to market_terminal
+
+**Step 1:** Run pipeline locally.
+
+```bash
+python -m fred_pipeline run --local --db-path fred.db
+```
+
+**Step 2:** Export Gold tables as CSV or Parquet.
+
+```bash
+# From Python or a script:
+import sqlite3
+conn = sqlite3.connect("fred.db")
+
+# List all Gold tables
+tables = conn.execute("""
+    SELECT name FROM sqlite_master 
+    WHERE type='table' AND name LIKE 'gold_%'
+""").fetchall()
+
+# Export one table
+import pandas as pd
+df = pd.read_sql("SELECT * FROM gold_fred_latest_observation", conn)
+df.to_csv("gold_observations.csv", index=False)
+```
+
+**Step 3:** Ingest into market_terminal.
+
+### Scenario 3: CI/CD Pipeline
+
+**In `.github/workflows/pipeline.yml`:**
+
+```yaml
+- name: Run FRED pipeline
+  env:
+    FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+  run: |
+    python -m fred_pipeline run \
+      --env test \
+      --local \
+      --db-path /tmp/fred_ci.db \
+      --series GDPC1,UNRATE  # subset for speed
+
+- name: Upload results
+  uses: actions/upload-artifact@v3
+  with:
+    name: fred_tables
+    path: /tmp/fred_ci.db
+```
+
+**Result:** Artifact contains full pipeline output.
+
+### Scenario 4: Production on Databricks
+
+**In `config/warehouse.yml`:**
+
+```yaml
+environments:
+  prod:
+    primary_backend: databricks
+    fallback_backends: [local]
+    backends:
+      databricks:
+        workspace_url: https://prod.cloud.databricks.com
+        http_path: /sql/1.0/warehouses/prod_id
+        catalog: macro_prod
+      local:
+        db_path: /mnt/emergency/fred.db
+```
+
+**In Databricks job:**
+
+```bash
+export DATABRICKS_TOKEN=${DATABRICKS_TOKEN}
+export FRED_API_KEY=${FRED_API_KEY}
+python -m fred_pipeline run --env prod
+```
+
+**Result:** Gold tables written to Delta Lake in `macro_prod.gold.*`, with fallback to Unity Catalog volume if needed.
+
+---
+
+## Troubleshooting
+
+### "All warehouse backends failed. Falling back to in-memory dry-run."
+
+**Meaning:** Warehouse initialization failed; run executed but **no writes occurred**.
+
+**Check:**
+
+1. Is `config/warehouse.yml` readable?
+2. For local: is `db_path` a writable directory?
+3. For Databricks: are `DATABRICKS_HOST` and `DATABRICKS_TOKEN` set?
+4. Check logs for specific backend errors.
+
+**Fix:**
+
+```bash
+# Verify local SQLite works
+FRED_API_KEY=... python -m fred_pipeline run --local --db-path ./debug.db
+
+# If that works, the issue is with your custom config
+```
+
+### "Could not initialize Spark for Databricks backend"
+
+**Meaning:** Databricks backend requested but Spark is not available.
+
+**Fix:**
+
+```bash
+# Option 1: Install pyspark
+pip install pyspark
+
+# Option 2: Use local SQLite instead
+python -m fred_pipeline run --local
+
+# Option 3: Run in a Databricks job (Spark is pre-installed)
+```
+
+### SQLite "database is locked"
+
+**Meaning:** Concurrent writes attempted (SQLite doesn't support this).
+
+**Fix:**
+
+- For local dev: run one pipeline at a time.
+- For production: use Databricks instead.
+
+### "Cannot read from warehouse" in subsequent runs
+
+**Meaning:** Pipeline can write but subsequent reads fail (e.g., reading Bronze for incremental load).
+
+**Fix:**
+
+- Verify the path/credentials are the same as the previous run.
+- Check disk space (SQLite, DuckDB).
+- Check Databricks cluster/warehouse status.
+
+---
+
+## Environment Variables
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `FRED_WAREHOUSE_CONFIG` | Path to warehouse config file | `/etc/fred/warehouse.yml` |
+| `DATABRICKS_HOST` | Databricks workspace URL | `https://my.cloud.databricks.com` |
+| `DATABRICKS_TOKEN` | Personal access token | `dapi123...` |
+| `FRED_LOCAL_DB_PATH` | Override local SQLite path | `/tmp/fred.db` |
+
+**Note:** Environment variables override the config file but are overridden by CLI flags.
+
+---
+
+## Adding New Backends
+
+To add a new warehouse backend (e.g., BigQuery, PostgreSQL, Snowflake):
+
+1. **Implement** `Warehouse` protocol in `src/fred_pipeline/io/warehouse.py`
+   - Methods: `sync_meta`, `write_bronze`, `merge_silver`, `build_gold`, `persist_run`, etc.
+
+2. **Register** in `warehouse_factory.py::WarehouseFactory._build_backend()`
+   ```python
+   elif backend_name == "bigquery":
+       from fred_pipeline.bigquery_warehouse import BigQueryWarehouse
+       return BigQueryWarehouse(self.config, **backend_config)
+   ```
+
+3. **Document** in `config/warehouse.yml` with example config
+
+4. **Test** with `tests/test_warehouse_factory.py`
+
+---
+
+## Current Status
+
+| Backend | Status | Notes |
+|---|---|---|
+| Local (SQLite) | ✅ Production-ready | Default, fully tested |
+| Databricks | ✅ Production-ready | Requires workspace |
+| DuckDB | ⏳ Planned | Not yet implemented |
+| BigQuery | ⏳ Planned | Community contribution welcome |
+| PostgreSQL | ⏳ Planned | Community contribution welcome |
+
+---
+
+## See Also
+
+- `config/warehouse.yml` — Configuration template
+- `src/fred_pipeline/io/warehouse_factory.py` — Factory implementation
+- `src/fred_pipeline/io/local_store.py` — LocalWarehouse implementation
+- `src/fred_pipeline/io/warehouse.py` — Warehouse protocol definition

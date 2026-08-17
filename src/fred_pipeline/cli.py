@@ -133,15 +133,29 @@ def _parse_series(value):
 
 
 def _open_warehouse(config, args):
-    """Resolve a warehouse for governance/replay commands (local or Spark)."""
+    """Resolve a warehouse using the factory with config + CLI overrides.
+
+    Precedence: CLI flags (--local, --db-path) > warehouse.yml config > defaults.
+    """
+    from fred_pipeline.io.warehouse_factory import (
+        WarehouseFactory, load_warehouse_config, WarehouseConfig
+    )
+
+    # Load warehouse config from file
+    warehouse_config = load_warehouse_config(environment=config.environment.value)
+
+    # CLI overrides: --local flag or --db-path specifies explicit backend
     if getattr(args, "local", False):
-        from fred_pipeline.local_store import LocalWarehouse
+        # Force local backend with optional db_path override
+        warehouse_config = WarehouseConfig(
+            primary_backend="local",
+            backends={
+                "local": {"db_path": getattr(args, "db_path", "fred.db")}
+            }
+        )
 
-        return LocalWarehouse(config, db_path=args.db_path)
-    from fred_pipeline.spark_io import get_spark
-    from fred_pipeline.warehouse import SparkWarehouse
-
-    return SparkWarehouse(config, get_spark())
+    factory = WarehouseFactory(config, warehouse_config)
+    return factory.build(force_dry_run=False)
 
 
 def _cmd_backfill(args: argparse.Namespace) -> int:
@@ -401,16 +415,35 @@ def _cmd_run(args: argparse.Namespace) -> int:
     persist = not args.dry_run
 
     if args.dry_run:
-        pass  # in-memory only: extract + DQ, no writes
-    elif args.local:
-        from fred_pipeline.local_store import LocalWarehouse
-
-        warehouse = LocalWarehouse(config, db_path=args.db_path)
-        print(f"Using local SQLite backend: {args.db_path}")
+        # In-memory only: extract + DQ, no writes
+        warehouse = None
     else:
-        from fred_pipeline.spark_io import get_spark
+        # Use warehouse factory with config + CLI overrides
+        from fred_pipeline.io.warehouse_factory import (
+            WarehouseFactory, load_warehouse_config, WarehouseConfig
+        )
 
-        spark = get_spark()
+        warehouse_config = load_warehouse_config(environment=config.environment.value)
+
+        # CLI overrides: --local with optional --db-path
+        if args.local:
+            warehouse_config = WarehouseConfig(
+                primary_backend="local",
+                backends={
+                    "local": {"db_path": getattr(args, "db_path", "fred.db")}
+                }
+            )
+
+        factory = WarehouseFactory(config, warehouse_config)
+        warehouse = factory.build(force_dry_run=False)
+
+        if warehouse is not None:
+            print(f"Using warehouse: {warehouse.__class__.__name__}")
+        else:
+            print("No warehouse backend available; running in-memory only")
+
+        # Spark is now initialized internally by the factory if needed
+        spark = None  # Not used directly; warehouse manages its own Spark if needed
 
     pipeline = FredPipeline(
         config, spark=spark, warehouse=warehouse, persist_audit=persist
