@@ -1,0 +1,105 @@
+# Warehouse storage backend configuration
+#
+# This file controls where Gold layer tables are written.
+#
+# Backends:
+#   - local       : SQLite file on disk (development, default)
+#   - databricks  : Delta Lake on Databricks (production)
+#   - duckdb      : DuckDB file (future, experimental)
+#   - none        : In-memory only (dry-run, no writes)
+#
+# Primary vs. fallback: if primary_backend fails to initialize,
+# fallback_backends are tried in order. If all fail, pipeline runs
+# in-memory only (no warehouse writes).
+#
+# Precedence: CLI flags > environment variables > config file > defaults
+
+# --- DEFAULT CONFIGURATION (dev/test/prod without overrides) ---
+
+default:
+  # Primary backend for all environments. Override per-environment below.
+  primary_backend: local
+
+  # Fallback chain if primary fails. Leave empty for no fallbacks.
+  fallback_backends: []
+    # - duckdb
+    # - none  (uncomment to allow in-memory fallback)
+
+  # Backend-specific settings (only the active backends need config)
+  backends:
+    local:
+      # Path to SQLite database file. Relative paths are relative to CWD.
+      db_path: ./fred.db
+
+    databricks:
+      # Databricks workspace and warehouse connection
+      # (requires DATABRICKS_HOST and DATABRICKS_TOKEN env vars or config)
+      workspace_url: https://my-workspace.cloud.databricks.com
+      http_path: /sql/1.0/warehouses/abc123def456
+      # Catalog name (maps to macro_dev / macro_test / macro_prod per environment)
+      # Omit to use PipelineConfig.environment.catalog
+      catalog: macro_dev
+
+    duckdb:
+      # DuckDB file path (not yet implemented)
+      db_path: ./fred.duckdb
+
+# --- ENVIRONMENT-SPECIFIC OVERRIDES ---
+
+environments:
+  # dev: (inherits from default: local SQLite at ./fred.db)
+
+  test:
+    # test environment can use either local SQLite or Databricks
+    primary_backend: local
+    fallback_backends: []
+    backends:
+      local:
+        db_path: ./fred_test.db
+
+  prod:
+    # Production uses Databricks with in-memory fallback
+    primary_backend: databricks
+    fallback_backends:
+      - duckdb
+      - local
+    backends:
+      databricks:
+        workspace_url: https://prod-workspace.cloud.databricks.com
+        http_path: /sql/1.0/warehouses/prod_warehouse_id
+        catalog: macro_prod
+      duckdb:
+        db_path: /mnt/backups/fred_backup.duckdb
+      local:
+        db_path: /tmp/fred_emergency.db  # fallback only
+
+# --- HOW TO USE ---
+#
+# 1. LOCAL DEVELOPMENT (default, no config needed):
+#    FRED_API_KEY=... python -m fred_pipeline run --env dev
+#    → Writes to ./fred.db automatically
+#
+# 2. LOCAL WITH EXPLICIT PATH:
+#    python -m fred_pipeline run --env dev --local --db-path /path/to/fred.db
+#    → CLI flag overrides config file (highest precedence)
+#
+# 3. DATABRICKS:
+#    FRED_API_KEY=... DATABRICKS_HOST=... DATABRICKS_TOKEN=... \
+#    python -m fred_pipeline run --env prod
+#    → Uses config from this file, environment overrides active
+#
+# 4. DRY RUN (in-memory, no writes):
+#    FRED_API_KEY=... python -m fred_pipeline run --env dev --dry-run
+#    → Ignores all warehouse config
+#
+# 5. FORCE FALLBACK CHAIN:
+#    If primary backend fails, fallbacks are tried automatically.
+#    To force a specific backend, use --local or --dry-run CLI flags.
+#
+# Environment variables that affect warehouse resolution:
+#   - FRED_WAREHOUSE_CONFIG  : Path to this file (if not config/warehouse.yml)
+#   - DATABRICKS_HOST        : Databricks workspace URL (if not in config)
+#   - DATABRICKS_TOKEN       : Databricks personal access token
+#   - FRED_LOCAL_DB_PATH     : SQLite path override
+#
+# Logs will show which backend was selected and any fallback attempts.
