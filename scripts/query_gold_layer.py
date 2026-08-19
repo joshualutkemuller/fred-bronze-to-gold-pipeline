@@ -41,6 +41,9 @@ import logging
 import sys
 from pathlib import Path
 
+# Add src directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
 from fred_pipeline.io.database_connection import DatabaseConnectionFactory
 
 logging.basicConfig(
