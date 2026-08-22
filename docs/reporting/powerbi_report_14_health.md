@@ -1,8 +1,8 @@
 # Report 14 — Pipeline Health & Governance
 
-**Status:** Ready to build  
-**Wave:** 1 (build alone, before other reports)  
-**Pages:** 8 (Overview, Run History, Series Failures, Data Quality, Staleness, Drift, Lifecycle, Catalog)  
+**Status:** Ready to build
+**Wave:** 1 (build alone, before other reports)
+**Pages:** 8 (Overview, Run History, Series Failures, Data Quality, Staleness, Drift, Lifecycle, Catalog)
 **Prerequisite:** Wave 0 kernel (qDimDate, qDimSeries), fnGold function
 
 ---
@@ -31,7 +31,7 @@ Report 14 answers four questions every operator needs answered on every run:
 All are Import mode, partitioned on run date for incremental refresh.
 
 #### qEtlRun
-**Grain:** 1 row per pipeline invocation  
+**Grain:** 1 row per pipeline invocation
 **Refresh:** One-time per run (no incremental needed)
 
 ```sql
@@ -65,7 +65,7 @@ in
 ```
 
 #### qSeriesRun
-**Grain:** 1 row per (run_id, series_id)  
+**Grain:** 1 row per (run_id, series_id)
 **Refresh:** Incremental on run date
 
 ```sql
@@ -98,7 +98,7 @@ in
 ```
 
 #### qDataQuality
-**Grain:** 1 row per (run_id, series_id, check_name)  
+**Grain:** 1 row per (run_id, series_id, check_name)
 **Refresh:** Incremental on run date
 
 ```sql
@@ -125,7 +125,7 @@ in
 ```
 
 #### qStaleness
-**Grain:** 1 row per (source, series_id) per check  
+**Grain:** 1 row per (source, series_id) per check
 **Refresh:** Latest per key only (deduplicate in PQ)
 
 ```sql
@@ -142,21 +142,21 @@ let
     #"String Dates" = Table.TransformColumnTypes(Query, {
         {"checked_at", type text}
     }),
-    #"Parsed Dates" = Table.AddColumn(#"String Dates", "checked_at_parsed", 
+    #"Parsed Dates" = Table.AddColumn(#"String Dates", "checked_at_parsed",
         each DateTime.FromText([checked_at]), type datetimezone),
-    #"Latest Per Key" = Table.Group(#"Parsed Dates", 
-        {"source", "series_id"}, 
+    #"Latest Per Key" = Table.Group(#"Parsed Dates",
+        {"source", "series_id"},
         {{"All", each Table.Sort(_, {{"checked_at_parsed", Order.Descending}})[0]}},
         GroupKind.Local),
-    #"Expanded" = Table.ExpandRecordColumn(#"Latest Per Key", "All", 
-        {"frequency", "latest_observation_date", "days_since_last_observation", 
+    #"Expanded" = Table.ExpandRecordColumn(#"Latest Per Key", "All",
+        {"frequency", "latest_observation_date", "days_since_last_observation",
          "is_stale", "has_data", "checked_at", "checked_at_parsed"})
 in
     #"Expanded"
 ```
 
 #### qDrift
-**Grain:** 1 row per (series_id, field, kind)  
+**Grain:** 1 row per (series_id, field, kind)
 **Refresh:** One-time
 
 ```sql
@@ -181,7 +181,7 @@ in
 ```
 
 #### qLifecycle
-**Grain:** 1 row per series_id  
+**Grain:** 1 row per series_id
 **Refresh:** One-time
 
 ```sql
@@ -213,7 +213,7 @@ in
 ```
 
 #### qSeriesMeta
-**Grain:** 1 row per series_id  
+**Grain:** 1 row per series_id
 **Refresh:** One-time
 
 ```sql
@@ -247,7 +247,7 @@ in
 ```
 
 #### qCatalog
-**Grain:** 1 row per Gold table object  
+**Grain:** 1 row per Gold table object
 **Refresh:** One-time (documentation)
 
 ```sql
@@ -328,7 +328,7 @@ Define all measures in a single **Measures** table (not on qEtlRun) for organiza
 
 ```dax
 -- Latest run (most recent by started_at)
-[Latest Run ID] = 
+[Latest Run ID] =
     VAR latest = MAX('qEtlRun'[started_at])
     RETURN
         CALCULATE(
@@ -340,7 +340,7 @@ Define all measures in a single **Measures** table (not on qEtlRun) for organiza
 [Run Status] = MAX('qEtlRun'[status])
 
 -- Series success rate (%)
-[Success Rate] = 
+[Success Rate] =
     IF(MAX('qEtlRun'[series_total]) = 0, BLANK(),
         DIVIDE(
             MAX('qEtlRun'[series_succeeded]),
@@ -355,7 +355,7 @@ Define all measures in a single **Measures** table (not on qEtlRun) for organiza
 [Total Series] = MAX('qEtlRun'[series_total])
 
 -- Run duration in minutes
-[Duration Minutes] = 
+[Duration Minutes] =
     IF(MAX('qEtlRun'[duration_seconds]) = BLANK(), BLANK(),
         DIVIDE(MAX('qEtlRun'[duration_seconds]), 60)
     )
@@ -365,7 +365,7 @@ Define all measures in a single **Measures** table (not on qEtlRun) for organiza
 
 ```dax
 -- DQ pass rate across all checks
-[DQ Pass Rate] = 
+[DQ Pass Rate] =
     VAR total = COUNTA('qDataQuality'[passed])
     VAR passed = CALCULATE(
         COUNTA('qDataQuality'[passed]),
@@ -375,7 +375,7 @@ Define all measures in a single **Measures** table (not on qEtlRun) for organiza
         IF(total = 0, BLANK(), DIVIDE(passed, total) * 100)
 
 -- Failed check count per series
-[Failed Checks] = 
+[Failed Checks] =
     CALCULATE(
         COUNTA('qDataQuality'[check_name]),
         FILTER('qDataQuality', 'qDataQuality'[passed] = FALSE)
@@ -393,7 +393,7 @@ Define all measures in a single **Measures** table (not on qEtlRun) for organiza
 
 ```dax
 -- Count of stale series (days_since_last_observation > frequency-dependent threshold)
-[Stale Count] = 
+[Stale Count] =
     CALCULATE(
         COUNTA('qStaleness'[series_id]),
         FILTER('qStaleness', 'qStaleness'[is_stale] = TRUE)
@@ -403,7 +403,7 @@ Define all measures in a single **Measures** table (not on qEtlRun) for organiza
 [Avg Days Behind] = AVERAGE('qStaleness'[days_since_last_observation])
 
 -- Sources that have not updated today
-[Sources Behind Schedule] = 
+[Sources Behind Schedule] =
     VAR today = TODAY()
     RETURN
         CALCULATE(
@@ -419,14 +419,14 @@ Define all measures in a single **Measures** table (not on qEtlRun) for organiza
 [Drift Count] = COUNTA('qDrift'[series_id])
 
 -- Discontinued series still in manifests (indicator flag)
-[Discontinued Count] = 
+[Discontinued Count] =
     CALCULATE(
         COUNTA('qLifecycle'[series_id]),
         FILTER('qLifecycle', 'qLifecycle'[discontinued] = TRUE)
     )
 
 -- Very stale FRED series (no update in 2+ years, not expected)
-[Ancient Count] = 
+[Ancient Count] =
     CALCULATE(
         COUNTA('qLifecycle'[series_id]),
         FILTER('qLifecycle', 'qLifecycle'[days_since_last_observation] > 730)

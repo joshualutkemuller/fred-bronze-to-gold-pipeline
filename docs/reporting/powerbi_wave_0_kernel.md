@@ -1,8 +1,8 @@
 # Power BI Wave 0 Kernel — Build Guide
 
-**Status:** Specification complete; ready to build in Power BI Desktop  
-**Contents:** Core data model, reusable measures, theme  
-**Prerequisite:** Databricks access, Power BI Desktop  
+**Status:** Specification complete; ready to build in Power BI Desktop
+**Contents:** Core data model, reusable measures, theme
+**Prerequisite:** Databricks access, Power BI Desktop
 **Dependency:** fnGold function created (`sql/fnGold.sql`)
 
 ---
@@ -128,7 +128,7 @@ Define these in the Report 1 model and copy to other reports as needed. All are 
 -- Returns the latest date in the selected filter context
 [Max Date] = MAX('qDimDate'[date])
 
--- Returns the earliest date in the selected filter context  
+-- Returns the earliest date in the selected filter context
 [Min Date] = MIN('qDimDate'[date])
 
 -- Returns the calendar year of the Max Date
@@ -142,7 +142,7 @@ Define these in the Report 1 model and copy to other reports as needed. All are 
 
 ```dax
 -- Format a decimal as percentage (e.g., 0.003 = 0.3%)
-[Format Pct] = 
+[Format Pct] =
     VAR val = [Value]
     RETURN
         IF(ISBLANK(val), BLANK(), val * 100 & "%")
@@ -183,7 +183,7 @@ Power BI themes are JSON. This palette is **brand-neutral placeholder** — swap
   "name": "FRED Pipeline Default",
   "dataColors": [
     "#1f77b4",
-    "#ff7f0e", 
+    "#ff7f0e",
     "#2ca02c",
     "#d62728",
     "#9467bd",

@@ -1,7 +1,7 @@
 # Power BI Quick Start — Wave 0 + Report 14
 
-**Built:** fnGold function, Wave 0 kernel specification, Report 14 full build guide  
-**Next Step:** Build in Power BI Desktop (no pipeline run required yet)  
+**Built:** fnGold function, Wave 0 kernel specification, Report 14 full build guide
+**Next Step:** Build in Power BI Desktop (no pipeline run required yet)
 **Timeline:** Wave 0 kernel ~2 hours, Report 14 ~4–6 hours
 
 ---
@@ -118,7 +118,7 @@ Once the pipeline runs and you refresh Report 14 in Power BI:
 - [ ] No ancient drift entries (Drift page mostly empty)
 - [ ] Staleness page shows realistic observation dates per source
 
-**If all pass:** Proceed to Wave 2 (Reports 1 & 3).  
+**If all pass:** Proceed to Wave 2 (Reports 1 & 3).
 **If any fail:** Debug using Report 14 pages; check `audit.etl_series_run` error_message column.
 
 ---
@@ -177,16 +177,16 @@ sql/
 
 ## Troubleshooting
 
-**Problem:** Power Query cannot connect to Databricks  
+**Problem:** Power Query cannot connect to Databricks
 **Solution:** Ensure Databricks connector is installed (Power BI Desktop → Get Data → Databricks). May require workspace URL and HTTP path from Databricks SQL warehouse settings.
 
-**Problem:** Tables load but `[Row Count]` on Wave 0 test card is blank  
+**Problem:** Tables load but `[Row Count]` on Wave 0 test card is blank
 **Solution:** Refresh the data model. If still blank, check that qDimDate has data by clicking into the table in Power Query editor.
 
-**Problem:** Report 14 loads but all cards show blank  
+**Problem:** Report 14 loads but all cards show blank
 **Solution:** Refresh data model, then refresh page. If qSeriesRun is empty, the pipeline run hasn't populated audit tables yet — proceed to run the pipeline.
 
-**Problem:** String dates in qStaleness and qDrift columns won't convert  
+**Problem:** String dates in qStaleness and qDrift columns won't convert
 **Solution:** Ensure Power Query M code converts text to datetime type before loading. Sample code provided in §2.1 of Report 14 spec.
 
 ---

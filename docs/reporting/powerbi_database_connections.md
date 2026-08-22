@@ -1,6 +1,6 @@
 # Power BI Database Connections — All Backends
 
-**Purpose:** Connect Power BI to your Gold layer (SQLite, Databricks, DuckDB) to build reports.  
+**Purpose:** Connect Power BI to your Gold layer (SQLite, Databricks, DuckDB) to build reports.
 **Code:** `src/fred_pipeline/io/database_connection.py`
 
 ---
@@ -119,7 +119,7 @@ db.close()
 
 ### Development (Laptop)
 
-**Use:** SQLite  
+**Use:** SQLite
 **Setup:**
 ```bash
 # Run pipeline
@@ -129,12 +129,12 @@ FRED_API_KEY=... python -m fred_pipeline run --local --db-path fred.db
 # → Get Data → SQLite database → fred.db
 ```
 
-**Pro:** No setup, instant iteration  
+**Pro:** No setup, instant iteration
 **Con:** Single-user only
 
 ### CI/CD (GitHub Actions)
 
-**Use:** SQLite (artifact storage)  
+**Use:** SQLite (artifact storage)
 **Setup:**
 ```yaml
 - name: Run FRED pipeline
@@ -153,7 +153,7 @@ FRED_API_KEY=... python -m fred_pipeline run --local --db-path fred.db
 
 ### Staging (Team Collaboration)
 
-**Use:** Databricks  
+**Use:** Databricks
 **Setup:**
 ```yaml
 # In config/warehouse.yml
@@ -177,7 +177,7 @@ python -m fred_pipeline run --env staging
 
 ### Production (Live Reports)
 
-**Use:** Databricks with fallback  
+**Use:** Databricks with fallback
 **Setup:**
 ```yaml
 environments:
@@ -281,7 +281,7 @@ Driver={SQLite3 ODBC Driver};Database=./fred.db
 
 ### "Connection timeout" after first query
 
-**Cause:** Databricks warehouse spun down (auto-stop).  
+**Cause:** Databricks warehouse spun down (auto-stop).
 **Fix:** Manually start the warehouse or increase auto-stop timeout in Databricks settings.
 
 ### Power BI model bloated (too many rows imported)

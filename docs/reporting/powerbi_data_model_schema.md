@@ -1,8 +1,8 @@
 # Power BI Data Model: Complete Schema Reference
 
-**Purpose:** Single reference guide for building Power BI reports against FRED pipeline Gold layer  
-**Date:** 2026-08-19  
-**Coverage:** 46 Gold tables organized by module with relationships, cardinality, and recommended usage patterns  
+**Purpose:** Single reference guide for building Power BI reports against FRED pipeline Gold layer
+**Date:** 2026-08-19
+**Coverage:** 46 Gold tables organized by module with relationships, cardinality, and recommended usage patterns
 **Status:** All tables implemented and tested
 
 ---
@@ -42,7 +42,7 @@
                     └─────────────────────┘
 ```
 
-**Design principle:** Every fact table joins **series_id → qDimSeries** and **obs_date → qDimDate**.  
+**Design principle:** Every fact table joins **series_id → qDimSeries** and **obs_date → qDimDate**.
 **Benefit:** Slices by category, date range, and metadata without duplicating denormalization.
 
 ---
@@ -51,10 +51,10 @@
 
 ### 1.1 qDimDate — Time dimension with recession flags
 
-**Grain:** 1 row per calendar date  
-**Cardinality:** ~36,500 rows (100 years, if populated)  
-**Primary Key:** `date`  
-**Purpose:** Enables Power BI time intelligence, recession shading, and date-range slicing  
+**Grain:** 1 row per calendar date
+**Cardinality:** ~36,500 rows (100 years, if populated)
+**Primary Key:** `date`
+**Purpose:** Enables Power BI time intelligence, recession shading, and date-range slicing
 **Mark as:** Date Table in Power BI
 
 | Column | Type | Description | Example |
@@ -77,10 +77,10 @@
 
 ### 1.2 qDimSeries — Series metadata and presentation semantics
 
-**Grain:** 1 row per series  
-**Cardinality:** 300+ rows (actual series ingested + curated catalog)  
-**Primary Key:** `series_id`  
-**Purpose:** Single source of truth for category, polarity, transform defaults, and how to display each series  
+**Grain:** 1 row per series
+**Cardinality:** 300+ rows (actual series ingested + curated catalog)
+**Primary Key:** `series_id`
+**Purpose:** Single source of truth for category, polarity, transform defaults, and how to display each series
 **Source:** Built from manifests + `config/series_catalog.yml`
 
 | Column | Type | Description | Example |
@@ -121,14 +121,14 @@
 
 ### Module ECON — Economic Dashboard & Macro Indicators
 
-**Purpose:** Latest macro snapshot with prior, change, YoY, z-score, sparkline, and breadth/surprise metrics  
+**Purpose:** Latest macro snapshot with prior, change, YoY, z-score, sparkline, and breadth/surprise metrics
 **Terminal equivalent:** ECON macro grid view
 
 #### 2.1 gold_macro_indicator_dashboard
 
-**Grain:** 1 row per series (latest observation)  
-**Cardinality:** 200+ rows (all series in qDimSeries with ECON category)  
-**Relationships:** 
+**Grain:** 1 row per series (latest observation)
+**Cardinality:** 200+ rows (all series in qDimSeries with ECON category)
+**Relationships:**
 - `series_id` → qDimSeries.series_id
 - `latest_date` → qDimDate.date (implicit; optional for slicer)
 
@@ -182,8 +182,8 @@ Breadth Pct := See gold_macro_category_summary instead
 
 #### 2.2 gold_macro_indicator_sparkline
 
-**Grain:** 1 row per series × sparkline point (last 36 observations)  
-**Cardinality:** ~7,000 rows (200 series × 36 points)  
+**Grain:** 1 row per series × sparkline point (last 36 observations)
+**Cardinality:** ~7,000 rows (200 series × 36 points)
 **Relationships:**
 - `series_id` → qDimSeries.series_id
 - `obs_date` → qDimDate.date
@@ -197,7 +197,7 @@ Breadth Pct := See gold_macro_category_summary instead
 
 **Usage in Power BI:**
 - In grid visual with gold_macro_indicator_dashboard
-- Create **small-multiple line visual:** 
+- Create **small-multiple line visual:**
   - Axis: obs_date
   - Values: value
   - Legend: series_id
@@ -216,8 +216,8 @@ in
 
 #### 2.3 gold_macro_category_summary
 
-**Grain:** 1 row per econ_category  
-**Cardinality:** 11 rows (one per category: GROWTH, INFLATION, LABOR, etc.)  
+**Grain:** 1 row per econ_category
+**Cardinality:** 11 rows (one per category: GROWTH, INFLATION, LABOR, etc.)
 **Relationships:**
 - `econ_category` → qDimSeries.econ_category
 - `as_of_date` → qDimDate.date
@@ -248,13 +248,13 @@ Surprise Index := SELECTEDVALUE(gold_macro_category_summary[surprise_index])
 
 ### Module INFL — Inflation Explorer (CPI, PCE Item-Level)
 
-**Purpose:** Inflation decomposition to item level with contribution waterfall  
+**Purpose:** Inflation decomposition to item level with contribution waterfall
 **Terminal equivalent:** INFL module drill-down
 
 #### 2.4 gold_inflation_explorer
 
-**Grain:** 1 row per item × month  
-**Cardinality:** ~10,000 rows (100 items × 100 months)  
+**Grain:** 1 row per item × month
+**Cardinality:** ~10,000 rows (100 items × 100 months)
 **Relationships:**
 - `series_id` → qDimSeries.series_id
 - `obs_date` → qDimDate.date
@@ -303,8 +303,8 @@ Acceleration := SELECTEDVALUE(gold_inflation_explorer[mom_accel])
 
 #### 2.5 gold_inflation_contribution
 
-**Grain:** 1 row per contributing item × month (for waterfall visualization)  
-**Cardinality:** ~500 rows (50 items × 10 headline months)  
+**Grain:** 1 row per contributing item × month (for waterfall visualization)
+**Cardinality:** ~500 rows (50 items × 10 headline months)
 **Relationships:**
 - `series_id` → qDimSeries.series_id
 - `obs_date` → qDimDate.date
@@ -332,13 +332,13 @@ Rank := SELECTEDVALUE(gold_inflation_contribution[rank_in_month])
 
 ### Module CURV — Treasury Curve Lab
 
-**Purpose:** Point-in-time yield curve, metrics (level/slope/curvature), and spread dynamics  
+**Purpose:** Point-in-time yield curve, metrics (level/slope/curvature), and spread dynamics
 **Terminal equivalent:** CURV / YCURV module
 
 #### 2.6 gold_treasury_curve
 
-**Grain:** 1 row per as-of date × tenor  
-**Cardinality:** ~30,000 rows (11 tenors × 2,500+ trading days)  
+**Grain:** 1 row per as-of date × tenor
+**Cardinality:** ~30,000 rows (11 tenors × 2,500+ trading days)
 **Relationships:**
 - `series_id` → qDimSeries.series_id (the `DGS*` series)
 - `as_of_date` → qDimDate.date
@@ -370,8 +370,8 @@ Tenor (sorted) := SELECTEDVALUE(gold_treasury_curve[tenor_months])
 
 #### 2.7 gold_treasury_curve_metrics
 
-**Grain:** 1 row per as-of date  
-**Cardinality:** ~2,500 rows (one per trading day)  
+**Grain:** 1 row per as-of date
+**Cardinality:** ~2,500 rows (one per trading day)
 **Relationships:**
 - `as_of_date` → qDimDate.date
 
@@ -407,8 +407,8 @@ Is Inverted := SELECTEDVALUE(gold_treasury_curve_metrics[is_inverted_10y2y])
 
 #### 2.8 gold_curve_spread_daily
 
-**Grain:** 1 row per spread × date  
-**Cardinality:** ~80,000 rows (7+ spreads × 2,500+ trading days)  
+**Grain:** 1 row per spread × date
+**Cardinality:** ~80,000 rows (7+ spreads × 2,500+ trading days)
 **Relationships:**
 - `obs_date` → qDimDate.date
 
@@ -443,8 +443,8 @@ Inversion Streak := SELECTEDVALUE(gold_curve_spread_daily[days_inverted_run])
 
 #### 2.9 gold_spread_inversion_episode
 
-**Grain:** 1 row per spread × inversion episode  
-**Cardinality:** ~30 rows (7 spreads × ~4 episodes in recent history)  
+**Grain:** 1 row per spread × inversion episode
+**Cardinality:** ~30 rows (7 spreads × ~4 episodes in recent history)
 **Relationships:**
 - `obs_date` → qDimDate.date (implied for filtering)
 
@@ -479,8 +479,8 @@ Recession Overlap := SELECTEDVALUE(gold_spread_inversion_episode[recession_overl
 
 #### 2.10 gold_curve_spread_rolling (rolling statistics companion)
 
-**Grain:** 1 row per spread × date × window  
-**Cardinality:** ~2M rows (7 spreads × 2,500 days × 7 windows)  
+**Grain:** 1 row per spread × date × window
+**Cardinality:** ~2M rows (7 spreads × 2,500 days × 7 windows)
 **Relationships:**
 - `obs_date` → qDimDate.date
 
@@ -499,13 +499,13 @@ Recession Overlap := SELECTEDVALUE(gold_spread_inversion_episode[recession_overl
 
 ### Module RATES — Benchmark Rates
 
-**Purpose:** Board of 43+ rates with trend, spread-to-benchmark, and regime  
+**Purpose:** Board of 43+ rates with trend, spread-to-benchmark, and regime
 **Terminal equivalent:** BMRK module
 
 #### 2.11 gold_benchmark_rate_board
 
-**Grain:** 1 row per rate (latest observation)  
-**Cardinality:** 43+ rows  
+**Grain:** 1 row per rate (latest observation)
+**Cardinality:** 43+ rows
 **Relationships:**
 - `series_id` → qDimSeries.series_id
 
@@ -539,13 +539,13 @@ Spread to Benchmark := SELECTEDVALUE(gold_benchmark_rate_board[spread_to_benchma
 
 ### Module FUND — Funding Tape (Fed Corridor, Balances, Spreads)
 
-**Purpose:** Daily funding-market snapshot with stress gauge  
+**Purpose:** Daily funding-market snapshot with stress gauge
 **Terminal equivalent:** FUND module
 
 #### 2.12 gold_funding_tape_daily
 
-**Grain:** 1 row per metric × date  
-**Cardinality:** ~50,000 rows (20+ metrics × 2,500+ days)  
+**Grain:** 1 row per metric × date
+**Cardinality:** ~50,000 rows (20+ metrics × 2,500+ days)
 **Relationships:**
 - `obs_date` → qDimDate.date
 
@@ -573,8 +573,8 @@ Z-Score := SELECTEDVALUE(gold_funding_tape_daily[z_score])
 
 #### 2.13 gold_funding_stress_daily
 
-**Grain:** 1 row per date  
-**Cardinality:** ~2,500 rows  
+**Grain:** 1 row per date
+**Cardinality:** ~2,500 rows
 **Relationships:**
 - `obs_date` → qDimDate.date
 
@@ -607,13 +607,13 @@ Stress Level := SELECTEDVALUE(gold_funding_stress_daily[stress_bucket])
 
 ### Module CRDT — Credit Spreads (OAS, Rating Curves, Sectors)
 
-**Purpose:** IG/HY spreads with valuation percentiles and stress episodes  
+**Purpose:** IG/HY spreads with valuation percentiles and stress episodes
 **Terminal equivalent:** CRDT module
 
 #### 2.14 gold_credit_spread_daily
 
-**Grain:** 1 row per instrument × date  
-**Cardinality:** ~50,000 rows (20 instruments × 2,500+ days)  
+**Grain:** 1 row per instrument × date
+**Cardinality:** ~50,000 rows (20 instruments × 2,500+ days)
 **Relationships:**
 - `series_id` → qDimSeries.series_id
 - `obs_date` → qDimDate.date
@@ -647,8 +647,8 @@ Stress Episode := SELECTEDVALUE(gold_credit_spread_daily[is_stress_episode])
 
 #### 2.15 gold_credit_spread_rolling
 
-**Grain:** 1 row per instrument × date × window  
-**Cardinality:** ~300K rows  
+**Grain:** 1 row per instrument × date × window
+**Cardinality:** ~300K rows
 **Relationships:**
 - `obs_date` → qDimDate.date
 
@@ -666,13 +666,13 @@ Stress Episode := SELECTEDVALUE(gold_credit_spread_daily[is_stress_episode])
 
 ### Module REGIME — Macro Regime Playbook
 
-**Purpose:** Daily regime score (5 pillars + composite) and named regime  
+**Purpose:** Daily regime score (5 pillars + composite) and named regime
 **Terminal equivalent:** REGIME module
 
 #### 2.16 gold_macro_regime_daily
 
-**Grain:** 1 row per date  
-**Cardinality:** ~2,500 rows  
+**Grain:** 1 row per date
+**Cardinality:** ~2,500 rows
 **Relationships:**
 - `obs_date` → qDimDate.date
 
@@ -723,13 +723,13 @@ Regime Confidence := SELECTEDVALUE(gold_macro_regime_daily[regime_confidence])
 
 ### Module STAT / EDA — Statistical Analysis (Correlation, Lead-Lag)
 
-**Purpose:** Curated correlation matrix and Granger causality (8 pre-selected pairs)  
+**Purpose:** Curated correlation matrix and Granger causality (8 pre-selected pairs)
 **Terminal equivalent:** STAT and EDA modules
 
 #### 2.17 gold_series_correlation
 
-**Grain:** 1 row per pair × window × as-of date  
-**Cardinality:** ~50,000 rows (8 pairs × 3 windows × 2,000+ as-of dates)  
+**Grain:** 1 row per pair × window × as-of date
+**Cardinality:** ~50,000 rows (8 pairs × 3 windows × 2,000+ as-of dates)
 **Relationships:**
 - `series_a`, `series_b` → qDimSeries.series_id
 - `as_of_date` → qDimDate.date
@@ -764,8 +764,8 @@ Window := SELECTEDVALUE(gold_series_correlation[window])
 
 #### 2.18 gold_series_lead_lag
 
-**Grain:** 1 row per pair × lag  
-**Cardinality:** ~200 rows (8 pairs × ±12 lags)  
+**Grain:** 1 row per pair × lag
+**Cardinality:** ~200 rows (8 pairs × ±12 lags)
 **Relationships:**
 - `series_a`, `series_b` → qDimSeries.series_id
 - `as_of_date` → qDimDate.date
@@ -796,13 +796,13 @@ Best Lag := SELECTEDVALUE(gold_series_lead_lag[best_lag])
 
 ### Module GCPI / GPOL — Global Inflation & Policy Rates
 
-**Purpose:** Multi-country inflation and policy rates (optional, lower priority)  
+**Purpose:** Multi-country inflation and policy rates (optional, lower priority)
 **Terminal equivalent:** GCPI and GPOL modules
 
 #### 2.19 gold_global_inflation
 
-**Grain:** 1 row per country × date  
-**Cardinality:** ~10,000 rows (12–40 countries × 100+ months)  
+**Grain:** 1 row per country × date
+**Cardinality:** ~10,000 rows (12–40 countries × 100+ months)
 **Relationships:**
 - `obs_date` → qDimDate.date
 
@@ -836,8 +836,8 @@ Trend := SELECTEDVALUE(gold_global_inflation[trend])
 
 #### 2.20 gold_global_policy_rates
 
-**Grain:** 1 row per country × date  
-**Cardinality:** ~10,000 rows  
+**Grain:** 1 row per country × date
+**Cardinality:** ~10,000 rows
 **Relationships:**
 - `obs_date` → qDimDate.date
 
@@ -870,8 +870,8 @@ Real Rate := SELECTEDVALUE(gold_global_policy_rates[ex_post_real_rate])
 
 #### 2.21 gold_powerbi_catalog
 
-**Grain:** 1 row per Gold table  
-**Cardinality:** 46+ rows  
+**Grain:** 1 row per Gold table
+**Cardinality:** 46+ rows
 **Purpose:** Data dictionary and table manifest for report authors
 
 | Column | Type | Description |
@@ -933,34 +933,34 @@ Real Rate := SELECTEDVALUE(gold_global_policy_rates[ex_post_real_rate])
 
 ### Time Intelligence
 ```dax
-Latest Value := 
+Latest Value :=
   SELECTEDVALUE(gold_macro_indicator_dashboard[latest_value])
 
-Prior Value := 
+Prior Value :=
   SELECTEDVALUE(gold_macro_indicator_dashboard[prior_value])
 
-YoY Change % := 
+YoY Change % :=
   SELECTEDVALUE(gold_macro_indicator_dashboard[yoy_pct])
 ```
 
 ### Aggregations (trending over time)
 ```dax
-Average Latest := 
+Average Latest :=
   AVERAGE(gold_macro_indicator_dashboard[latest_value])
 
-Max Z-Score := 
+Max Z-Score :=
   MAX(gold_macro_indicator_dashboard[z_score])
 
-Breadth % := 
+Breadth % :=
   AVERAGE(gold_macro_category_summary[breadth_pct])
 ```
 
 ### Conditional Logic
 ```dax
-Is Bullish := 
+Is Bullish :=
   SELECTEDVALUE(gold_macro_indicator_dashboard[direction_is_good])
 
-Stress Level := 
+Stress Level :=
   IF(
     SELECTEDVALUE(gold_funding_stress_daily[stress_score]) > 75,
     "Stressed",
@@ -974,10 +974,10 @@ Stress Level :=
 
 ### Multi-Table Aggregations
 ```dax
-Average Correlation := 
+Average Correlation :=
   AVERAGE(gold_series_correlation[correlation])
-  
-% Positive Correlation := 
+
+% Positive Correlation :=
   DIVIDE(
     COUNTIF(gold_series_correlation[correlation], ">0"),
     COUNTA(gold_series_correlation[correlation])
@@ -1079,8 +1079,8 @@ Average Correlation :=
 
 **Power BI conditional formatting:**
 ```dax
-Staleness Color := 
-  IF([staleness_days] <= 1, "Green", 
+Staleness Color :=
+  IF([staleness_days] <= 1, "Green",
   IF([staleness_days] <= 7, "Yellow", "Red"))
 ```
 
@@ -1153,6 +1153,6 @@ Staleness Color :=
 
 ---
 
-**Last Updated:** 2026-08-19  
-**Status:** Complete and tested  
+**Last Updated:** 2026-08-19
+**Status:** Complete and tested
 **All 46 Gold tables ready for Power BI consumption**
