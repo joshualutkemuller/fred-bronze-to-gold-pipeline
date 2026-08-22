@@ -76,6 +76,7 @@ Clusters must be allowed to reach the source APIs. Confirm outbound HTTPS to:
 | FRED | `api.stlouisfed.org` | always |
 | BLS | `api.bls.gov` | a `source: bls` series is active |
 | EIA | `api.eia.gov` | a `source: eia` series is active |
+| ECB | `data-api.ecb.europa.eu` | a `source: ecb` series is active; override with `ECB_BASE_URL` only for approved proxy/mirror routes |
 | US Treasury | `api.fiscaldata.treasury.gov` | a `source: treasury` series is active |
 | World Bank | `api.worldbank.org` | a `source: worldbank` series is active |
 | BEA | `apps.bea.gov` | a `source: bea` series is active |
@@ -171,7 +172,7 @@ env-var table in the README.
 |---|---|---|---|
 | Target catalog | `--env` | `dev` → `macro_dev` | promotion path |
 | FRED request rate | `rate_limit_per_minute` | `120/min` | keep unless FRED tier differs |
-| BLS / EIA request rate | client default | `25` / `60` per min | tune to your quota (BLS cap is **daily**) |
+| BLS / EIA / ECB request rate | client default | `25` / `60` / `60` per min | tune to your quota (BLS cap is **daily**) |
 | Restate window | `restate_last_n` | `90` obs | global incremental re-pull depth |
 | Complete vintage history | `complete_vintage_history` | `false` | `true` = full ALFRED backfill (heavier) |
 | Extract concurrency | `extract_workers` | `8` | threads sharing the rate limiter |
@@ -191,10 +192,11 @@ per-series manifest fields under `manifests/` (validated by
 ### Q1. Source activation
 - [ ] Which of the ~2,300 FRED series stay `active: true`?
 - [ ] Activate any of the inactive demo manifests? `bls_labor.yml`,
-      `eia_energy.yml`, `treasury_fiscal.yml`, `worldbank_global.yml`,
-      `bea_national_accounts.yml`, `census_indicators.yml`, `sec_financials.yml`
-      are all `active: false` today. EIA and BEA **require** a key (A3);
-      Treasury / World Bank / Census / SEC are keyless (SEC needs a User-Agent).
+      `eia_energy.yml`, `ecb_rates.yml`, `treasury_fiscal.yml`,
+      `worldbank_global.yml`, `bea_national_accounts.yml`,
+      `census_indicators.yml`, `sec_financials.yml` are all `active: false`
+      today. EIA and BEA **require** a key (A3); ECB / Treasury / World Bank /
+      Census / SEC are keyless (SEC needs a User-Agent).
       For SEC at scale, generate the manifest with
       `fred_pipeline.sources.sec.build_sec_manifest` rather than by hand.
 - [ ] **Verify the demo series IDs live** once keys exist (blocked in the build
@@ -278,6 +280,6 @@ Run after the first ingestion in an environment:
 `FRED_NOTIFY_ON`, `FRED_ALERT_WEBHOOK_URL`, `FRED_CONFIG_FILE`.
 
 **Not built (optional future work, not required for go-live):** per-source
-metadata reconciliation for BLS/EIA (reconcile is FRED-only and skips other
+metadata reconciliation for BLS/EIA/ECB (reconcile is FRED-only and skips other
 sources); per-frequency EIA incremental windowing; multi-series batching per
 source. See `docs/adding_a_source.md`.

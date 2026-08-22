@@ -26,6 +26,9 @@ default:
 
   # --- FRED API client ---
   fred_base_url: "https://api.stlouisfed.org/fred"
+  # Optional override for environments that route ECB traffic through an
+  # approved proxy/mirror. The official ECB endpoint is the default.
+  ecb_base_url: "https://data-api.ecb.europa.eu/service"
   request_timeout_seconds: 30
   max_retries: 5
   rate_limit_per_minute: 120

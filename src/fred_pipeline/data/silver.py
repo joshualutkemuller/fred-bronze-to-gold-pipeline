@@ -42,42 +42,71 @@ def _normalize_for_source(
         from fred_pipeline.sources.bls import normalize_bls_observations
 
         return normalize_bls_observations(
-            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            series_id,
+            payload,
+            run_id=run_id,
+            ingested_at=ingested_at,
             source=source,
         )
     if source == "eia":
         from fred_pipeline.sources.eia import normalize_eia_observations
 
         return normalize_eia_observations(
-            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            series_id,
+            payload,
+            run_id=run_id,
+            ingested_at=ingested_at,
+            source=source,
+        )
+    if source == "ecb":
+        from fred_pipeline.sources.ecb import normalize_ecb_observations
+
+        return normalize_ecb_observations(
+            series_id,
+            payload,
+            run_id=run_id,
+            ingested_at=ingested_at,
+            track_vintage=track_vintage,
             source=source,
         )
     if source == "treasury":
         from fred_pipeline.sources.treasury import normalize_treasury_observations
 
         return normalize_treasury_observations(
-            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            series_id,
+            payload,
+            run_id=run_id,
+            ingested_at=ingested_at,
             source=source,
         )
     if source == "worldbank":
         from fred_pipeline.sources.worldbank import normalize_worldbank_observations
 
         return normalize_worldbank_observations(
-            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            series_id,
+            payload,
+            run_id=run_id,
+            ingested_at=ingested_at,
             source=source,
         )
     if source == "bea":
         from fred_pipeline.sources.bea import normalize_bea_observations
 
         return normalize_bea_observations(
-            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            series_id,
+            payload,
+            run_id=run_id,
+            ingested_at=ingested_at,
             source=source,
         )
     if source == "census":
         from fred_pipeline.sources.census import normalize_census_observations
 
         return normalize_census_observations(
-            series_id, payload, run_id=run_id, ingested_at=ingested_at,
+            series_id,
+            payload,
+            run_id=run_id,
+            ingested_at=ingested_at,
             source=source,
         )
     if source == "sec":
@@ -89,13 +118,22 @@ def _normalize_for_source(
         # Replay honors the same SEC_PERIOD as ingestion (Bronze keeps every
         # duration verbatim, so the period filter must be re-applied here).
         return normalize_sec_observations(
-            series_id, payload, run_id=run_id, ingested_at=ingested_at,
-            track_vintage=track_vintage, source=source, period=resolve_sec_period(),
+            series_id,
+            payload,
+            run_id=run_id,
+            ingested_at=ingested_at,
+            track_vintage=track_vintage,
+            source=source,
+            period=resolve_sec_period(),
         )
     # default: FRED (and any unknown source, which stays FRED-shaped)
     return normalize_observations(
-        series_id, payload, run_id=run_id, ingested_at=ingested_at,
-        track_vintage=track_vintage, source=source or "fred",
+        series_id,
+        payload,
+        run_id=run_id,
+        ingested_at=ingested_at,
+        track_vintage=track_vintage,
+        source=source or "fred",
     )
 
 
@@ -114,7 +152,11 @@ def build_silver_rows(
     payloads alike (used by the Bronze→Silver replay path).
     """
     rows = _normalize_for_source(
-        source, series_id, payload, run_id=run_id, ingested_at=ingested_at,
+        source,
+        series_id,
+        payload,
+        run_id=run_id,
+        ingested_at=ingested_at,
         track_vintage=track_vintage,
     )
     return assign_revision_numbers(rows)
@@ -146,9 +188,7 @@ def merge_silver(
     for col in df.columns:
         cast = _SILVER_CASTS.get(col)
         if cast in ("date", "timestamp"):
-            exprs.append(
-                f"CAST(NULLIF({col}, '') AS {cast}) AS {col}"
-            )
+            exprs.append(f"CAST(NULLIF({col}, '') AS {cast}) AS {col}")
         else:
             exprs.append(col)
     df = df.selectExpr(*exprs)

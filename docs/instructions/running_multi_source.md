@@ -23,6 +23,7 @@ Set environment variables (the recommended way — nothing lands in git):
 | FRED | `FRED_API_KEY` | **Required** | https://fred.stlouisfed.org/docs/api/api_key.html |
 | EIA | `EIA_API_KEY` | **Required** | https://www.eia.gov/opendata/register.php |
 | BEA | `BEA_API_KEY` | **Required** | https://apps.bea.gov/api/signup/ |
+| ECB | — | Nothing needed (keyless SDMX API) | — |
 | BLS | `BLS_API_KEY` | Optional — keyless works at a lower daily quota | https://data.bls.gov/registrationEngine/ |
 | Census | `CENSUS_API_KEY` | Optional — keyless works | https://api.census.gov/data/key_signup.html |
 | SEC | `SEC_USER_AGENT` | Not a key — set to your **contact email**; SEC requires an identifying User-Agent | — |
@@ -48,6 +49,9 @@ Alternatively put them in a git-ignored `config/config.yaml`
 `eia_api_key: "..."` under `default:`). Precedence, highest wins:
 **explicit CLI/arg → environment variable → config file → built-in default**
 (and on Databricks, the FRED key additionally falls back to a secret scope).
+For ECB network routing, the default endpoint is
+`https://data-api.ecb.europa.eu/service`; set `ECB_BASE_URL` / `ecb_base_url`
+only if your workspace routes ECB requests through an approved proxy or mirror.
 
 ## 2. Activate the series you want
 
@@ -75,6 +79,7 @@ Manifests you may want to activate:
 | `treasury_fiscal.yml` | treasury | debt/fiscal series |
 | `worldbank_global.yml` | worldbank | global indicators |
 | `bea_national_accounts.yml` | bea | NIPA tables |
+| `ecb_rates.yml` | ecb | ECB Data Portal exchange rates / euro area rates |
 | `census_indicators.yml` | census | economic indicators |
 | `sec_financials.yml` | sec | company XBRL fundamentals |
 | `equity_stooq.yml` | stooq | optional/inactive broad ETFs + large-cap stocks for vendor reconciliation |
@@ -225,7 +230,7 @@ sqlite3 fred_local.db "SELECT series_id, status, error_message
 * **Key gating is per-source and activation-aware.** Keys are only required
   for sources with at least one active series (see
   `pipeline.SOURCE_KEY_REQUIREMENTS`); BLS and Census run keyless at reduced
-  quotas; Treasury, World Bank, and SEC need no key at all (SEC wants
+  quotas; ECB, Treasury, World Bank, and SEC need no key at all (SEC wants
   `SEC_USER_AGENT`).
 * **Idempotent re-runs.** Silver upserts on the natural key
   `(source, series_id, observation_date, realtime_start)` — activate a

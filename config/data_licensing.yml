@@ -138,6 +138,21 @@ sources:
     last_reviewed_date: "2026-07-26"
     notes: U.S. federal government work (Energy Information Administration).
 
+  - source: ecb
+    license_type: open-data
+    review_status: provisional
+    redistribution_allowed: true
+    commercial_use_allowed: true
+    attribution_required: true
+    terms_url: https://data.ecb.europa.eu/help
+    last_reviewed_date: "2026-08-22"
+    notes: >
+      European Central Bank Data Portal. Added provisionally from the public API
+      help pages while wiring source ingestion; a human must read the ECB's
+      primary terms/copyright page and set review_status: verified with
+      reviewed_by before relying on this for external redistribution or a real
+      commercial compliance decision. Attribute ECB as the data source.
+
   - source: worldbank
     license_type: open-data
     review_status: provisional

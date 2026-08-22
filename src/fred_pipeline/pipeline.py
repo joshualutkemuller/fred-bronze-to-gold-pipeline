@@ -27,6 +27,7 @@ from fred_pipeline.sources.bea import BEAClient
 from fred_pipeline.sources.bis import BISClient
 from fred_pipeline.sources.bls import BLSClient
 from fred_pipeline.sources.census import CensusClient
+from fred_pipeline.sources.ecb import ECBClient
 from fred_pipeline.sources.eia import EIAClient
 from fred_pipeline.sources.fred import FredClient
 from fred_pipeline.sources.ishares import ISharesClient
@@ -73,6 +74,15 @@ def _make_eia(config: PipelineConfig) -> SourceClient:
         timeout=config.request_timeout_seconds,
         max_retries=config.max_retries,
         rate_limit_per_minute=_rate_limit_for_source(config, "eia"),
+    )
+
+
+def _make_ecb(config: PipelineConfig) -> SourceClient:
+    return ECBClient(
+        base_url=config.ecb_base_url,
+        timeout=config.request_timeout_seconds,
+        max_retries=config.max_retries,
+        rate_limit_per_minute=_rate_limit_for_source(config, "ecb"),
     )
 
 
@@ -184,6 +194,7 @@ SOURCE_FACTORIES = {
     "fred": _make_fred,
     "bls": _make_bls,
     "eia": _make_eia,
+    "ecb": _make_ecb,
     "treasury": _make_treasury,
     "worldbank": _make_worldbank,
     "bis": _make_bis,
@@ -263,6 +274,7 @@ def _rate_limit_for_source(config: PipelineConfig, source: str) -> int:
         "fred": config.rate_limit_per_minute,
         "bls": 25,
         "eia": 60,
+        "ecb": 60,
         "treasury": 120,
         "worldbank": 60,
         "bis": 30,
@@ -458,16 +470,18 @@ class FredPipeline:
         # run that died, not just the ones that finished.
         try:
             with tracker.stage("extract") as extract_stage:
-                grouped: dict[str, list[tuple[int, SeriesSpec, tuple[str | None, str]]]] = (
-                    defaultdict(list)
-                )
+                grouped: dict[
+                    str, list[tuple[int, SeriesSpec, tuple[str | None, str]]]
+                ] = defaultdict(list)
                 for idx, (spec, plan) in enumerate(zip(specs, plans)):
                     grouped[(getattr(spec, "source", "fred") or "fred").lower()].append(
                         (idx, spec, plan)
                     )
                 for source in grouped:
                     if source in self._clients or source in SOURCE_FACTORIES:
-                        self._client_for_source(source)  # build clients before threads race
+                        self._client_for_source(
+                            source
+                        )  # build clients before threads race
                 pools: list[ThreadPoolExecutor] = []
                 futures = {}
                 completed = 0
@@ -493,7 +507,9 @@ class FredPipeline:
                         idx = futures[fut]
                         spec, (_observation_start, load_type), sr = work_items[idx]
                         outcome = fut.result()
-                        self._finish_series(run, spec, load_type, outcome, series_run=sr)
+                        self._finish_series(
+                            run, spec, load_type, outcome, series_run=sr
+                        )
                         completed += 1
                         self._update_run_progress(run, total=len(specs))
                         self._persist_incremental_audit(run, sr)

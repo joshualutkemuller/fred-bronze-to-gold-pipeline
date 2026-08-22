@@ -8,13 +8,13 @@ silver row schema and never inspect where a row came from. Adding a new source
 pipeline.
 
 FRED has been refactored onto the shared transport, and **BLS**, **EIA**,
-**US Treasury**, **World Bank**, **BEA**, **Census**, and **SEC** (company
+**ECB**, **US Treasury**, **World Bank**, **BEA**, **Census**, and **SEC** (company
 financials) are wired through the orchestrator end-to-end as additional,
 differently-shaped sources. See `src/fred_pipeline/sources/` and each source's
 `tests/test_*_client.py` (each runs its source through `FredPipeline` and
 asserts series are dispatched to the right client). Treasury, World Bank,
-Census, and SEC are keyless (SEC needs a descriptive User-Agent); EIA and BEA
-require a key.
+Census, ECB, and SEC are keyless (SEC needs a descriptive User-Agent); EIA and
+BEA require a key.
 
 SEC is the one that exercises the point-in-time machinery: each filing's `filed`
 date becomes `realtime_start`, so restatements/amendments land as genuine
@@ -36,6 +36,7 @@ src/fred_pipeline/sources/
   fred.py       # FredClient: auth, vintage-cap recovery, vintage batching, discovery
   bls.py        # BLSClient: HTTP 200-on-failure, nested year/period payload
   eia.py        # EIAClient: v2 seriesid route, error-field body, period strings
+  ecb.py        # ECBClient: keyless SDMX CSV, dataflow:key ids, revisions
   treasury.py   # TreasuryClient: keyless Fiscal Data, dataset:field series ids, paging
   worldbank.py  # WorldBankClient: keyless, top-level [meta,data] array, 200-on-error
   bea.py        # BEAClient: UserID auth, table:line series ids, Error-block on 200
@@ -87,7 +88,9 @@ Per source you override only what genuinely differs:
 Each new source is a good stress test because it breaks a different FRED
 assumption — BLS returns HTTP 200 on logical failure with a nested
 `year`/`period` shape; EIA nests data under `response.data[]` and dates rows by
-a frequency-dependent `period` string. Yet in every case the normalized rows
+a frequency-dependent `period` string; ECB serves SDMX CSV with
+`TIME_PERIOD`/`OBS_VALUE` and optional `VALID_FROM` revision timestamps. Yet in
+every case the normalized rows
 pass the same DQ checks and MERGE into the warehouse idempotently
 (`test_bls_rows_pass_dq_and_merge_into_warehouse`,
 `test_eia_rows_pass_dq_and_merge`).
@@ -103,7 +106,7 @@ The following are implemented — a series declaring `source: bls` flows through
    demo `manifests/bls_labor.yml` (inactive by default).
 2. **Client selection.** `pipeline.SOURCE_FACTORIES` maps `source` → a client
    factory (`{"fred", "bls", "eia", "treasury", "worldbank", "bea", "census",
-   "sec"}`). `FredPipeline._client_for(spec)`
+   "sec", "ecb"}`). `FredPipeline._client_for(spec)`
    resolves and caches the right client per series; unknown sources fail that
    one series (per-series isolation) rather than the run. Clients can also be
    injected via the `clients=` constructor arg (used in tests).
@@ -157,4 +160,4 @@ on its own schedule, failing/alerting independently — see
 a Databricks secret via `spark_env_vars`. The entrypoints
 (`cli.py` / `notebooks/run_pipeline.py`) only require the keys the *active*
 sources in the given manifest set actually need (`pipeline.missing_source_keys`),
-so a BLS/EIA-only job doesn't demand a FRED key.
+so a BLS/EIA/ECB-only job doesn't demand a FRED key.

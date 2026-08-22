@@ -16,7 +16,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 try:
     import yaml
@@ -46,6 +46,7 @@ DEFAULT_CONFIG_PATH = "config/config.yaml"
 _SETTING_FIELDS = (
     "fred_api_key",
     "fred_base_url",
+    "ecb_base_url",
     "bls_api_key",
     "eia_api_key",
     "bea_api_key",
@@ -72,6 +73,7 @@ _SETTING_FIELDS = (
 _ENV_OVERRIDES = {
     "fred_api_key": "FRED_API_KEY",
     "fred_base_url": "FRED_BASE_URL",
+    "ecb_base_url": "ECB_BASE_URL",
     "bls_api_key": "BLS_API_KEY",
     "eia_api_key": "EIA_API_KEY",
     "bea_api_key": "BEA_API_KEY",
@@ -107,7 +109,7 @@ _TRUE_STRINGS = {"1", "true", "yes", "on"}
 
 
 def load_config_file(
-    path: Optional[str] = None, environment: str = "dev"
+    path: str | None = None, environment: str = "dev"
 ) -> dict[str, Any]:
     """Load settings from a YAML config file, merged for the given environment.
 
@@ -133,7 +135,7 @@ def load_config_file(
     with open(resolved, "r", encoding="utf-8") as fh:
         data = yaml.safe_load(fh) or {}
     if not isinstance(data, dict):
-        raise ValueError(f"Config file {resolved} must be a mapping at the top level")
+        raise TypeError(f"Config file {resolved} must be a mapping at the top level")
 
     settings: dict[str, Any] = {}
     if "default" in data or "environments" in data:
@@ -199,6 +201,7 @@ class PipelineConfig:
     environment: Environment = Environment.DEV
     fred_api_key: str = field(repr=False, default="")
     fred_base_url: str = "https://api.stlouisfed.org/fred"
+    ecb_base_url: str = "https://data-api.ecb.europa.eu/service"
     # Optional keys for additional sources (see fred_pipeline.sources). BLS and
     # Census work keyless at a lower quota; EIA and BEA require a key. SEC needs
     # a descriptive User-Agent (contact), not a key. Keys are never logged.
@@ -206,7 +209,9 @@ class PipelineConfig:
     eia_api_key: str = field(repr=False, default="")
     bea_api_key: str = field(repr=False, default="")
     census_api_key: str = field(repr=False, default="")
-    sec_user_agent: str = "fred-bronze-to-gold-pipeline (set SEC_USER_AGENT to your contact)"
+    sec_user_agent: str = (
+        "fred-bronze-to-gold-pipeline (set SEC_USER_AGENT to your contact)"
+    )
     stooq_api_key: str = field(repr=False, default="")  # Stooq CSV download key
     tiingo_api_key: str = field(repr=False, default="")  # equity total return
     secret_scope: str = "fred"
@@ -259,12 +264,12 @@ class PipelineConfig:
     def resolve(
         cls,
         environment: Environment | str = Environment.DEV,
-        fred_api_key: Optional[str] = None,
+        fred_api_key: str | None = None,
         *,
         dbutils=None,
-        config_file: Optional[str] = None,
+        config_file: str | None = None,
         **overrides,
-    ) -> "PipelineConfig":
+    ) -> PipelineConfig:
         """Build a config from file + env + args + Databricks secrets.
 
         Precedence for every setting (highest wins):
@@ -297,7 +302,7 @@ class PipelineConfig:
         if not key and dbutils is not None:
             try:
                 key = dbutils.secrets.get(scope=scope, key=secret_key)
-            except Exception:  # pragma: no cover - depends on Databricks runtime
+            except (AttributeError, KeyError, RuntimeError):  # pragma: no cover
                 key = None
         settings["fred_api_key"] = key or ""
 
@@ -305,15 +310,21 @@ class PipelineConfig:
         # config field name (e.g. secrets/<scope>/eia_api_key — matching
         # resources/source_jobs.yml). Optional: a missing secret leaves the key
         # empty; the source's client only raises if such a series is run.
-        for field_name in ("bls_api_key", "eia_api_key", "bea_api_key",
-                           "census_api_key", "stooq_api_key", "tiingo_api_key"):
+        for field_name in (
+            "bls_api_key",
+            "eia_api_key",
+            "bea_api_key",
+            "census_api_key",
+            "stooq_api_key",
+            "tiingo_api_key",
+        ):
             if not settings.get(field_name) and dbutils is not None:
                 try:
                     settings[field_name] = dbutils.secrets.get(
                         scope=scope, key=field_name
                     )
-                except Exception:  # pragma: no cover - depends on runtime
-                    pass
+                except (AttributeError, KeyError, RuntimeError):  # pragma: no cover
+                    continue
 
         # Only pass recognized fields to the (frozen) dataclass.
         kwargs = {k: v for k, v in settings.items() if k in _SETTING_FIELDS}

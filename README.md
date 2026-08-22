@@ -7,8 +7,8 @@ dashboards, optimizer inputs, and **point-in-time** macro features.
 
 Started FRED-only; the source layer is now pluggable, so a series declares its
 upstream API (`source:` in the manifest) and flows through the same path.
-**Twelve sources are wired**: FRED, BLS, EIA, US Treasury, World Bank, BIS, BEA,
-Census, SEC (company financials), Tiingo, Stooq, and iShares — see
+**Thirteen sources are wired**: FRED, BLS, EIA, ECB, US Treasury, World Bank,
+BIS, BEA, Census, SEC (company financials), Tiingo, Stooq, and iShares — see
 [Data sources](#data-sources).
 
 > 📄 The original product spec / engineering handoff lives in
@@ -36,8 +36,8 @@ Census, SEC (company financials), Tiingo, Stooq, and iShares — see
 ## What it does
 
 ```
-manifests/*.yml → source API (FRED / BLS / EIA / Treasury / World Bank /
-                              BEA / Census / SEC) → Bronze (raw JSON)
+manifests/*.yml → source API (FRED / BLS / EIA / ECB / Treasury /
+                              World Bank / BEA / Census / SEC) → Bronze (raw JSON)
      → Silver (normalized, MERGE) → Data Quality
      → Gold (latest / point-in-time / daily feature matrix)
      → full audit trail (runs, series, DQ results)
@@ -67,7 +67,7 @@ fred-bronze-to-gold-pipeline/
 ├── src/fred_pipeline/    # the Python package (pure core + Spark I/O)
 │   ├── config.py, pipeline.py, cli.py, backfill.py, replay.py
 │   │                     #   entrypoints/foundation — stay at the top level
-│   ├── sources/          # pluggable source clients (base + fred/bls/eia/…/sec)
+│   ├── sources/          # pluggable source clients (base + fred/bls/eia/ecb/…)
 │   ├── catalogs/         # manifest model, API-driven discovery, meta-table sync
 │   ├── gold_config/          # config-driven Gold-feature loaders (spreads, curve
 │   │                     #   tenors, regime playbook, cross-series, …)
@@ -268,6 +268,8 @@ environments:
 | FRED API key | `fred_api_key` | `FRED_API_KEY` | `--fred-api-key`* / secret scope |
 | BLS API key (optional) | `bls_api_key` | `BLS_API_KEY` | keyless works at a lower quota |
 | EIA API key | `eia_api_key` | `EIA_API_KEY` | required to activate `source: eia` series |
+| ECB API key | — | — | keyless |
+| ECB API base URL | `ecb_base_url` | `ECB_BASE_URL` | optional proxy/mirror override; default is official ECB endpoint |
 | BEA API key | `bea_api_key` | `BEA_API_KEY` | required to activate `source: bea` series |
 | Census API key (optional) | `census_api_key` | `CENSUS_API_KEY` | keyless works at a lower quota |
 | SEC User-Agent | `sec_user_agent` | `SEC_USER_AGENT` | set to your contact; SEC 403s without a descriptive UA |
@@ -288,15 +290,15 @@ on the CLI, use the config file, `FRED_API_KEY`, or a Databricks secret scope.
 ## Data sources
 
 A series' `source:` selects its upstream API and its client; every source lands
-in the same tables, tagged by `source` in the natural key. **Twelve source
+in the same tables, tagged by `source` in the natural key. **Thirteen source
 clients are wired**, eleven of which have active series today.
 
 Counts below are the currently-active series per source
-(`active: true` in `manifests/*.yml`) — **2,820 active of 2,920 declared**.
+(`active: true` in `manifests/*.yml`) — **2,821 active of 2,922 declared**.
 
 | Source | `source:` | API key | Active series | Manifests |
 |---|---|---|---|---|
-| FRED | `fred` | required | **2,570** | the domain manifests |
+| FRED | `fred` | required | **2,571** | the domain manifests |
 | Tiingo | `tiingo` | **required** | 85 | `equity_tiingo.yml` |
 | BLS | `bls` | optional (keyless) | 60 | `bls_cpi_basket.yml`, `bls_cpi_basket_sa.yml`, `bls_labor.yml` |
 | World Bank | `worldbank` | none | 37 | `worldbank_global.yml` |
@@ -307,6 +309,7 @@ Counts below are the currently-active series per source
 | US Treasury | `treasury` | none | 2 | `treasury_fiscal.yml` |
 | Census | `census` | optional (keyless) | 1 | `census_indicators.yml` |
 | iShares | `ishares` | none | 1 | `etf_holdings.yml` |
+| ECB | `ecb` | none | **0** (manifest inactive) | `ecb_rates.yml` |
 | Stooq | `stooq` | none | **0** (manifest inactive) | `equity_stooq.yml` |
 
 SEC is the one that exercises the point-in-time machinery — each filing's `filed`
@@ -369,15 +372,16 @@ SOFR, breakevens) it's a cheap no-op — one vintage per date.
 ### 2. Add a series from another source
 
 Series aren't limited to FRED. A manifest entry can set `source:` to `bls`,
-`eia`, `treasury`, `worldbank`, `bea`, `census`, or `sec` and it flows through
-the same Bronze/Silver/Gold path — each row is tagged with its `source` in the
-natural key. Treasury, World Bank, Census, and SEC are keyless (SEC needs a
-descriptive User-Agent); EIA and BEA require a key. **SEC** brings company
-financials (fundamentals from EDGAR XBRL) in as point-in-time series. See the
+`eia`, `ecb`, `treasury`, `worldbank`, `bea`, `census`, or `sec` and it flows
+through the same Bronze/Silver/Gold path — each row is tagged with its `source`
+in the natural key. ECB, Treasury, World Bank, Census, and SEC are keyless
+(SEC needs a descriptive User-Agent); EIA and BEA require a key. **SEC** brings
+company financials (fundamentals from EDGAR XBRL) in as point-in-time series. See the
 inactive demos under `manifests/` (`bls_labor.yml`, `bls_cpi_basket.yml` — the
 full CPI-U item hierarchy, more complete than FRED's partial mirror —
 `eia_energy.yml`, `treasury_fiscal.yml`, `worldbank_global.yml`,
-`bea_national_accounts.yml`, `census_indicators.yml`, `sec_financials.yml`), and
+`bea_national_accounts.yml`, `census_indicators.yml`, `ecb_rates.yml`,
+`sec_financials.yml`), and
 [`docs/instructions/adding_a_source.md`](docs/instructions/adding_a_source.md) for how to add a new source
 (one client module + one registry entry).
 
@@ -488,7 +492,7 @@ checkboxed decision register in
   turn on what you want (and, for SEC at scale, generate the manifest with
   `fred_pipeline.sources.sec.build_sec_manifest`).
 - **Keys & secrets** — provision EIA/BEA keys and (optional) BLS/Census keys in
-  the secret scope; set `SEC_USER_AGENT`.
+  the secret scope; set `SEC_USER_AGENT`. ECB is keyless.
 - **Egress** — allow the source hosts the active sources need.
 - **Per-series data policy** — `vintage_enabled`, `validation_profile`, value
   bounds, `restate_records`; plus any new `config/spreads.yml` pairs.
@@ -502,9 +506,9 @@ checkboxed decision register in
 
 ## Status
 
-Implemented and tested (**857 unit tests + a Spark/Delta integration suite in
-CI**, green on the latest commit). Highlights: **twelve pluggable sources**
-(eleven with active series; Stooq ships inactive) with
+Implemented and tested (**984 non-Spark tests + a Spark/Delta integration suite in
+CI**, green on the latest commit). Highlights: **thirteen pluggable sources**
+(eleven with active series; ECB and Stooq ship inactive) with
 `source` in the natural key and source-aware Bronze lineage + replay;
 **API-driven FRED discovery**; **metadata governance** (drift + lifecycle vs.
 live FRED); **incremental loads** (full-on-first-run, then restate last N);

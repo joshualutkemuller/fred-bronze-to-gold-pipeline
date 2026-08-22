@@ -1,0 +1,22 @@
+name: ecb_rates
+description: >
+  European Central Bank Data Portal series (source: ecb). Keyless SDMX 2.1 API.
+  series_id is 'ECB:<flow_ref>:<key>'; example EXR key D.USD.EUR.SP00.A.
+version: 1
+
+series:
+  - series_id: "ECB:EXR:D.USD.EUR.SP00.A"
+    title: ECB Reference Exchange Rate - USD per EUR
+    category: international
+    frequency: d
+    units: USD per EUR
+    active: false
+    source: ecb
+    load_type: incremental
+    expected_update_frequency: daily
+    vintage_enabled: true
+    validation_profile: standard
+    downstream_use_case: fx_rates
+    priority: 2
+    min_value: 0
+    tags: [fx, ecb, euro-area]

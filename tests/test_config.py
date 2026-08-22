@@ -6,13 +6,26 @@ from fred_pipeline.config import PipelineConfig, load_config_file
 
 # Env vars that could leak in from the surrounding shell and skew precedence tests.
 _ENV_VARS = [
-    "FRED_API_KEY", "FRED_BASE_URL", "FRED_SECRET_SCOPE", "FRED_SECRET_KEY",
-    "FRED_REQUEST_TIMEOUT_SECONDS", "FRED_MAX_RETRIES",
-    "FRED_RATE_LIMIT_PER_MINUTE", "FRED_EXTRACT_WORKERS",
-    "FRED_SOURCE_EXTRACT_WORKERS", "FRED_SOURCE_RATE_LIMITS",
-    "FRED_RAW_VOLUME_PATH", "FRED_CONFIG_FILE",
-    "BLS_API_KEY", "EIA_API_KEY", "BEA_API_KEY", "CENSUS_API_KEY",
-    "SEC_USER_AGENT", "STOOQ_API_KEY", "TIINGO_API_KEY",
+    "FRED_API_KEY",
+    "FRED_BASE_URL",
+    "FRED_SECRET_SCOPE",
+    "FRED_SECRET_KEY",
+    "ECB_BASE_URL",
+    "FRED_REQUEST_TIMEOUT_SECONDS",
+    "FRED_MAX_RETRIES",
+    "FRED_RATE_LIMIT_PER_MINUTE",
+    "FRED_EXTRACT_WORKERS",
+    "FRED_SOURCE_EXTRACT_WORKERS",
+    "FRED_SOURCE_RATE_LIMITS",
+    "FRED_RAW_VOLUME_PATH",
+    "FRED_CONFIG_FILE",
+    "BLS_API_KEY",
+    "EIA_API_KEY",
+    "BEA_API_KEY",
+    "CENSUS_API_KEY",
+    "SEC_USER_AGENT",
+    "STOOQ_API_KEY",
+    "TIINGO_API_KEY",
 ]
 
 
@@ -33,46 +46,58 @@ def test_missing_file_returns_empty(tmp_path):
 
 
 def test_flat_layout(tmp_path):
-    path = _write(tmp_path, """
+    path = _write(
+        tmp_path,
+        """
         fred_api_key: from-file
         rate_limit_per_minute: 42
-    """)
+    """,
+    )
     settings = load_config_file(path)
     assert settings["fred_api_key"] == "from-file"
     assert settings["rate_limit_per_minute"] == 42
 
 
 def test_nested_layout_merges_environment(tmp_path):
-    path = _write(tmp_path, """
+    path = _write(
+        tmp_path,
+        """
         default:
           rate_limit_per_minute: 120
           secret_scope: fred
         environments:
           prod:
             rate_limit_per_minute: 60
-    """)
+    """,
+    )
     dev = load_config_file(path, "dev")
     prod = load_config_file(path, "prod")
     assert dev["rate_limit_per_minute"] == 120
-    assert prod["rate_limit_per_minute"] == 60      # env override wins
-    assert prod["secret_scope"] == "fred"           # default carried through
+    assert prod["rate_limit_per_minute"] == 60  # env override wins
+    assert prod["secret_scope"] == "fred"  # default carried through
 
 
 def test_unknown_keys_ignored(tmp_path):
-    path = _write(tmp_path, """
+    path = _write(
+        tmp_path,
+        """
         fred_api_key: k
         not_a_real_setting: 1
-    """)
+    """,
+    )
     settings = load_config_file(path)
     assert "not_a_real_setting" not in settings
 
 
 def test_resolve_uses_config_file(tmp_path):
-    path = _write(tmp_path, """
+    path = _write(
+        tmp_path,
+        """
         fred_api_key: file-key
         rate_limit_per_minute: 30
         max_retries: 9
-    """)
+    """,
+    )
     cfg = PipelineConfig.resolve(environment="dev", config_file=path)
     assert cfg.fred_api_key == "file-key"
     assert cfg.rate_limit_per_minute == 30
@@ -80,14 +105,23 @@ def test_resolve_uses_config_file(tmp_path):
 
 
 def test_env_var_overrides_file(tmp_path, monkeypatch):
-    path = _write(tmp_path, "fred_api_key: file-key\nrate_limit_per_minute: 30\n")
+    path = _write(
+        tmp_path,
+        """
+        fred_api_key: file-key
+        rate_limit_per_minute: 30
+        ecb_base_url: https://file-ecb.example/service
+        """,
+    )
     monkeypatch.setenv("FRED_API_KEY", "env-key")
+    monkeypatch.setenv("ECB_BASE_URL", "https://env-ecb.example/service")
     monkeypatch.setenv("FRED_RATE_LIMIT_PER_MINUTE", "77")
     monkeypatch.setenv("FRED_EXTRACT_WORKERS", "12")
     monkeypatch.setenv("FRED_SOURCE_EXTRACT_WORKERS", "fred=12,tiingo=1")
     monkeypatch.setenv("FRED_SOURCE_RATE_LIMITS", "fred=60,tiingo=5")
     cfg = PipelineConfig.resolve(environment="dev", config_file=path)
     assert cfg.fred_api_key == "env-key"
+    assert cfg.ecb_base_url == "https://env-ecb.example/service"
     assert cfg.rate_limit_per_minute == 77  # coerced to int
     assert cfg.extract_workers == 12
     assert cfg.source_extract_workers == "fred=12,tiingo=1"
@@ -115,8 +149,9 @@ def test_secret_scope_fallback_when_no_key(tmp_path):
 
     class FakeSecrets:
         def get(self, scope, key):
-            assert scope == "myscope" and key == "mykey"
-            return "secret-key"
+            if scope == "myscope" and key == "mykey":
+                return "secret-key"
+            raise RuntimeError("no such source secret")
 
     class FakeDbutils:
         secrets = FakeSecrets()
@@ -129,9 +164,12 @@ def test_secret_scope_fallback_when_no_key(tmp_path):
 
 def test_source_keys_fall_back_to_secret_scope():
     class FakeSecrets:
-        _store = {("fred", "bls_api_key"): "bls-from-secret",
-                  ("fred", "eia_api_key"): "eia-from-secret",
-                  ("fred", "stooq_api_key"): "stooq-from-secret"}
+        def __init__(self):
+            self._store = {
+                ("fred", "bls_api_key"): "bls-from-secret",
+                ("fred", "eia_api_key"): "eia-from-secret",
+                ("fred", "stooq_api_key"): "stooq-from-secret",
+            }
 
         def get(self, scope, key):
             return self._store[(scope, key)]  # KeyError if absent
@@ -153,7 +191,11 @@ def test_explicit_source_key_beats_secret_scope(monkeypatch):
 
     class FakeSecrets:
         def get(self, scope, key):
-            raise AssertionError("secret scope should not be consulted when set")
+            if key == "eia_api_key":
+                raise AssertionError(
+                    "EIA secret should not be consulted when env is set"
+                )
+            raise RuntimeError("no such secret")
 
     class FakeDbutils:
         secrets = FakeSecrets()
@@ -167,7 +209,7 @@ def test_explicit_source_key_beats_secret_scope(monkeypatch):
 def test_missing_source_secret_leaves_key_empty():
     class FakeSecrets:
         def get(self, scope, key):
-            raise Exception("no such secret")  # simulate absent secret
+            raise RuntimeError("no such secret")  # simulate absent secret
 
     class FakeDbutils:
         secrets = FakeSecrets()
@@ -202,6 +244,15 @@ def test_source_keys_from_env_reach_clients(monkeypatch):
     assert _make_bls(cfg).api_key == "bls-secret"
     assert _make_eia(cfg).api_key == "eia-secret"
     assert _make_stooq(cfg).api_key == "stooq-secret"
+
+
+def test_ecb_base_url_reaches_client(monkeypatch):
+    monkeypatch.setenv("ECB_BASE_URL", "https://ecb-proxy.example/service")
+    cfg = PipelineConfig.resolve(environment="dev", config_file="nope.yaml")
+
+    from fred_pipeline.pipeline import _make_ecb
+
+    assert _make_ecb(cfg).base_url == "https://ecb-proxy.example/service"
 
 
 def test_source_keys_default_empty():
